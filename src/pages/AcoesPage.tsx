@@ -62,6 +62,8 @@ export default function AcoesPage() {
           <h1 className="text-2xl font-bold">Plano de Ação</h1>
           <p className="text-sm text-muted-foreground">Ações corretivas vinculadas aos riscos identificados</p>
         </div>
+        <div className="flex items-center gap-3">
+          <CompanySelector />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" />Nova Ação</Button>
