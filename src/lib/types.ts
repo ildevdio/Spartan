@@ -1,5 +1,15 @@
+export interface Company {
+  id: string;
+  name: string;
+  cnpj: string;
+  address: string;
+  description: string;
+  created_at: string;
+}
+
 export interface Sector {
   id: string;
+  company_id: string;
   name: string;
   description: string;
   created_at: string;
