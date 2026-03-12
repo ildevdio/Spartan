@@ -54,6 +54,8 @@ export default function RiscosPage() {
           <h1 className="text-2xl font-bold">Matriz de Risco</h1>
           <p className="text-sm text-muted-foreground">Avaliação PGR — Probabilidade × Exposição × Consequência</p>
         </div>
+        <div className="flex items-center gap-3">
+          <CompanySelector />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" />Nova Avaliação</Button>
