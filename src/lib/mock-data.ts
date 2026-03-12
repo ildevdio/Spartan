@@ -1,11 +1,16 @@
-import type { Sector, Workstation, Analysis, RiskAssessment, ActionPlan, Report, RiskLevel } from "./types";
+import type { Sector, Workstation, Analysis, RiskAssessment, ActionPlan, Report, RiskLevel, Company } from "./types";
 import { calculateRiskScore, classifyRisk } from "./types";
 
+export const mockCompanies: Company[] = [
+  { id: "comp1", name: "Indústria ABC Ltda", cnpj: "12.345.678/0001-90", address: "Rua Industrial, 100 - São Paulo/SP", description: "Indústria metalúrgica de médio porte", created_at: "2025-01-01" },
+  { id: "comp2", name: "Logística XYZ S.A.", cnpj: "98.765.432/0001-10", address: "Av. Transportes, 500 - Campinas/SP", description: "Empresa de logística e distribuição", created_at: "2025-01-10" },
+];
+
 export const mockSectors: Sector[] = [
-  { id: "s1", name: "Produção", description: "Linha de produção industrial", created_at: "2025-01-15" },
-  { id: "s2", name: "Administrativo", description: "Escritórios administrativos", created_at: "2025-01-15" },
-  { id: "s3", name: "Logística", description: "Armazém e expedição", created_at: "2025-02-01" },
-  { id: "s4", name: "Manutenção", description: "Oficina e manutenção", created_at: "2025-02-10" },
+  { id: "s1", company_id: "comp1", name: "Produção", description: "Linha de produção industrial", created_at: "2025-01-15" },
+  { id: "s2", company_id: "comp1", name: "Administrativo", description: "Escritórios administrativos", created_at: "2025-01-15" },
+  { id: "s3", company_id: "comp1", name: "Logística", description: "Armazém e expedição", created_at: "2025-02-01" },
+  { id: "s4", company_id: "comp2", name: "Manutenção", description: "Oficina e manutenção", created_at: "2025-02-10" },
 ];
 
 export const mockWorkstations: Workstation[] = [

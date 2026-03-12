@@ -21,7 +21,7 @@ export default function SetoresPage() {
     if (editingSector) {
       setSectors(sectors.map((s) => (s.id === editingSector.id ? { ...s, name, description } : s)));
     } else {
-      setSectors([...sectors, { id: `s${Date.now()}`, name, description, created_at: new Date().toISOString().split("T")[0] }]);
+      setSectors([...sectors, { id: `s${Date.now()}`, company_id: "", name, description, created_at: new Date().toISOString().split("T")[0] }]);
     }
     resetForm();
   };
