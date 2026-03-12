@@ -151,7 +151,7 @@ export function AppSidebar() {
         {!collapsed && (
           <div className="flex items-center justify-center gap-1.5 overflow-hidden">
             <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase whitespace-nowrap">Desenvolvido por:</span>
-            <img src={focusLogo} alt="Focus" className="h-8 -my-1" />
+            <img src={focusLogo} alt="Focus" className="h-6" />
           </div>
         )}
       </SidebarFooter>
