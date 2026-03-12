@@ -26,9 +26,12 @@ export default function RelatoriosPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Relatórios de Conformidade</h1>
-        <p className="text-sm text-muted-foreground">Documentos técnicos de segurança e saúde ocupacional</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Relatórios de Conformidade</h1>
+          <p className="text-sm text-muted-foreground">Documentos técnicos de segurança e saúde ocupacional</p>
+        </div>
+        <CompanySelector />
       </div>
 
       {/* Report type cards */}

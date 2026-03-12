@@ -95,6 +95,7 @@ export default function RiscosPage() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Risk Matrix Visual */}

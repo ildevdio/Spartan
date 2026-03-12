@@ -88,6 +88,7 @@ export default function AcoesPage() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Status summary */}

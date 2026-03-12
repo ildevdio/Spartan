@@ -4,7 +4,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "@/components/AppLayout";
+import { CompanyProvider } from "@/lib/company-context";
 import DashboardPage from "./pages/DashboardPage";
+import EmpresasPage from "./pages/EmpresasPage";
 import SetoresPage from "./pages/SetoresPage";
 import PostosPage from "./pages/PostosPage";
 import AnalisesPage from "./pages/AnalisesPage";
@@ -21,19 +23,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/setores" element={<SetoresPage />} />
-            <Route path="/postos" element={<PostosPage />} />
-            <Route path="/analises" element={<AnalisesPage />} />
-            <Route path="/riscos" element={<RiscosPage />} />
-            <Route path="/acoes" element={<AcoesPage />} />
-            <Route path="/relatorios" element={<RelatoriosPage />} />
-            <Route path="/analise-camera" element={<AnaliseCameraPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+        <CompanyProvider>
+          <AppLayout>
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/empresas" element={<EmpresasPage />} />
+              <Route path="/setores" element={<SetoresPage />} />
+              <Route path="/postos" element={<PostosPage />} />
+              <Route path="/analises" element={<AnalisesPage />} />
+              <Route path="/riscos" element={<RiscosPage />} />
+              <Route path="/acoes" element={<AcoesPage />} />
+              <Route path="/relatorios" element={<RelatoriosPage />} />
+              <Route path="/analise-camera" element={<AnaliseCameraPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppLayout>
+        </CompanyProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
