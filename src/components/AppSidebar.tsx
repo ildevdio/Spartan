@@ -44,7 +44,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <img src={guardianLogo} alt="Guardian" className="h-8 w-8 shrink-0 invert" />
+          <img src={guardianLogo} alt="Guardian" className="h-12 w-12 shrink-0" />
           {!collapsed && (
             <div>
               <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
@@ -83,7 +83,7 @@ export function AppSidebar() {
         {!collapsed && (
           <div className="flex flex-col items-center gap-1">
             <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase">desenvolvido por</span>
-            <img src={focusLogo} alt="Focus" className="h-4 opacity-60" />
+            <img src={focusLogo} alt="Focus" className="h-7 opacity-70" />
           </div>
         )}
       </SidebarFooter>
