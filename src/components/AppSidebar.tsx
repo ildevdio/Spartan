@@ -29,8 +29,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { SpartanLogo } from "@/components/icons/SpartanLogo";
-import { FocusLogo } from "@/components/icons/FocusLogo";
+import spartanLogo from "@/assets/spartan-logo.png";
+import focusLogo from "@/assets/focus-logo.png";
 
 const empresasSubItems = [
   { title: "Setores", url: "/setores", icon: Building2 },
@@ -59,7 +59,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <SpartanLogo className="h-12 w-12 shrink-0 text-sidebar-primary" />
+          <img src={spartanLogo} alt="Spartan" className="h-12 w-12 shrink-0" />
           {!collapsed && (
             <div>
               <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground leading-none">
@@ -150,7 +150,7 @@ export function AppSidebar() {
         {!collapsed && (
           <div className="flex flex-col items-center gap-1">
             <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase">desenvolvido por</span>
-            <FocusLogo className="h-7 text-sidebar-muted/70" />
+            <img src={focusLogo} alt="Focus" className="h-7 opacity-70" />
           </div>
         )}
       </SidebarFooter>
