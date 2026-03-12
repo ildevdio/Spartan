@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { mockActionPlans, mockRiskAssessments, mockAnalyses, mockWorkstations } from "@/lib/mock-data";
 import { statusLabel, type ActionPlan, type ActionStatus } from "@/lib/types";
 import { Plus, CheckCircle2, Clock, CircleDot, Hourglass } from "lucide-react";
+import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
 import { RiskBadge } from "./DashboardPage";
 
