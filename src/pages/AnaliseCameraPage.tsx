@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Camera, Upload, Play, Square, RotateCcw, Save, Loader2, Eye } from "lucide-react";
 import { mockSectors, mockWorkstations } from "@/lib/mock-data";
+import { CompanySelector } from "@/components/CompanySelector";
 import {
   detectPose,
   calculateJointAngles,
@@ -296,11 +297,14 @@ export default function AnaliseCameraPage() {
             Detecção automática de postura com MoveNet (TensorFlow.js)
           </p>
         </div>
-        {step !== "upload" && (
-          <Button variant="outline" onClick={reset}>
-            <RotateCcw className="h-4 w-4 mr-2" /> Nova Análise
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          <CompanySelector />
+          {step !== "upload" && (
+            <Button variant="outline" onClick={reset}>
+              <RotateCcw className="h-4 w-4 mr-2" /> Nova Análise
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Step indicators */}

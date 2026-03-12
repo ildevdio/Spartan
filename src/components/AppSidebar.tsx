@@ -33,6 +33,7 @@ import spartanLogo from "@/assets/spartan-logo.png";
 import focusLogo from "@/assets/focus-logo.png";
 
 const empresasSubItems = [
+  { title: "Cadastro", url: "/empresas", icon: Building2 },
   { title: "Setores", url: "/setores", icon: Building2 },
   { title: "Postos de Trabalho", url: "/postos", icon: Monitor },
   { title: "Análises", url: "/analises", icon: ClipboardCheck },

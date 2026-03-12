@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { mockActionPlans, mockRiskAssessments, mockAnalyses, mockWorkstations } from "@/lib/mock-data";
 import { statusLabel, type ActionPlan, type ActionStatus } from "@/lib/types";
 import { Plus, CheckCircle2, Clock, CircleDot, Hourglass } from "lucide-react";
+import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
 import { RiskBadge } from "./DashboardPage";
 
@@ -61,6 +62,8 @@ export default function AcoesPage() {
           <h1 className="text-2xl font-bold">Plano de Ação</h1>
           <p className="text-sm text-muted-foreground">Ações corretivas vinculadas aos riscos identificados</p>
         </div>
+        <div className="flex items-center gap-3">
+          <CompanySelector />
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" />Nova Ação</Button>
@@ -85,6 +88,7 @@ export default function AcoesPage() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       {/* Status summary */}
