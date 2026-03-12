@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { mockRiskAssessments, mockAnalyses, mockWorkstations } from "@/lib/mock-data";
 import { calculateRiskScore, classifyRisk, riskLevelLabel, type RiskAssessment, type RiskLevel } from "@/lib/types";
 import { Plus, AlertTriangle } from "lucide-react";
+import { CompanySelector } from "@/components/CompanySelector";
 import { RiskBadge } from "./DashboardPage";
 
 export default function RiscosPage() {
