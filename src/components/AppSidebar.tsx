@@ -60,7 +60,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <img src={spartanLogo} alt="Spartan" className="h-16 w-16 shrink-0" />
+          <img src={spartanLogo} alt="Spartan" className="h-16 shrink-0 object-contain" />
           {!collapsed && (
             <div>
               <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground leading-none">
