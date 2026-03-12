@@ -101,7 +101,7 @@ export default function RiscosPage() {
           <div className="grid grid-cols-4 gap-2 text-center text-xs">
             <div className="p-3 rounded bg-success/20 text-success font-medium">Baixo ≤ 20</div>
             <div className="p-3 rounded bg-warning/20 text-warning font-medium">Médio 21–70</div>
-            <div className="p-3 rounded bg-orange-100 text-orange-600 font-medium">Alto 71–200</div>
+            <div className="p-3 rounded bg-high/20 text-high font-medium">Alto 71–200</div>
             <div className="p-3 rounded bg-critical/20 text-critical font-medium">Crítico &gt; 200</div>
           </div>
         </CardContent>
