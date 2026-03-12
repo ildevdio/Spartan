@@ -42,7 +42,7 @@ export default function RiscosPage() {
   const matrixColors: Record<RiskLevel, string> = {
     low: "bg-success/20 text-success",
     medium: "bg-warning/20 text-warning",
-    high: "bg-orange-100 text-orange-600",
+    high: "bg-high/20 text-high",
     critical: "bg-critical/20 text-critical",
   };
 
