@@ -147,11 +147,11 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border px-3 py-4">
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
         {!collapsed && (
-          <div className="flex items-center justify-center gap-1.5">
+          <div className="flex items-center justify-center gap-1.5 overflow-hidden">
             <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase whitespace-nowrap">Desenvolvido por:</span>
-            <img src={focusLogo} alt="Focus" className="h-8" />
+            <img src={focusLogo} alt="Focus" className="h-12 -my-2" />
           </div>
         )}
       </SidebarFooter>
