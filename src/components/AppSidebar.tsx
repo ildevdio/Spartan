@@ -144,7 +144,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-4">
         {!collapsed && (
           <div className="flex flex-col items-center gap-1">
             <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase">desenvolvido por</span>
