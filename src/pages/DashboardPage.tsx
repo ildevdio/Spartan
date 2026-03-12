@@ -136,7 +136,7 @@ export function RiskBadge({ level }: { level: string }) {
   const styles: Record<string, string> = {
     low: "bg-success/15 text-success border-success/20",
     medium: "bg-warning/15 text-warning border-warning/20",
-    high: "bg-warning/25 text-orange-600 border-orange-300",
+    high: "bg-high/15 text-high border-high/20",
     critical: "bg-critical/15 text-critical border-critical/20",
   };
   return (
