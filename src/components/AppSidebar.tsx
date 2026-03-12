@@ -29,8 +29,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { SpartanLogo } from "@/components/icons/SpartanLogo";
-import { FocusLogo } from "@/components/icons/FocusLogo";
+import spartanLogo from "@/assets/spartan-logo.png";
+import focusLogo from "@/assets/focus-logo.png";
 
 const empresasSubItems = [
   { title: "Setores", url: "/setores", icon: Building2 },
