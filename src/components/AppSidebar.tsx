@@ -60,7 +60,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <img src={spartanLogo} alt="Spartan" className="h-12 w-12 shrink-0" />
+          <img src={spartanLogo} alt="Spartan" className="h-16 w-16 shrink-0" />
           {!collapsed && (
             <div>
               <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground leading-none">
@@ -149,9 +149,9 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border px-3 py-4">
         {!collapsed && (
-          <div className="flex flex-col items-center gap-1">
-            <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase">desenvolvido por</span>
-            <img src={focusLogo} alt="Focus" className="h-[120px]" />
+          <div className="flex items-center justify-center gap-1.5">
+            <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase whitespace-nowrap">Desenvolvido por:</span>
+            <img src={focusLogo} alt="Focus" className="h-8" />
           </div>
         )}
       </SidebarFooter>
