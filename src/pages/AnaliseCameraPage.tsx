@@ -296,11 +296,14 @@ export default function AnaliseCameraPage() {
             Detecção automática de postura com MoveNet (TensorFlow.js)
           </p>
         </div>
-        {step !== "upload" && (
-          <Button variant="outline" onClick={reset}>
-            <RotateCcw className="h-4 w-4 mr-2" /> Nova Análise
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          <CompanySelector />
+          {step !== "upload" && (
+            <Button variant="outline" onClick={reset}>
+              <RotateCcw className="h-4 w-4 mr-2" /> Nova Análise
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Step indicators */}
