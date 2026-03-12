@@ -42,13 +42,15 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
-          <img src={guardianLogo} alt="Guardian" className="h-7 w-7 shrink-0 invert" />
+      <SidebarHeader className="p-5 border-b border-sidebar-border">
+        <div className="flex items-center gap-3">
+          <img src={guardianLogo} alt="Guardian" className="h-8 w-8 shrink-0 invert" />
           {!collapsed && (
             <div>
-              <h1 className="text-sm font-bold text-sidebar-foreground leading-tight">Guardian</h1>
-              <p className="text-[10px] text-sidebar-muted">Gestão Ergonômica e Segurança</p>
+              <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground leading-none" style={{ fontFamily: "'Inter', sans-serif" }}>
+                Guardian
+              </h1>
+              <p className="text-[10px] text-sidebar-muted mt-0.5 tracking-wide uppercase">Ergonomia & Segurança</p>
             </div>
           )}
         </div>
@@ -64,8 +66,8 @@ export function AppSidebar() {
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
-                      className="hover:bg-sidebar-accent/50"
-                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
+                      className="hover:bg-sidebar-accent/50 transition-colors duration-150"
+                      activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
                     >
                       <item.icon className="mr-2 h-4 w-4 shrink-0" />
                       {!collapsed && <span>{item.title}</span>}
@@ -77,11 +79,11 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-3">
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-4">
         {!collapsed && (
-          <div className="flex items-center gap-1.5 justify-center">
-            <span className="text-[9px] text-sidebar-muted">desenvolvido por:</span>
-            <img src={focusLogo} alt="Focus" className="h-3" />
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase">desenvolvido por</span>
+            <img src={focusLogo} alt="Focus" className="h-4 opacity-60" />
           </div>
         )}
       </SidebarFooter>
