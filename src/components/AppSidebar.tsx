@@ -29,19 +29,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import spartanLogo from "@/assets/spartan-logo.png";
-import focusLogo from "@/assets/focus-logo.png";
+import { GuardianLogo } from "@/components/icons/GuardianLogo";
+import { FocusLogo } from "@/components/icons/FocusLogo";
 
 const empresasSubItems = [
-  { title: "Cadastro", url: "/empresas", icon: Building2 },
   { title: "Setores", url: "/setores", icon: Building2 },
   { title: "Postos de Trabalho", url: "/postos", icon: Monitor },
   { title: "Análises", url: "/analises", icon: ClipboardCheck },
 ];
 
-const mainItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-];
+const mainItems = [{ title: "Dashboard", url: "/", icon: LayoutDashboard }];
 
 const bottomItems = [
   { title: "Análise por Câmera", url: "/analise-camera", icon: Camera },
@@ -60,12 +57,10 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <img src={spartanLogo} alt="Spartan" className="h-16 shrink-0 object-contain" />
+          <GuardianLogo className="h-12 w-12 shrink-0 text-sidebar-primary" />
           {!collapsed && (
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground leading-none">
-                Spartan
-              </h1>
+              <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground leading-none">Guardian</h1>
               <p className="text-[10px] text-sidebar-muted mt-0.5 tracking-wide uppercase">Ergonomia & Segurança</p>
             </div>
           )}
@@ -96,7 +91,9 @@ export function AppSidebar() {
               <Collapsible defaultOpen={isEmpresasActive} className="group/collapsible">
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
-                    <SidebarMenuButton className={`hover:bg-sidebar-accent/50 transition-colors duration-150 ${isEmpresasActive ? 'bg-sidebar-accent text-sidebar-primary font-medium' : ''}`}>
+                    <SidebarMenuButton
+                      className={`hover:bg-sidebar-accent/50 transition-colors duration-150 ${isEmpresasActive ? "bg-sidebar-accent text-sidebar-primary font-medium" : ""}`}
+                    >
                       <Briefcase className="mr-2 h-4 w-4 shrink-0" />
                       {!collapsed && (
                         <>
@@ -149,9 +146,9 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
         {!collapsed && (
-          <div className="flex items-center justify-center gap-1.5 overflow-hidden">
-            <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase whitespace-nowrap">Desenvolvido por:</span>
-            <img src={focusLogo} alt="Focus" className="h-6" />
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase">desenvolvido por</span>
+            <FocusLogo className="h-7 text-sidebar-muted/70" />
           </div>
         )}
       </SidebarFooter>
