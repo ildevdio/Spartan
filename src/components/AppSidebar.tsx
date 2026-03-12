@@ -29,7 +29,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { GuardianLogo } from "@/components/icons/GuardianLogo";
+import { SpartanLogo } from "@/components/icons/SpartanLogo";
 import { FocusLogo } from "@/components/icons/FocusLogo";
 
 const empresasSubItems = [
