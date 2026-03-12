@@ -29,7 +29,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { GuardianLogo } from "@/components/icons/GuardianLogo";
+import { SpartanLogo } from "@/components/icons/SpartanLogo";
 import { FocusLogo } from "@/components/icons/FocusLogo";
 
 const empresasSubItems = [
@@ -59,11 +59,11 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-5 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <GuardianLogo className="h-12 w-12 shrink-0 text-sidebar-primary" />
+          <SpartanLogo className="h-12 w-12 shrink-0 text-sidebar-primary" />
           {!collapsed && (
             <div>
               <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground leading-none">
-                Guardian
+                Spartan
               </h1>
               <p className="text-[10px] text-sidebar-muted mt-0.5 tracking-wide uppercase">Ergonomia & Segurança</p>
             </div>
