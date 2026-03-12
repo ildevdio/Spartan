@@ -40,6 +40,8 @@ All colors MUST be HSL.
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
+    --high: 25 95% 53%;
+    --high-foreground: 0 0% 100%;
     --success: 152 56% 39%;
     --success-foreground: 0 0% 100%;
     --critical: 0 72% 51%;
