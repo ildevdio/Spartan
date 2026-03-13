@@ -51,8 +51,8 @@ export default function AnaliseCameraPage() {
   const loadModel = async () => {
     setIsModelLoading(true);
     try {
-      await initMoveNet();
-      toast.success("Modelo MoveNet carregado com sucesso!");
+      await initPoseDetector();
+      toast.success("Modelo BlazePose carregado com sucesso!");
     } catch (err) {
       toast.error("Erro ao carregar modelo de IA. Verifique sua conexão.");
       console.error(err);
