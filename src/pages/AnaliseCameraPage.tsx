@@ -15,6 +15,7 @@ import {
   calculateErgonomicScores,
   drawPose,
   initPoseDetector,
+  hasRequiredErgonomicKeypoints,
   type JointAngles,
   type ErgonomicScores,
 } from "@/lib/pose-detection";
