@@ -1,4 +1,4 @@
-import type { Sector, Workstation, Analysis, RiskAssessment, ActionPlan, Report, RiskLevel, Company } from "./types";
+import type { Sector, Workstation, Analysis, RiskAssessment, ActionPlan, Report, RiskLevel, Company, PosturePhoto } from "./types";
 import { calculateRiskScore, classifyRisk } from "./types";
 
 export const mockCompanies: Company[] = [
@@ -21,12 +21,30 @@ export const mockWorkstations: Workstation[] = [
   { id: "w5", sector_id: "s4", name: "Mecânico Industrial", description: "Oficina de manutenção", tasks_performed: "Reparo de equipamentos, soldagem, ajustes mecânicos", created_at: "2025-02-10" },
 ];
 
+export const mockPosturePhotos: PosturePhoto[] = [
+  { id: "pp1", workstation_id: "w1", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Postura ao alimentar prensa", created_at: "2025-03-01" },
+  { id: "pp2", workstation_id: "w1", image_url: "/placeholder.svg", posture_type: "Extensão cervical", notes: "Olhando para cima ao ajustar", created_at: "2025-03-01" },
+  { id: "pp3", workstation_id: "w1", image_url: "/placeholder.svg", posture_type: "Rotação de tronco", notes: "Girando para pegar peça", created_at: "2025-03-02" },
+  { id: "pp4", workstation_id: "w2", image_url: "/placeholder.svg", posture_type: "Elevação de braços", notes: "Montagem em bancada alta", created_at: "2025-03-02" },
+  { id: "pp5", workstation_id: "w2", image_url: "/placeholder.svg", posture_type: "Flexão de punho", notes: "Uso de ferramentas manuais", created_at: "2025-03-03" },
+  { id: "pp6", workstation_id: "w2", image_url: "/placeholder.svg", posture_type: "Inclinação lateral", notes: "Alcançando peças no estoque", created_at: "2025-03-03" },
+  { id: "pp7", workstation_id: "w2", image_url: "/placeholder.svg", posture_type: "Postura sentada", notes: "Inspeção de peças", created_at: "2025-03-04" },
+  { id: "pp8", workstation_id: "w2", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Pegando peça do chão", created_at: "2025-03-04" },
+  { id: "pp9", workstation_id: "w3", image_url: "/placeholder.svg", posture_type: "Postura sentada", notes: "Trabalho em computador", created_at: "2025-03-05" },
+  { id: "pp10", workstation_id: "w3", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Olhando para teclado", created_at: "2025-03-05" },
+  { id: "pp11", workstation_id: "w3", image_url: "/placeholder.svg", posture_type: "Extensão de punho", notes: "Uso do mouse", created_at: "2025-03-06" },
+  { id: "pp12", workstation_id: "w3", image_url: "/placeholder.svg", posture_type: "Rotação cervical", notes: "Olhando para documentos", created_at: "2025-03-06" },
+  { id: "pp13", workstation_id: "w3", image_url: "/placeholder.svg", posture_type: "Inclinação de tronco", notes: "Pegando arquivo do gaveteiro", created_at: "2025-03-07" },
+  { id: "pp14", workstation_id: "w5", image_url: "/placeholder.svg", posture_type: "Postura forçada", notes: "Trabalho em espaço confinado", created_at: "2025-03-08" },
+  { id: "pp15", workstation_id: "w5", image_url: "/placeholder.svg", posture_type: "Elevação de carga", notes: "Levantando peça pesada", created_at: "2025-03-08" },
+];
+
 export const mockAnalyses: Analysis[] = [
-  { id: "a1", workstation_id: "w1", method: "REBA", score: 9, notes: "Postura inadequada no tronco ao alimentar a prensa", body_parts: { trunk: 4, neck: 2, legs: 2, upper_arm: 3, lower_arm: 2, wrist: 2 }, created_at: "2025-03-01" },
-  { id: "a2", workstation_id: "w2", method: "RULA", score: 6, notes: "Repetitividade alta nos movimentos de montagem", body_parts: { upper_arm: 3, lower_arm: 2, wrist: 3, neck: 2, trunk: 2, legs: 1 }, created_at: "2025-03-05" },
-  { id: "a3", workstation_id: "w3", method: "ROSA", score: 5, notes: "Monitor abaixo da altura dos olhos, cadeira sem apoio lombar", body_parts: { chair: 3, monitor: 4, keyboard: 2, mouse: 2, telephone: 1 }, created_at: "2025-03-08" },
-  { id: "a4", workstation_id: "w4", method: "OWAS", score: 3, notes: "Postura de rotação do tronco durante manobras", body_parts: { back: 3, arms: 2, legs: 2, load: 2 }, created_at: "2025-03-10" },
-  { id: "a5", workstation_id: "w5", method: "REBA", score: 11, notes: "Postura forçada ao trabalhar em espaços confinados", body_parts: { trunk: 5, neck: 3, legs: 3, upper_arm: 4, lower_arm: 3, wrist: 3 }, created_at: "2025-03-12" },
+  { id: "a1", workstation_id: "w1", method: "REBA", score: 9, notes: "Postura inadequada no tronco ao alimentar a prensa", body_parts: { trunk: 4, neck: 2, legs: 2, upper_arm: 3, lower_arm: 2, wrist: 2 }, analysis_status: "completed", created_at: "2025-03-01" },
+  { id: "a2", workstation_id: "w2", method: "RULA", score: 6, notes: "Repetitividade alta nos movimentos de montagem", body_parts: { upper_arm: 3, lower_arm: 2, wrist: 3, neck: 2, trunk: 2, legs: 1 }, analysis_status: "completed", created_at: "2025-03-05" },
+  { id: "a3", workstation_id: "w3", method: "ROSA", score: 5, notes: "Monitor abaixo da altura dos olhos, cadeira sem apoio lombar", body_parts: { chair: 3, monitor: 4, keyboard: 2, mouse: 2, telephone: 1 }, analysis_status: "completed", created_at: "2025-03-08" },
+  { id: "a4", workstation_id: "w4", method: "OWAS", score: 3, notes: "Postura de rotação do tronco durante manobras", body_parts: { back: 3, arms: 2, legs: 2, load: 2 }, analysis_status: "in_progress", created_at: "2025-03-10" },
+  { id: "a5", workstation_id: "w5", method: "REBA", score: 11, notes: "Postura forçada ao trabalhar em espaços confinados", body_parts: { trunk: 5, neck: 3, legs: 3, upper_arm: 4, lower_arm: 3, wrist: 3 }, analysis_status: "in_progress", created_at: "2025-03-12" },
 ];
 
 const riskData: Array<{ probability: number; exposure: number; consequence: number }> = [
@@ -61,8 +79,8 @@ export const mockActionPlans: ActionPlan[] = [
 ];
 
 export const mockReports: Report[] = [
-  { id: "rp1", type: "AEP", title: "Avaliação Ergonômica Preliminar - Produção", content: "Avaliação preliminar dos postos de trabalho do setor de produção...", sector_id: "s1", created_at: "2025-03-01" },
-  { id: "rp2", type: "AET", title: "Análise Ergonômica do Trabalho - Administrativo", content: "Análise detalhada das condições ergonômicas do setor administrativo...", sector_id: "s2", created_at: "2025-03-05" },
+  { id: "rp1", type: "AEP", title: "Avaliação Ergonômica Preliminar - Produção", content: "Avaliação preliminar dos postos de trabalho do setor de produção...", sector_id: "s1", workstation_id: "w1", created_at: "2025-03-01" },
+  { id: "rp2", type: "AET", title: "Análise Ergonômica do Trabalho - Administrativo", content: "Análise detalhada das condições ergonômicas do setor administrativo...", sector_id: "s2", workstation_id: "w3", created_at: "2025-03-05" },
   { id: "rp3", type: "PCMSO", title: "PCMSO 2025", content: "Programa de Controle Médico de Saúde Ocupacional...", created_at: "2025-01-10" },
   { id: "rp4", type: "LTCAT", title: "LTCAT - Laudo Técnico", content: "Laudo Técnico das Condições Ambientais de Trabalho...", created_at: "2025-02-15" },
 ];
@@ -71,4 +89,8 @@ export function getRiskDistribution() {
   const dist: Record<RiskLevel, number> = { low: 0, medium: 0, high: 0, critical: 0 };
   mockRiskAssessments.forEach((r) => dist[r.risk_level]++);
   return dist;
+}
+
+export function getPhotoCountForWorkstation(workstationId: string): number {
+  return mockPosturePhotos.filter((p) => p.workstation_id === workstationId).length;
 }

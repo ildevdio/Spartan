@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { mockSectors, mockWorkstations } from "@/lib/mock-data";
+import { useCompany } from "@/lib/company-context";
+import { CompanySelector } from "@/components/CompanySelector";
 import type { Sector } from "@/lib/types";
 import { Plus, Building2, Pencil, Trash2 } from "lucide-react";
 
 export default function SetoresPage() {
-  const [sectors, setSectors] = useState<Sector[]>(mockSectors);
+  const { companySectors, sectors, setSectors, selectedCompanyId, workstations } = useCompany();
   const [open, setOpen] = useState(false);
   const [editingSector, setEditingSector] = useState<Sector | null>(null);
   const [name, setName] = useState("");
@@ -21,56 +21,53 @@ export default function SetoresPage() {
     if (editingSector) {
       setSectors(sectors.map((s) => (s.id === editingSector.id ? { ...s, name, description } : s)));
     } else {
-      setSectors([...sectors, { id: `s${Date.now()}`, company_id: "", name, description, created_at: new Date().toISOString().split("T")[0] }]);
+      setSectors([...sectors, {
+        id: `s${Date.now()}`,
+        company_id: selectedCompanyId,
+        name,
+        description,
+        created_at: new Date().toISOString().split("T")[0],
+      }]);
     }
     resetForm();
   };
 
-  const resetForm = () => {
-    setName("");
-    setDescription("");
-    setEditingSector(null);
-    setOpen(false);
-  };
+  const resetForm = () => { setName(""); setDescription(""); setEditingSector(null); setOpen(false); };
 
   const handleEdit = (sector: Sector) => {
-    setEditingSector(sector);
-    setName(sector.name);
-    setDescription(sector.description);
-    setOpen(true);
+    setEditingSector(sector); setName(sector.name); setDescription(sector.description); setOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setSectors(sectors.filter((s) => s.id !== id));
-  };
+  const handleDelete = (id: string) => { setSectors(sectors.filter((s) => s.id !== id)); };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Setores</h1>
-          <p className="text-sm text-muted-foreground">Gerencie os setores da empresa</p>
+          <p className="text-sm text-muted-foreground">Setores da empresa selecionada</p>
         </div>
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Novo Setor</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingSector ? "Editar Setor" : "Novo Setor"}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 pt-2">
-              <Input placeholder="Nome do setor" value={name} onChange={(e) => setName(e.target.value)} />
-              <Textarea placeholder="Descrição" value={description} onChange={(e) => setDescription(e.target.value)} />
-              <Button onClick={handleSave} className="w-full">{editingSector ? "Salvar" : "Criar Setor"}</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-3">
+          <CompanySelector />
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" />Novo Setor</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>{editingSector ? "Editar Setor" : "Novo Setor"}</DialogTitle></DialogHeader>
+              <div className="space-y-4 pt-2">
+                <Input placeholder="Nome do setor" value={name} onChange={(e) => setName(e.target.value)} />
+                <Textarea placeholder="Descrição" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Button onClick={handleSave} className="w-full">{editingSector ? "Salvar" : "Criar Setor"}</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {sectors.map((sector) => {
-          const wsCount = mockWorkstations.filter((w) => w.sector_id === sector.id).length;
+        {companySectors.map((sector) => {
+          const wsCount = workstations.filter((w) => w.sector_id === sector.id).length;
           return (
             <Card key={sector.id}>
               <CardHeader className="pb-2 flex-row items-center justify-between">
@@ -90,6 +87,13 @@ export default function SetoresPage() {
             </Card>
           );
         })}
+        {companySectors.length === 0 && (
+          <Card className="col-span-full">
+            <CardContent className="p-8 text-center text-muted-foreground">
+              Nenhum setor cadastrado para esta empresa.
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
