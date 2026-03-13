@@ -41,6 +41,8 @@ export default function AnaliseCameraPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isStreamingRef = useRef(false);
+  const anglesRef = useRef<JointAngles | null>(null);
 
   useEffect(() => {
     return () => {
@@ -72,6 +74,7 @@ export default function AnaliseCameraPage() {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
         setIsStreaming(true);
+        isStreamingRef.current = true;
         setSourceType("camera");
         runDetectionLoop();
       }
@@ -82,8 +85,10 @@ export default function AnaliseCameraPage() {
   };
 
   const stopCamera = () => {
+    isStreamingRef.current = false;
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = 0;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
@@ -94,7 +99,7 @@ export default function AnaliseCameraPage() {
 
   const runDetectionLoop = () => {
     const detect = async () => {
-      if (!videoRef.current || !canvasRef.current || !isStreaming) return;
+      if (!isStreamingRef.current || !videoRef.current || !canvasRef.current) return;
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -111,9 +116,14 @@ export default function AnaliseCameraPage() {
       try {
         const poses = await detectPose(video);
         if (poses.length > 0) {
-          drawPose(ctx, poses, canvas.width, canvas.height);
           const jointAngles = calculateJointAngles(poses[0].keypoints);
           const ergScores = calculateErgonomicScores(jointAngles);
+          anglesRef.current = jointAngles;
+
+          // Re-draw video frame then overlay skeleton with risk colors
+          ctx.drawImage(video, 0, 0);
+          drawPose(ctx, poses, canvas.width, canvas.height, jointAngles);
+
           setAngles(jointAngles);
           setScores(ergScores);
         }
@@ -121,16 +131,12 @@ export default function AnaliseCameraPage() {
         console.error("Detection error:", err);
       }
 
-      animFrameRef.current = requestAnimationFrame(detect);
+      if (isStreamingRef.current) {
+        animFrameRef.current = requestAnimationFrame(detect);
+      }
     };
     animFrameRef.current = requestAnimationFrame(detect);
   };
-
-  useEffect(() => {
-    if (isStreaming) {
-      runDetectionLoop();
-    }
-  }, [isStreaming]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -294,7 +300,7 @@ export default function AnaliseCameraPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">Análise por Câmera / Imagem</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Detecção automática de postura com MoveNet
+            Detecção automática de postura com BlazePose — Tempo Real
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -379,19 +385,27 @@ export default function AnaliseCameraPage() {
               </div>
             )}
 
-            {/* Video element for camera */}
-            <video
-              ref={videoRef}
-              className={isStreaming ? "w-full rounded-lg" : "hidden"}
-              playsInline
-              muted
-            />
+            {/* Video + Canvas overlay for camera */}
+            <div className={isStreaming ? "relative w-full" : "hidden"}>
+              <video
+                ref={videoRef}
+                className="w-full rounded-lg"
+                playsInline
+                muted
+              />
+              <canvas
+                ref={canvasRef}
+                className="absolute top-0 left-0 w-full h-full rounded-lg"
+              />
+            </div>
 
-            {/* Canvas for rendering pose overlay */}
-            <canvas
-              ref={canvasRef}
-              className={step !== "upload" || isStreaming ? "w-full rounded-lg border border-border" : "hidden"}
-            />
+            {/* Canvas for file-based detection (no video) */}
+            {!isStreaming && step !== "upload" && (
+              <canvas
+                ref={canvasRef}
+                className="w-full rounded-lg border border-border"
+              />
+            )}
 
             <img ref={imageRef} className="hidden" alt="" />
 
