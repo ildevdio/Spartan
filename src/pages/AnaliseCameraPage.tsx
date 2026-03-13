@@ -300,7 +300,7 @@ export default function AnaliseCameraPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">Análise por Câmera / Imagem</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Detecção automática de postura com MoveNet
+            Detecção automática de postura com BlazePose — Tempo Real
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
