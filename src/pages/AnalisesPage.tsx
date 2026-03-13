@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
 import { mockRiskAssessments } from "@/lib/mock-data";
@@ -66,19 +65,19 @@ export default function AnalisesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 max-w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Análises Ergonômicas</h1>
-          <p className="text-sm text-muted-foreground">Avaliações por método ergonômico</p>
+          <h1 className="text-xl sm:text-2xl font-bold">Análises Ergonômicas</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Avaliações por método ergonômico</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <CompanySelector />
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" />Nova Análise</Button>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" />Nova Análise</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader><DialogTitle>Nova Análise Ergonômica</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
                 <Select value={wsId} onValueChange={setWsId}>
@@ -98,7 +97,7 @@ export default function AnalisesPage() {
                   <p className="text-sm font-medium">Pontuação por segmento</p>
                   {methodBodyParts[method].map((part) => (
                     <div key={part} className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground w-28 capitalize">{part.replace("_", " ")}</span>
+                      <span className="text-sm text-muted-foreground flex-1 capitalize">{part.replace("_", " ")}</span>
                       <Input type="number" min={1} max={10} value={bodyParts[part] || 1} onChange={(e) => setBodyParts({ ...bodyParts, [part]: Number(e.target.value) })} className="w-20" />
                     </div>
                   ))}
@@ -114,14 +113,14 @@ export default function AnalisesPage() {
       </div>
 
       {/* Status summary */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {(["pending", "in_progress", "completed"] as AnalysisStatus[]).map((status) => {
           const count = companyAnalyses.filter((a) => a.analysis_status === status).length;
           return (
             <Card key={status}>
-              <CardContent className="p-4 text-center">
-                <p className="text-2xl font-bold">{count}</p>
-                <Badge variant="outline" className={statusStyles[status]}>
+              <CardContent className="p-3 sm:p-4 text-center">
+                <p className="text-xl sm:text-2xl font-bold">{count}</p>
+                <Badge variant="outline" className={`${statusStyles[status]} text-[10px] sm:text-xs`}>
                   {analysisStatusLabel(status)}
                 </Badge>
               </CardContent>
@@ -130,47 +129,82 @@ export default function AnalisesPage() {
         })}
       </div>
 
+      {/* Mobile: card list / Desktop: table */}
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Posto</TableHead>
-                <TableHead>Método</TableHead>
-                <TableHead>Score</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Risco</TableHead>
-                <TableHead>Data</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {companyAnalyses.map((a) => {
-                const ws = companyWorkstations.find((w) => w.id === a.workstation_id);
-                const risk = mockRiskAssessments.find((r) => r.analysis_id === a.id);
-                return (
-                  <TableRow key={a.id}>
-                    <TableCell className="font-medium">{ws?.name || "—"}</TableCell>
-                    <TableCell><Badge variant="outline">{a.method}</Badge></TableCell>
-                    <TableCell>{a.score}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={statusStyles[a.analysis_status]}>
-                        {analysisStatusLabel(a.analysis_status)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{risk ? <RiskBadge level={risk.risk_level} /> : "—"}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">{a.created_at}</TableCell>
-                  </TableRow>
-                );
-              })}
-              {companyAnalyses.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                    Nenhuma análise para esta empresa.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="text-left p-3 font-medium text-muted-foreground">Posto</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Método</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Score</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Status</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Risco</th>
+                  <th className="text-left p-3 font-medium text-muted-foreground">Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                {companyAnalyses.map((a) => {
+                  const ws = companyWorkstations.find((w) => w.id === a.workstation_id);
+                  const risk = mockRiskAssessments.find((r) => r.analysis_id === a.id);
+                  return (
+                    <tr key={a.id} className="border-b border-border last:border-0">
+                      <td className="p-3 font-medium">{ws?.name || "—"}</td>
+                      <td className="p-3"><Badge variant="outline">{a.method}</Badge></td>
+                      <td className="p-3">{a.score}</td>
+                      <td className="p-3">
+                        <Badge variant="outline" className={statusStyles[a.analysis_status]}>
+                          {analysisStatusLabel(a.analysis_status)}
+                        </Badge>
+                      </td>
+                      <td className="p-3">{risk ? <RiskBadge level={risk.risk_level} /> : "—"}</td>
+                      <td className="p-3 text-muted-foreground">{a.created_at}</td>
+                    </tr>
+                  );
+                })}
+                {companyAnalyses.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="text-center text-muted-foreground py-8">
+                      Nenhuma análise para esta empresa.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile stacked cards */}
+          <div className="sm:hidden divide-y divide-border">
+            {companyAnalyses.map((a) => {
+              const ws = companyWorkstations.find((w) => w.id === a.workstation_id);
+              const risk = mockRiskAssessments.find((r) => r.analysis_id === a.id);
+              return (
+                <div key={a.id} className="p-3 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium truncate">{ws?.name || "—"}</p>
+                    <Badge variant="outline" className="text-[10px]">{a.method}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Score: {a.score}</span>
+                    <Badge variant="outline" className={`${statusStyles[a.analysis_status]} text-[10px]`}>
+                      {analysisStatusLabel(a.analysis_status)}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{a.created_at}</span>
+                    {risk ? <RiskBadge level={risk.risk_level} /> : null}
+                  </div>
+                </div>
+              );
+            })}
+            {companyAnalyses.length === 0 && (
+              <div className="text-center text-muted-foreground py-8 text-sm">
+                Nenhuma análise para esta empresa.
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

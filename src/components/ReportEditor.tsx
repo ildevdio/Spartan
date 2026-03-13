@@ -37,7 +37,7 @@ export function ReportEditor({ content, onUpdate, onExportPdf }: ReportEditorPro
     },
     editorProps: {
       attributes: {
-        class: "prose prose-sm max-w-none focus:outline-none min-h-[400px] p-4",
+        class: "prose prose-sm max-w-none focus:outline-none min-h-[300px] sm:min-h-[400px] p-3 sm:p-4",
       },
     },
   });
@@ -57,54 +57,58 @@ export function ReportEditor({ content, onUpdate, onExportPdf }: ReportEditorPro
   };
 
   return (
-    <div className="border border-border rounded-lg overflow-hidden bg-card">
+    <div className="border border-border rounded-lg overflow-hidden bg-card max-w-full">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-border bg-muted/30">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editor.chain().focus().toggleBold().run()} data-active={editor.isActive("bold")}>
-          <Bold className="h-4 w-4" />
+      <div className="flex flex-wrap items-center gap-0.5 sm:gap-1 p-1.5 sm:p-2 border-b border-border bg-muted/30">
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => editor.chain().focus().toggleBold().run()} data-active={editor.isActive("bold")}>
+          <Bold className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editor.chain().focus().toggleItalic().run()}>
-          <Italic className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => editor.chain().focus().toggleItalic().run()}>
+          <Italic className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
-        <Separator orientation="vertical" className="h-6 mx-1" />
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
-          <Heading1 className="h-4 w-4" />
+        <Separator orientation="vertical" className="h-5 mx-0.5" />
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
+          <Heading1 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
-          <Heading2 className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+          <Heading2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
-          <Heading3 className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 hidden sm:flex" onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+          <Heading3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
-        <Separator orientation="vertical" className="h-6 mx-1" />
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editor.chain().focus().toggleBulletList().run()}>
-          <List className="h-4 w-4" />
+        <Separator orientation="vertical" className="h-5 mx-0.5" />
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => editor.chain().focus().toggleBulletList().run()}>
+          <List className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
-          <ListOrdered className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+          <ListOrdered className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
-        <Separator orientation="vertical" className="h-6 mx-1" />
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => fileRef.current?.click()}>
-          <ImageIcon className="h-4 w-4" />
+        <Separator orientation="vertical" className="h-5 mx-0.5" />
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => fileRef.current?.click()}>
+          <ImageIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={insertTable}>
-          <TableIcon className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={insertTable}>
+          <TableIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
-        <Separator orientation="vertical" className="h-6 mx-1" />
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editor.chain().focus().undo().run()}>
-          <Undo className="h-4 w-4" />
+        <Separator orientation="vertical" className="h-5 mx-0.5" />
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => editor.chain().focus().undo().run()}>
+          <Undo className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => editor.chain().focus().redo().run()}>
-          <Redo className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => editor.chain().focus().redo().run()}>
+          <Redo className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
         <div className="ml-auto">
-          <Button size="sm" onClick={onExportPdf}>
-            <Download className="h-4 w-4 mr-2" />Exportar PDF
+          <Button size="sm" className="h-7 text-xs sm:h-8 sm:text-sm" onClick={onExportPdf}>
+            <Download className="h-3.5 w-3.5 mr-1" />
+            <span className="hidden sm:inline">Exportar PDF</span>
+            <span className="sm:hidden">PDF</span>
           </Button>
         </div>
       </div>
       <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-      <EditorContent editor={editor} />
+      <div className="overflow-x-auto">
+        <EditorContent editor={editor} />
+      </div>
     </div>
   );
 }

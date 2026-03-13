@@ -57,21 +57,21 @@ export default function PostureCapturePage() {
   const getPhotosForWs = (wsId: string) => posturePhotos.filter((p) => p.workstation_id === wsId);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 max-w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Captura de Posturas</h1>
-          <p className="text-sm text-muted-foreground">
-            Registre fotos de posturas dos trabalhadores. Mínimo de {MIN_PHOTOS_REQUIRED} fotos por posto.
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Captura de Posturas</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Mínimo de {MIN_PHOTOS_REQUIRED} fotos por posto.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <CompanySelector />
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" />Nova Foto</Button>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" />Nova Foto</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-[95vw] sm:max-w-lg">
               <DialogHeader><DialogTitle>Registrar Foto de Postura</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
                 <Select value={wsId} onValueChange={setWsId}>
@@ -98,11 +98,11 @@ export default function PostureCapturePage() {
                   onChange={(e) => setNotes(e.target.value)}
                 />
                 <div
-                  className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-accent transition-colors"
+                  className="border-2 border-dashed border-border rounded-lg p-6 text-center cursor-pointer hover:border-accent transition-colors"
                   onClick={() => fileRef.current?.click()}
                 >
                   {previewUrl ? (
-                    <img src={previewUrl} alt="Preview" className="mx-auto max-h-40 rounded" />
+                    <img src={previewUrl} alt="Preview" className="mx-auto max-h-40 rounded max-w-full" />
                   ) : (
                     <>
                       <Upload className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
@@ -119,7 +119,7 @@ export default function PostureCapturePage() {
       </div>
 
       {/* Progress per workstation */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {companyWorkstations.map((ws) => {
           const photos = getPhotosForWs(ws.id);
           const count = photos.length;
@@ -130,48 +130,46 @@ export default function PostureCapturePage() {
           return (
             <Card key={ws.id} className={isComplete ? "border-success/30" : ""}>
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     {isComplete ? (
-                      <CheckCircle2 className="h-5 w-5 text-success" />
+                      <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
                     ) : (
-                      <AlertTriangle className="h-5 w-5 text-warning" />
+                      <AlertTriangle className="h-4 w-4 text-warning shrink-0" />
                     )}
-                    <CardTitle className="text-base">{ws.name}</CardTitle>
+                    <CardTitle className="text-sm truncate">{ws.name}</CardTitle>
                   </div>
-                  <Badge variant="secondary" className="text-xs">{sector?.name}</Badge>
+                  <Badge variant="secondary" className="text-[10px] shrink-0">{sector?.name}</Badge>
                 </div>
-                <CardDescription className="text-xs">{ws.tasks_performed}</CardDescription>
+                <CardDescription className="text-xs truncate">{ws.tasks_performed}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Fotos coletadas:</span>
-                  <span className="font-bold">{count} / {MIN_PHOTOS_REQUIRED}</span>
+                  <span className="text-muted-foreground text-xs">Fotos:</span>
+                  <span className="font-bold text-xs">{count} / {MIN_PHOTOS_REQUIRED}</span>
                 </div>
                 <Progress value={progress} className="h-2" />
                 {!isComplete && (
                   <p className="text-xs text-warning font-medium">
-                    Faltam {MIN_PHOTOS_REQUIRED - count} foto(s) para habilitar o relatório.
+                    Faltam {MIN_PHOTOS_REQUIRED - count} foto(s)
                   </p>
                 )}
                 {isComplete && (
                   <p className="text-xs text-success font-medium">
-                    ✓ Mínimo atingido — relatório disponível
+                    ✓ Mínimo atingido
                   </p>
                 )}
 
-                {/* Thumbnail grid */}
                 {photos.length > 0 && (
                   <div className="grid grid-cols-5 gap-1 pt-2">
                     {photos.slice(0, 5).map((photo) => (
                       <div key={photo.id} className="aspect-square rounded bg-muted flex items-center justify-center overflow-hidden">
-                        <Image className="h-4 w-4 text-muted-foreground" />
+                        <Image className="h-3 w-3 text-muted-foreground" />
                       </div>
                     ))}
                   </div>
                 )}
 
-                {/* Photo type list */}
                 {photos.length > 0 && (
                   <div className="space-y-1 pt-1">
                     {photos.map((p) => (
@@ -193,8 +191,8 @@ export default function PostureCapturePage() {
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
             <Camera className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p>Nenhum posto de trabalho encontrado para esta empresa.</p>
-            <p className="text-sm">Cadastre postos de trabalho primeiro.</p>
+            <p>Nenhum posto de trabalho encontrado.</p>
+            <p className="text-sm">Cadastre postos primeiro.</p>
           </CardContent>
         </Card>
       )}
