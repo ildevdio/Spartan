@@ -385,19 +385,27 @@ export default function AnaliseCameraPage() {
               </div>
             )}
 
-            {/* Video element for camera */}
-            <video
-              ref={videoRef}
-              className={isStreaming ? "w-full rounded-lg" : "hidden"}
-              playsInline
-              muted
-            />
+            {/* Video + Canvas overlay for camera */}
+            <div className={isStreaming ? "relative w-full" : "hidden"}>
+              <video
+                ref={videoRef}
+                className="w-full rounded-lg"
+                playsInline
+                muted
+              />
+              <canvas
+                ref={canvasRef}
+                className="absolute top-0 left-0 w-full h-full rounded-lg"
+              />
+            </div>
 
-            {/* Canvas for rendering pose overlay */}
-            <canvas
-              ref={canvasRef}
-              className={step !== "upload" || isStreaming ? "w-full rounded-lg border border-border" : "hidden"}
-            />
+            {/* Canvas for file-based detection (no video) */}
+            {!isStreaming && step !== "upload" && (
+              <canvas
+                ref={canvasRef}
+                className="w-full rounded-lg border border-border"
+              />
+            )}
 
             <img ref={imageRef} className="hidden" alt="" />
 
