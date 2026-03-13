@@ -99,7 +99,7 @@ export default function AnaliseCameraPage() {
 
   const runDetectionLoop = () => {
     const detect = async () => {
-      if (!videoRef.current || !canvasRef.current || !isStreaming) return;
+      if (!isStreamingRef.current || !videoRef.current || !canvasRef.current) return;
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
@@ -116,9 +116,14 @@ export default function AnaliseCameraPage() {
       try {
         const poses = await detectPose(video);
         if (poses.length > 0) {
-          drawPose(ctx, poses, canvas.width, canvas.height);
           const jointAngles = calculateJointAngles(poses[0].keypoints);
           const ergScores = calculateErgonomicScores(jointAngles);
+          anglesRef.current = jointAngles;
+
+          // Re-draw video frame then overlay skeleton with risk colors
+          ctx.drawImage(video, 0, 0);
+          drawPose(ctx, poses, canvas.width, canvas.height, jointAngles);
+
           setAngles(jointAngles);
           setScores(ergScores);
         }
@@ -126,16 +131,12 @@ export default function AnaliseCameraPage() {
         console.error("Detection error:", err);
       }
 
-      animFrameRef.current = requestAnimationFrame(detect);
+      if (isStreamingRef.current) {
+        animFrameRef.current = requestAnimationFrame(detect);
+      }
     };
     animFrameRef.current = requestAnimationFrame(detect);
   };
-
-  useEffect(() => {
-    if (isStreaming) {
-      runDetectionLoop();
-    }
-  }, [isStreaming]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
