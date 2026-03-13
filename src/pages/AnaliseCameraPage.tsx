@@ -15,6 +15,7 @@ import {
   calculateErgonomicScores,
   drawPose,
   initPoseDetector,
+  hasRequiredErgonomicKeypoints,
   type JointAngles,
   type ErgonomicScores,
 } from "@/lib/pose-detection";
@@ -34,6 +35,7 @@ export default function AnaliseCameraPage() {
   const [activity, setActivity] = useState("");
   const [role, setRole] = useState("");
   const [notes, setNotes] = useState("");
+  const [liveStatus, setLiveStatus] = useState<"ready" | "tracking" | "incomplete" | "no_pose">("ready");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -42,7 +44,8 @@ export default function AnaliseCameraPage() {
   const animFrameRef = useRef<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isStreamingRef = useRef(false);
-  const anglesRef = useRef<JointAngles | null>(null);
+  const isDetectingFrameRef = useRef(false);
+  const lastUiUpdateRef = useRef(0);
 
   useEffect(() => {
     return () => {
@@ -72,7 +75,9 @@ export default function AnaliseCameraPage() {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
+        lastUiUpdateRef.current = 0;
+        setLiveStatus("no_pose");
         setIsStreaming(true);
         isStreamingRef.current = true;
         setSourceType("camera");
@@ -86,6 +91,7 @@ export default function AnaliseCameraPage() {
 
   const stopCamera = () => {
     isStreamingRef.current = false;
+    isDetectingFrameRef.current = false;
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = 0;
@@ -94,55 +100,82 @@ export default function AnaliseCameraPage() {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      ctx?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
+    setLiveStatus("ready");
     setIsStreaming(false);
   };
 
   const runDetectionLoop = () => {
-    const detect = async () => {
+    const detect = async (timestamp: number) => {
       if (!isStreamingRef.current || !videoRef.current || !canvasRef.current) return;
+
+      // Keep the camera loop alive continuously
+      animFrameRef.current = requestAnimationFrame(detect);
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
-      if (!ctx || video.readyState < 2) {
-        animFrameRef.current = requestAnimationFrame(detect);
-        return;
-      }
 
-      // Match canvas internal size to video
+      if (!ctx || video.readyState < 2 || isDetectingFrameRef.current) return;
+
       if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
       }
 
-      // Clear canvas (transparent) — video shows through underneath
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      isDetectingFrameRef.current = true;
 
       try {
         const poses = await detectPose(video);
-        if (poses.length > 0) {
-          const jointAngles = calculateJointAngles(poses[0].keypoints);
-          const ergScores = calculateErgonomicScores(jointAngles);
-          anglesRef.current = jointAngles;
 
-          // Draw only skeleton overlay (transparent background)
-          drawPose(ctx, poses, canvas.width, canvas.height, jointAngles);
+        if (!isStreamingRef.current) return;
 
+        if (poses.length === 0) {
+          setLiveStatus("no_pose");
+          if (timestamp - lastUiUpdateRef.current > 100) {
+            setAngles(null);
+            setScores(null);
+            lastUiUpdateRef.current = timestamp;
+          }
+          return;
+        }
+
+        const keypoints = poses[0].keypoints;
+        const isComplete = hasRequiredErgonomicKeypoints(keypoints);
+
+        if (!isComplete) {
+          drawPose(ctx, poses, canvas.width, canvas.height, null);
+          setLiveStatus("incomplete");
+          if (timestamp - lastUiUpdateRef.current > 100) {
+            setAngles(null);
+            setScores(null);
+            lastUiUpdateRef.current = timestamp;
+          }
+          return;
+        }
+
+        const jointAngles = calculateJointAngles(keypoints);
+        const ergScores = calculateErgonomicScores(jointAngles);
+
+        drawPose(ctx, poses, canvas.width, canvas.height, jointAngles);
+        setLiveStatus("tracking");
+
+        if (timestamp - lastUiUpdateRef.current > 80) {
           setAngles(jointAngles);
           setScores(ergScores);
-        } else {
-          // No pose detected — clear overlay
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          lastUiUpdateRef.current = timestamp;
         }
       } catch (err) {
         console.error("Detection error:", err);
-      }
-
-      // Always continue the loop
-      if (isStreamingRef.current) {
-        animFrameRef.current = requestAnimationFrame(detect);
+      } finally {
+        isDetectingFrameRef.current = false;
       }
     };
+
     animFrameRef.current = requestAnimationFrame(detect);
   };
 
@@ -274,8 +307,8 @@ export default function AnaliseCameraPage() {
 
   const getRiskColor = (score: number, method: string) => {
     const thresholds: Record<string, number[]> = {
-      RULA: [2, 4, 6],
-      REBA: [3, 5, 8],
+      RULA: [3, 5, 6],
+      REBA: [4, 7, 9],
       ROSA: [3, 5, 7],
       OWAS: [1, 2, 3],
       OCRA: [3, 5, 7],
@@ -289,8 +322,8 @@ export default function AnaliseCameraPage() {
 
   const getRiskLabel = (score: number, method: string) => {
     const thresholds: Record<string, number[]> = {
-      RULA: [2, 4, 6],
-      REBA: [3, 5, 8],
+      RULA: [3, 5, 6],
+      REBA: [4, 7, 9],
       ROSA: [3, 5, 7],
       OWAS: [1, 2, 3],
       OCRA: [3, 5, 7],
@@ -306,9 +339,9 @@ export default function AnaliseCameraPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold">Análise por Câmera / Imagem</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Live Posture Analysis</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Detecção automática de postura com BlazePose — Tempo Real
+            Rastreamento postural contínuo com BlazePose em tempo real
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -434,20 +467,51 @@ export default function AnaliseCameraPage() {
         {/* Right: Results / Details */}
         <div className="space-y-6">
           {/* Live scores when streaming */}
-          {isStreaming && scores && (
+          {isStreaming && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Pontuação em Tempo Real</CardTitle>
+                <CardTitle className="text-lg">Live Posture Analysis</CardTitle>
+                <CardDescription>
+                  {liveStatus === "tracking" && "Rastreamento ativo com atualização contínua"}
+                  {liveStatus === "incomplete" && "Análise incompleta: faltam keypoints com confiança mínima"}
+                  {liveStatus === "no_pose" && "Nenhuma postura detectada no momento"}
+                  {liveStatus === "ready" && "Aguardando início da análise"}
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-5 gap-2">
-                  {Object.entries(scores).map(([method, score]) => (
-                    <div key={method} className="text-center">
-                      <Badge className={`${getRiskColor(score, method)} mb-1`}>{score}</Badge>
-                      <p className="text-xs font-medium">{method}</p>
+              <CardContent className="space-y-4">
+                {scores ? (
+                  <div className="grid grid-cols-5 gap-2">
+                    {Object.entries(scores).map(([method, score]) => (
+                      <div key={method} className="text-center">
+                        <Badge className={`${getRiskColor(score, method)} mb-1`}>{score}</Badge>
+                        <p className="text-xs font-medium">{method}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                    {liveStatus === "incomplete"
+                      ? "Postura incompleta detectada — mova-se para manter nariz, ombros, cotovelos, punhos, quadris, joelhos e tornozelos visíveis."
+                      : "Aguardando detecção corporal para iniciar pontuação dinâmica."}
+                  </div>
+                )}
+
+                {angles && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                    <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
+                      <span className="text-muted-foreground">Knee angle</span>
+                      <span className="font-mono font-semibold">{Math.min(angles.kneeLeft, angles.kneeRight).toFixed(1)}°</span>
                     </div>
-                  ))}
-                </div>
+                    <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
+                      <span className="text-muted-foreground">Trunk angle</span>
+                      <span className="font-mono font-semibold">{angles.trunk.toFixed(1)}°</span>
+                    </div>
+                    <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
+                      <span className="text-muted-foreground">Arm elevation</span>
+                      <span className="font-mono font-semibold">{Math.max(angles.upperArmLeft, angles.upperArmRight).toFixed(1)}°</span>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
