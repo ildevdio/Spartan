@@ -339,9 +339,9 @@ export default function AnaliseCameraPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold">Análise por Câmera / Imagem</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Live Posture Analysis</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Detecção automática de postura com BlazePose — Tempo Real
+            Rastreamento postural contínuo com BlazePose em tempo real
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
