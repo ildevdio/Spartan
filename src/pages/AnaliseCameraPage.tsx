@@ -467,20 +467,51 @@ export default function AnaliseCameraPage() {
         {/* Right: Results / Details */}
         <div className="space-y-6">
           {/* Live scores when streaming */}
-          {isStreaming && scores && (
+          {isStreaming && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Pontuação em Tempo Real</CardTitle>
+                <CardTitle className="text-lg">Live Posture Analysis</CardTitle>
+                <CardDescription>
+                  {liveStatus === "tracking" && "Rastreamento ativo com atualização contínua"}
+                  {liveStatus === "incomplete" && "Análise incompleta: faltam keypoints com confiança mínima"}
+                  {liveStatus === "no_pose" && "Nenhuma postura detectada no momento"}
+                  {liveStatus === "ready" && "Aguardando início da análise"}
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-5 gap-2">
-                  {Object.entries(scores).map(([method, score]) => (
-                    <div key={method} className="text-center">
-                      <Badge className={`${getRiskColor(score, method)} mb-1`}>{score}</Badge>
-                      <p className="text-xs font-medium">{method}</p>
+              <CardContent className="space-y-4">
+                {scores ? (
+                  <div className="grid grid-cols-5 gap-2">
+                    {Object.entries(scores).map(([method, score]) => (
+                      <div key={method} className="text-center">
+                        <Badge className={`${getRiskColor(score, method)} mb-1`}>{score}</Badge>
+                        <p className="text-xs font-medium">{method}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                    {liveStatus === "incomplete"
+                      ? "Postura incompleta detectada — mova-se para manter nariz, ombros, cotovelos, punhos, quadris, joelhos e tornozelos visíveis."
+                      : "Aguardando detecção corporal para iniciar pontuação dinâmica."}
+                  </div>
+                )}
+
+                {angles && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                    <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
+                      <span className="text-muted-foreground">Knee angle</span>
+                      <span className="font-mono font-semibold">{Math.min(angles.kneeLeft, angles.kneeRight).toFixed(1)}°</span>
                     </div>
-                  ))}
-                </div>
+                    <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
+                      <span className="text-muted-foreground">Trunk angle</span>
+                      <span className="font-mono font-semibold">{angles.trunk.toFixed(1)}°</span>
+                    </div>
+                    <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
+                      <span className="text-muted-foreground">Arm elevation</span>
+                      <span className="font-mono font-semibold">{Math.max(angles.upperArmLeft, angles.upperArmRight).toFixed(1)}°</span>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
