@@ -322,8 +322,8 @@ export default function AnaliseCameraPage() {
 
   const getRiskLabel = (score: number, method: string) => {
     const thresholds: Record<string, number[]> = {
-      RULA: [2, 4, 6],
-      REBA: [3, 5, 8],
+      RULA: [3, 5, 6],
+      REBA: [4, 7, 9],
       ROSA: [3, 5, 7],
       OWAS: [1, 2, 3],
       OCRA: [3, 5, 7],
