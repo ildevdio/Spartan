@@ -250,12 +250,81 @@ export function calculateErgonomicScores(angles: JointAngles): ErgonomicScores {
   };
 }
 
+// --- Risk color helpers ---
+type RiskLevel = "safe" | "moderate" | "high" | "critical";
+
+function getRiskLevel(angle: number, thresholds: [number, number, number]): RiskLevel {
+  if (angle <= thresholds[0]) return "safe";
+  if (angle <= thresholds[1]) return "moderate";
+  if (angle <= thresholds[2]) return "high";
+  return "critical";
+}
+
+function getKneeRiskLevel(kneeAngle: number): RiskLevel {
+  if (kneeAngle >= 160) return "safe";
+  if (kneeAngle >= 140) return "moderate";
+  if (kneeAngle >= 110) return "high";
+  return "critical";
+}
+
+const RISK_COLORS: Record<RiskLevel, string> = {
+  safe: "hsl(142, 71%, 45%)",      // green
+  moderate: "hsl(48, 96%, 53%)",   // yellow
+  high: "hsl(25, 95%, 53%)",       // orange
+  critical: "hsl(0, 84%, 60%)",    // red
+};
+
+const RISK_KEYPOINT_COLORS: Record<RiskLevel, string> = {
+  safe: "hsl(142, 71%, 55%)",
+  moderate: "hsl(48, 96%, 63%)",
+  high: "hsl(25, 95%, 63%)",
+  critical: "hsl(0, 84%, 70%)",
+};
+
+function getSegmentRisk(a: string, b: string, angles: JointAngles | null): RiskLevel {
+  if (!angles) return "safe";
+  // Trunk segments
+  if ((a === "left_shoulder" && b === "left_hip") || (a === "right_shoulder" && b === "right_hip")) {
+    return getRiskLevel(angles.trunk, [10, 20, 40]);
+  }
+  // Upper arm
+  if (a === "left_shoulder" && b === "left_elbow") return getRiskLevel(angles.upperArmLeft, [20, 45, 90]);
+  if (a === "right_shoulder" && b === "right_elbow") return getRiskLevel(angles.upperArmRight, [20, 45, 90]);
+  // Lower arm
+  if (a === "left_elbow" && b === "left_wrist") return getRiskLevel(Math.abs(180 - angles.lowerArmLeft), [20, 40, 60]);
+  if (a === "right_elbow" && b === "right_wrist") return getRiskLevel(Math.abs(180 - angles.lowerArmRight), [20, 40, 60]);
+  // Knee/leg
+  if (a === "left_hip" && b === "left_knee") return getKneeRiskLevel(angles.kneeLeft);
+  if (a === "left_knee" && b === "left_ankle") return getKneeRiskLevel(angles.kneeLeft);
+  if (a === "right_hip" && b === "right_knee") return getKneeRiskLevel(angles.kneeRight);
+  if (a === "right_knee" && b === "right_ankle") return getKneeRiskLevel(angles.kneeRight);
+  // Shoulder bridge and head
+  return "safe";
+}
+
+function getKeypointRisk(name: string, angles: JointAngles | null): RiskLevel {
+  if (!angles) return "safe";
+  if (name === "nose") return getRiskLevel(angles.neck, [10, 20, 40]);
+  if (name === "left_shoulder" || name === "right_shoulder") return getRiskLevel(angles.trunk, [10, 20, 40]);
+  if (name === "left_elbow") return getRiskLevel(angles.upperArmLeft, [20, 45, 90]);
+  if (name === "right_elbow") return getRiskLevel(angles.upperArmRight, [20, 45, 90]);
+  if (name === "left_wrist") return getRiskLevel(angles.wristLeft, [15, 30, 50]);
+  if (name === "right_wrist") return getRiskLevel(angles.wristRight, [15, 30, 50]);
+  if (name === "left_hip" || name === "right_hip") return getRiskLevel(angles.trunk, [10, 20, 40]);
+  if (name === "left_knee") return getKneeRiskLevel(angles.kneeLeft);
+  if (name === "right_knee") return getKneeRiskLevel(angles.kneeRight);
+  if (name === "left_ankle") return getKneeRiskLevel(angles.kneeLeft);
+  if (name === "right_ankle") return getKneeRiskLevel(angles.kneeRight);
+  return "safe";
+}
+
 // --- Drawing ---
 export function drawPose(
   ctx: CanvasRenderingContext2D,
   poses: poseDetection.Pose[],
   width: number,
-  height: number
+  height: number,
+  angles?: JointAngles | null
 ) {
   const connections: [string, string][] = [
     ["nose", "left_eye"], ["nose", "right_eye"],
@@ -272,28 +341,34 @@ export function drawPose(
   for (const pose of poses) {
     const kps = pose.keypoints;
 
-    // Draw connections
-    ctx.strokeStyle = "hsl(174, 58%, 42%)";
-    ctx.lineWidth = 3;
+    // Draw connections with risk colors
+    ctx.lineWidth = 4;
     for (const [a, b] of connections) {
       const kpA = kps.find((k) => k.name === a);
       const kpB = kps.find((k) => k.name === b);
       if (kpA && kpB && (kpA.score ?? 0) > MIN_CONFIDENCE && (kpB.score ?? 0) > MIN_CONFIDENCE) {
+        const risk = getSegmentRisk(a, b, angles ?? null);
+        ctx.strokeStyle = RISK_COLORS[risk];
+        // Glow effect
+        ctx.shadowColor = RISK_COLORS[risk];
+        ctx.shadowBlur = 6;
         ctx.beginPath();
         ctx.moveTo(kpA.x, kpA.y);
         ctx.lineTo(kpB.x, kpB.y);
         ctx.stroke();
+        ctx.shadowBlur = 0;
       }
     }
 
-    // Draw keypoints
+    // Draw keypoints with risk colors
     for (const kp of kps) {
-      if ((kp.score ?? 0) > MIN_CONFIDENCE) {
+      if ((kp.score ?? 0) > MIN_CONFIDENCE && kp.name) {
+        const risk = getKeypointRisk(kp.name, angles ?? null);
         ctx.beginPath();
-        ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = "hsl(174, 58%, 52%)";
+        ctx.arc(kp.x, kp.y, 6, 0, 2 * Math.PI);
+        ctx.fillStyle = RISK_KEYPOINT_COLORS[risk];
         ctx.fill();
-        ctx.strokeStyle = "hsl(0, 0%, 100%)";
+        ctx.strokeStyle = "hsla(0, 0%, 100%, 0.9)";
         ctx.lineWidth = 2;
         ctx.stroke();
       }

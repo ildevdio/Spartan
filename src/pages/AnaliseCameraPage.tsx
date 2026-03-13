@@ -41,6 +41,8 @@ export default function AnaliseCameraPage() {
   const streamRef = useRef<MediaStream | null>(null);
   const animFrameRef = useRef<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isStreamingRef = useRef(false);
+  const anglesRef = useRef<JointAngles | null>(null);
 
   useEffect(() => {
     return () => {
