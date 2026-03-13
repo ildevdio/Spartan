@@ -14,7 +14,7 @@ import {
   calculateJointAngles,
   calculateErgonomicScores,
   drawPose,
-  initMoveNet,
+  initPoseDetector,
   type JointAngles,
   type ErgonomicScores,
 } from "@/lib/pose-detection";
