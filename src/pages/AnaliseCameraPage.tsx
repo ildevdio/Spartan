@@ -290,35 +290,35 @@ export default function AnaliseCameraPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Análise por Câmera / Imagem</h1>
-          <p className="text-sm text-muted-foreground">
-            Detecção automática de postura com MoveNet (TensorFlow.js)
+          <h1 className="text-xl sm:text-2xl font-bold">Análise por Câmera / Imagem</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Detecção automática de postura com MoveNet
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <CompanySelector />
           {step !== "upload" && (
-            <Button variant="outline" onClick={reset}>
-              <RotateCcw className="h-4 w-4 mr-2" /> Nova Análise
+            <Button variant="outline" size="sm" onClick={reset}>
+              <RotateCcw className="h-4 w-4 mr-1" /> Nova Análise
             </Button>
           )}
         </div>
       </div>
 
       {/* Step indicators */}
-      <div className="flex items-center gap-2 text-sm">
+      <div className="flex items-center gap-1 sm:gap-2 text-sm overflow-x-auto">
         {["Upload", "Detecção", "Resultados", "Detalhes", "Salvo"].map((label, i) => {
           const steps: AnalysisStep[] = ["upload", "detecting", "results", "details", "saved"];
           const isActive = steps.indexOf(step) >= i;
           return (
-            <div key={label} className="flex items-center gap-2">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold ${isActive ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
+            <div key={label} className="flex items-center gap-1 sm:gap-2 shrink-0">
+              <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-semibold ${isActive ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
                 {i + 1}
               </div>
-              <span className={isActive ? "text-foreground font-medium" : "text-muted-foreground"}>{label}</span>
-              {i < 4 && <div className={`w-8 h-0.5 ${isActive ? "bg-accent" : "bg-muted"}`} />}
+              <span className={`text-[10px] sm:text-sm ${isActive ? "text-foreground font-medium" : "text-muted-foreground"}`}>{label}</span>
+              {i < 4 && <div className={`w-4 sm:w-8 h-0.5 ${isActive ? "bg-accent" : "bg-muted"}`} />}
             </div>
           );
         })}
