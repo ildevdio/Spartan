@@ -212,61 +212,74 @@ export function classifyKneeRisk(kneeAngle: number): KneeRiskLevel {
 }
 
 // --- Ergonomic scoring ---
-function scoreFromAngle(angle: number, thresholds: number[]): number {
-  for (let i = 0; i < thresholds.length; i++) {
-    if (angle <= thresholds[i]) return i + 1;
-  }
-  return thresholds.length + 1;
+type JointRiskScore = 1 | 2 | 3 | 4;
+
+function toScaledScore(composite: number, maxScore: number): number {
+  return Math.max(1, Math.min(maxScore, Math.round(((composite - 1) / 3) * (maxScore - 1) + 1)));
+}
+
+function classifyKneeFlexion(angle: number): JointRiskScore {
+  if (angle >= 160) return 1;
+  if (angle >= 140) return 2;
+  if (angle >= 110) return 3;
+  return 4;
+}
+
+function classifyTrunkFlexion(angle: number): JointRiskScore {
+  if (angle <= 10) return 1;
+  if (angle <= 20) return 2;
+  if (angle <= 40) return 3;
+  return 4;
+}
+
+function classifyArmElevation(angle: number): JointRiskScore {
+  if (angle <= 20) return 1;
+  if (angle <= 45) return 2;
+  if (angle <= 90) return 3;
+  return 4;
+}
+
+function classifyNeckFlexion(angle: number): JointRiskScore {
+  if (angle <= 10) return 1;
+  if (angle <= 20) return 2;
+  if (angle <= 30) return 3;
+  return 4;
+}
+
+function classifyWristExtension(angle: number): JointRiskScore {
+  if (angle <= 15) return 1;
+  if (angle <= 30) return 2;
+  if (angle <= 45) return 3;
+  return 4;
+}
+
+function classifyLowerArmFlexion(angle: number): JointRiskScore {
+  const deviationFromNeutral = Math.abs(90 - angle);
+  if (deviationFromNeutral <= 15) return 1;
+  if (deviationFromNeutral <= 30) return 2;
+  if (deviationFromNeutral <= 45) return 3;
+  return 4;
 }
 
 export function calculateErgonomicScores(angles: JointAngles): ErgonomicScores {
-  // RULA scoring (simplified)
-  const rulaUpperArm = scoreFromAngle(Math.max(angles.upperArmLeft, angles.upperArmRight), [20, 45, 90]);
-  const rulaLowerArm = scoreFromAngle(Math.min(angles.lowerArmLeft, angles.lowerArmRight), [60, 100]);
-  const rulaWrist = scoreFromAngle(Math.max(angles.wristLeft, angles.wristRight), [15, 30]);
-  const rulaNeck = scoreFromAngle(angles.neck, [10, 20]);
-  const rulaTrunk = scoreFromAngle(angles.trunk, [10, 20, 60]);
-  const rulaScore = Math.min(7, Math.round((rulaUpperArm + rulaLowerArm + rulaWrist + rulaNeck + rulaTrunk) / 5 * 2.5));
+  const kneeRisk = classifyKneeFlexion(Math.min(angles.kneeLeft, angles.kneeRight));
+  const trunkRisk = classifyTrunkFlexion(angles.trunk);
+  const armRisk = classifyArmElevation(Math.max(angles.upperArmLeft, angles.upperArmRight));
+  const neckRisk = classifyNeckFlexion(angles.neck);
+  const wristRisk = classifyWristExtension(Math.max(angles.wristLeft, angles.wristRight));
+  const lowerArmRisk = classifyLowerArmFlexion(Math.min(angles.lowerArmLeft, angles.lowerArmRight));
 
-  // REBA scoring (simplified)
-  const rebaTrunk = scoreFromAngle(angles.trunk, [5, 20, 60]);
-  const rebaNeck = scoreFromAngle(angles.neck, [20]);
-  // Corrected knee/leg scoring using classifyKneeRisk
-  const minKnee = Math.min(angles.kneeLeft, angles.kneeRight);
-  const kneeRisk = classifyKneeRisk(minKnee);
-  const rebaLegs = kneeRisk === "neutral" ? 1 : kneeRisk === "low" ? 2 : kneeRisk === "moderate" ? 3 : 4;
-  const rebaUpperArm = scoreFromAngle(Math.max(angles.upperArmLeft, angles.upperArmRight), [20, 45, 90]);
-  const rebaLowerArm = scoreFromAngle(Math.min(angles.lowerArmLeft, angles.lowerArmRight), [60, 100]);
-  const rebaWrist = scoreFromAngle(Math.max(angles.wristLeft, angles.wristRight), [15]);
-  const rebaScore = Math.min(12, rebaTrunk + rebaNeck + rebaLegs + rebaUpperArm + rebaLowerArm + rebaWrist - 3);
-
-  // OWAS scoring (simplified: 1-4 scale)
-  const owasBack = angles.trunk > 40 ? 4 : angles.trunk > 20 ? 3 : angles.trunk > 10 ? 2 : 1;
-  const owasArms = Math.max(angles.upperArmLeft, angles.upperArmRight) > 90 ? 3 : Math.max(angles.upperArmLeft, angles.upperArmRight) > 45 ? 2 : 1;
-  // Corrected leg scoring for OWAS
-  const owasLegs = kneeRisk === "high" ? 4 : kneeRisk === "moderate" ? 3 : kneeRisk === "low" ? 2 : 1;
-  const owasScore = Math.round((owasBack + owasArms + owasLegs) / 3 * 1.3);
-
-  // OCRA scoring (simplified)
-  const ocraScore = Math.min(10, Math.round(
-    (scoreFromAngle(angles.trunk, [10, 20, 40]) +
-      scoreFromAngle(Math.max(angles.upperArmLeft, angles.upperArmRight), [20, 45, 90]) +
-      scoreFromAngle(Math.max(angles.wristLeft, angles.wristRight), [15, 30])) * 1.1
-  ));
-
-  // ROSA scoring (for office - simplified)
-  const rosaScore = Math.min(10, Math.round(
-    (scoreFromAngle(angles.trunk, [10, 20]) +
-      scoreFromAngle(angles.neck, [10, 20]) +
-      scoreFromAngle(Math.max(angles.wristLeft, angles.wristRight), [15, 30])) * 1.2
-  ));
+  const rulaComposite = armRisk * 0.34 + lowerArmRisk * 0.2 + wristRisk * 0.16 + neckRisk * 0.14 + trunkRisk * 0.16;
+  const rebaComposite = trunkRisk * 0.28 + kneeRisk * 0.24 + armRisk * 0.2 + neckRisk * 0.14 + lowerArmRisk * 0.1 + wristRisk * 0.04;
+  const rosaComposite = trunkRisk * 0.4 + neckRisk * 0.3 + wristRisk * 0.3;
+  const ocraComposite = armRisk * 0.45 + wristRisk * 0.35 + trunkRisk * 0.2;
 
   return {
-    RULA: Math.max(1, rulaScore),
-    REBA: Math.max(1, rebaScore),
-    ROSA: Math.max(1, rosaScore),
-    OWAS: Math.max(1, owasScore),
-    OCRA: Math.max(1, ocraScore),
+    RULA: toScaledScore(rulaComposite, 7),
+    REBA: toScaledScore(rebaComposite, 12),
+    ROSA: toScaledScore(rosaComposite, 10),
+    OWAS: Math.max(kneeRisk, trunkRisk, armRisk),
+    OCRA: toScaledScore(ocraComposite, 10),
   };
 }
 
