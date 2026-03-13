@@ -7,10 +7,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useCompany } from "@/lib/company-context";
 import type { Company } from "@/lib/types";
 import { Plus, Building2, Pencil, Trash2 } from "lucide-react";
-import { mockSectors, mockWorkstations } from "@/lib/mock-data";
 
 export default function EmpresasPage() {
-  const { companies, setCompanies } = useCompany();
+  const { companies, setCompanies, sectors } = useCompany();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Company | null>(null);
   const [name, setName] = useState("");
@@ -68,7 +67,7 @@ export default function EmpresasPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {companies.map((company) => {
-          const sectorCount = mockSectors.filter((s) => s.company_id === company.id).length;
+          const sectorCount = sectors.filter((s) => s.company_id === company.id).length;
           return (
             <Card key={company.id}>
               <CardHeader className="pb-2 flex-row items-center justify-between">

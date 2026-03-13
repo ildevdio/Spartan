@@ -5,13 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { mockWorkstations, mockSectors, mockAnalyses } from "@/lib/mock-data";
+import { useCompany } from "@/lib/company-context";
+import { CompanySelector } from "@/components/CompanySelector";
 import type { Workstation } from "@/lib/types";
+import { MIN_PHOTOS_REQUIRED } from "@/lib/types";
 import { Plus, Monitor, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 export default function PostosPage() {
-  const [workstations, setWorkstations] = useState<Workstation[]>(mockWorkstations);
+  const {
+    companySectors, companyWorkstations, companyAnalyses,
+    workstations, setWorkstations, posturePhotos,
+  } = useCompany();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [sectorId, setSectorId] = useState("");
@@ -40,34 +46,40 @@ export default function PostosPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Postos de Trabalho</h1>
-          <p className="text-sm text-muted-foreground">Gerencie os postos de trabalho</p>
+          <p className="text-sm text-muted-foreground">Postos da empresa selecionada</p>
         </div>
-        <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Novo Posto</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader><DialogTitle>{editingId ? "Editar Posto" : "Novo Posto"}</DialogTitle></DialogHeader>
-            <div className="space-y-4 pt-2">
-              <Input placeholder="Nome do posto" value={name} onChange={(e) => setName(e.target.value)} />
-              <Select value={sectorId} onValueChange={setSectorId}>
-                <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
-                <SelectContent>
-                  {mockSectors.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Textarea placeholder="Descrição do posto" value={description} onChange={(e) => setDescription(e.target.value)} />
-              <Textarea placeholder="Tarefas realizadas" value={tasks} onChange={(e) => setTasks(e.target.value)} />
-              <Button onClick={handleSave} className="w-full">{editingId ? "Salvar" : "Criar Posto"}</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div className="flex items-center gap-3">
+          <CompanySelector />
+          <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button><Plus className="h-4 w-4 mr-2" />Novo Posto</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader><DialogTitle>{editingId ? "Editar Posto" : "Novo Posto"}</DialogTitle></DialogHeader>
+              <div className="space-y-4 pt-2">
+                <Input placeholder="Nome do posto" value={name} onChange={(e) => setName(e.target.value)} />
+                <Select value={sectorId} onValueChange={setSectorId}>
+                  <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                  <SelectContent>
+                    {companySectors.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Textarea placeholder="Descrição do posto" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <Textarea placeholder="Tarefas realizadas" value={tasks} onChange={(e) => setTasks(e.target.value)} />
+                <Button onClick={handleSave} className="w-full">{editingId ? "Salvar" : "Criar Posto"}</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {workstations.map((w) => {
-          const sector = mockSectors.find((s) => s.id === w.sector_id);
-          const analysisCount = mockAnalyses.filter((a) => a.workstation_id === w.id).length;
+        {companyWorkstations.map((w) => {
+          const sector = companySectors.find((s) => s.id === w.sector_id);
+          const analysisCount = companyAnalyses.filter((a) => a.workstation_id === w.id).length;
+          const photoCount = posturePhotos.filter((p) => p.workstation_id === w.id).length;
+          const photoProgress = Math.min((photoCount / MIN_PHOTOS_REQUIRED) * 100, 100);
+
           return (
             <Card key={w.id}>
               <CardHeader className="pb-2 flex-row items-center justify-between">
@@ -84,11 +96,22 @@ export default function PostosPage() {
                 <Badge variant="secondary">{sector?.name}</Badge>
                 <p className="text-sm text-muted-foreground">{w.description}</p>
                 <p className="text-xs text-muted-foreground"><strong>Tarefas:</strong> {w.tasks_performed}</p>
-                <p className="text-xs text-muted-foreground">{analysisCount} análise(s) realizadas</p>
+                <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                  <span>{analysisCount} análise(s)</span>
+                  <span>Fotos: {photoCount}/{MIN_PHOTOS_REQUIRED}</span>
+                </div>
+                <Progress value={photoProgress} className="h-1.5" />
               </CardContent>
             </Card>
           );
         })}
+        {companyWorkstations.length === 0 && (
+          <Card className="col-span-full">
+            <CardContent className="p-8 text-center text-muted-foreground">
+              Nenhum posto de trabalho encontrado para esta empresa.
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

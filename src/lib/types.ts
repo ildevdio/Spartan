@@ -25,6 +25,17 @@ export interface Workstation {
   sector?: Sector;
 }
 
+export interface PosturePhoto {
+  id: string;
+  workstation_id: string;
+  image_url: string;
+  posture_type: string;
+  notes: string;
+  created_at: string;
+}
+
+export type AnalysisStatus = "pending" | "in_progress" | "completed";
+
 export interface Analysis {
   id: string;
   workstation_id: string;
@@ -32,6 +43,7 @@ export interface Analysis {
   score: number;
   notes: string;
   body_parts: Record<string, number>;
+  analysis_status: AnalysisStatus;
   created_at: string;
   workstation?: Workstation;
 }
@@ -72,10 +84,14 @@ export interface Report {
   title: string;
   content: string;
   sector_id?: string;
+  workstation_id?: string;
+  generated_pdf?: string;
   created_at: string;
 }
 
 export type ReportType = "AEP" | "AET" | "PCMSO" | "LTCAT" | "Insalubridade" | "Periculosidade" | "PCA" | "PPR";
+
+export const MIN_PHOTOS_REQUIRED = 5;
 
 export function calculateRiskScore(probability: number, exposure: number, consequence: number): number {
   return probability * exposure * consequence;
@@ -104,6 +120,15 @@ export function statusLabel(status: ActionStatus): string {
     approved: "Aprovado",
     in_progress: "Em Andamento",
     completed: "Concluído",
+  };
+  return labels[status];
+}
+
+export function analysisStatusLabel(status: AnalysisStatus): string {
+  const labels: Record<AnalysisStatus, string> = {
+    pending: "Pendente",
+    in_progress: "Em Andamento",
+    completed: "Concluída",
   };
   return labels[status];
 }
