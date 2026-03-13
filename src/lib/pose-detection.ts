@@ -51,7 +51,7 @@ export async function detectPose(
   source: HTMLVideoElement | HTMLImageElement | HTMLCanvasElement
 ): Promise<poseDetection.Pose[]> {
   if (!detector) {
-    await initMoveNet();
+    await initPoseDetector();
   }
   const poses = await detector!.estimatePoses(source);
   return poses;
