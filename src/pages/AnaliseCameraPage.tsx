@@ -109,51 +109,73 @@ export default function AnaliseCameraPage() {
   };
 
   const runDetectionLoop = () => {
-    const detect = async () => {
+    const detect = async (timestamp: number) => {
       if (!isStreamingRef.current || !videoRef.current || !canvasRef.current) return;
+
+      // Keep the camera loop alive continuously
+      animFrameRef.current = requestAnimationFrame(detect);
 
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
-      if (!ctx || video.readyState < 2) {
-        animFrameRef.current = requestAnimationFrame(detect);
-        return;
-      }
 
-      // Match canvas internal size to video
+      if (!ctx || video.readyState < 2 || isDetectingFrameRef.current) return;
+
       if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
       }
 
-      // Clear canvas (transparent) — video shows through underneath
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      isDetectingFrameRef.current = true;
 
       try {
         const poses = await detectPose(video);
-        if (poses.length > 0) {
-          const jointAngles = calculateJointAngles(poses[0].keypoints);
-          const ergScores = calculateErgonomicScores(jointAngles);
-          anglesRef.current = jointAngles;
 
-          // Draw only skeleton overlay (transparent background)
-          drawPose(ctx, poses, canvas.width, canvas.height, jointAngles);
+        if (!isStreamingRef.current) return;
 
+        if (poses.length === 0) {
+          setLiveStatus("no_pose");
+          if (timestamp - lastUiUpdateRef.current > 100) {
+            setAngles(null);
+            setScores(null);
+            lastUiUpdateRef.current = timestamp;
+          }
+          return;
+        }
+
+        const keypoints = poses[0].keypoints;
+        const isComplete = hasRequiredErgonomicKeypoints(keypoints);
+
+        if (!isComplete) {
+          drawPose(ctx, poses, canvas.width, canvas.height, null);
+          setLiveStatus("incomplete");
+          if (timestamp - lastUiUpdateRef.current > 100) {
+            setAngles(null);
+            setScores(null);
+            lastUiUpdateRef.current = timestamp;
+          }
+          return;
+        }
+
+        const jointAngles = calculateJointAngles(keypoints);
+        const ergScores = calculateErgonomicScores(jointAngles);
+
+        drawPose(ctx, poses, canvas.width, canvas.height, jointAngles);
+        setLiveStatus("tracking");
+
+        if (timestamp - lastUiUpdateRef.current > 80) {
           setAngles(jointAngles);
           setScores(ergScores);
-        } else {
-          // No pose detected — clear overlay
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          lastUiUpdateRef.current = timestamp;
         }
       } catch (err) {
         console.error("Detection error:", err);
-      }
-
-      // Always continue the loop
-      if (isStreamingRef.current) {
-        animFrameRef.current = requestAnimationFrame(detect);
+      } finally {
+        isDetectingFrameRef.current = false;
       }
     };
+
     animFrameRef.current = requestAnimationFrame(detect);
   };
 
