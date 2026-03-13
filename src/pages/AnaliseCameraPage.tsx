@@ -35,6 +35,7 @@ export default function AnaliseCameraPage() {
   const [activity, setActivity] = useState("");
   const [role, setRole] = useState("");
   const [notes, setNotes] = useState("");
+  const [liveStatus, setLiveStatus] = useState<"ready" | "tracking" | "incomplete" | "no_pose">("ready");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -43,7 +44,8 @@ export default function AnaliseCameraPage() {
   const animFrameRef = useRef<number>(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isStreamingRef = useRef(false);
-  const anglesRef = useRef<JointAngles | null>(null);
+  const isDetectingFrameRef = useRef(false);
+  const lastUiUpdateRef = useRef(0);
 
   useEffect(() => {
     return () => {
