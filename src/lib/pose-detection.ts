@@ -66,6 +66,26 @@ function getKeypointByName(
   return undefined;
 }
 
+const REQUIRED_ERGONOMIC_KEYPOINTS = [
+  "nose",
+  "left_shoulder",
+  "right_shoulder",
+  "left_elbow",
+  "right_elbow",
+  "left_wrist",
+  "right_wrist",
+  "left_hip",
+  "right_hip",
+  "left_knee",
+  "right_knee",
+  "left_ankle",
+  "right_ankle",
+] as const;
+
+export function hasRequiredErgonomicKeypoints(keypoints: poseDetection.Keypoint[]): boolean {
+  return REQUIRED_ERGONOMIC_KEYPOINTS.every((name) => Boolean(getKeypointByName(keypoints, name)));
+}
+
 function angleBetweenPoints(
   a: { x: number; y: number },
   b: { x: number; y: number },
