@@ -42,19 +42,19 @@ export default function PostosPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 max-w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">Postos de Trabalho</h1>
-          <p className="text-sm text-muted-foreground">Postos da empresa selecionada</p>
+          <h1 className="text-xl sm:text-2xl font-bold">Postos de Trabalho</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Postos da empresa selecionada</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <CompanySelector />
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" />Novo Posto</Button>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" />Novo Posto</Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-[95vw] sm:max-w-lg">
               <DialogHeader><DialogTitle>{editingId ? "Editar Posto" : "Novo Posto"}</DialogTitle></DialogHeader>
               <div className="space-y-4 pt-2">
                 <Input placeholder="Nome do posto" value={name} onChange={(e) => setName(e.target.value)} />
@@ -73,7 +73,7 @@ export default function PostosPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {companyWorkstations.map((w) => {
           const sector = companySectors.find((s) => s.id === w.sector_id);
           const analysisCount = companyAnalyses.filter((a) => a.workstation_id === w.id).length;
@@ -82,19 +82,19 @@ export default function PostosPage() {
 
           return (
             <Card key={w.id}>
-              <CardHeader className="pb-2 flex-row items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Monitor className="h-5 w-5 text-accent" />
-                  <CardTitle className="text-base">{w.name}</CardTitle>
+              <CardHeader className="pb-2 flex-row items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Monitor className="h-4 w-4 text-accent shrink-0" />
+                  <CardTitle className="text-sm truncate">{w.name}</CardTitle>
                 </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(w)}><Pencil className="h-3.5 w-3.5" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => setWorkstations(workstations.filter((x) => x.id !== w.id))}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                <div className="flex gap-1 shrink-0">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(w)}><Pencil className="h-3 w-3" /></Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setWorkstations(workstations.filter((x) => x.id !== w.id))}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Badge variant="secondary">{sector?.name}</Badge>
-                <p className="text-sm text-muted-foreground">{w.description}</p>
+                <Badge variant="secondary" className="text-[10px]">{sector?.name}</Badge>
+                <p className="text-xs text-muted-foreground line-clamp-2">{w.description}</p>
                 <p className="text-xs text-muted-foreground"><strong>Tarefas:</strong> {w.tasks_performed}</p>
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
                   <span>{analysisCount} análise(s)</span>
@@ -107,8 +107,8 @@ export default function PostosPage() {
         })}
         {companyWorkstations.length === 0 && (
           <Card className="col-span-full">
-            <CardContent className="p-8 text-center text-muted-foreground">
-              Nenhum posto de trabalho encontrado para esta empresa.
+            <CardContent className="p-8 text-center text-muted-foreground text-sm">
+              Nenhum posto encontrado.
             </CardContent>
           </Card>
         )}

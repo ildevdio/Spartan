@@ -31,18 +31,18 @@ const mainItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Empresas", url: "/empresas", icon: Building2 },
   { title: "Setores", url: "/setores", icon: Layers },
-  { title: "Postos de Trabalho", url: "/postos", icon: Monitor },
+  { title: "Postos", url: "/postos", icon: Monitor },
 ];
 
 const analysisItems = [
-  { title: "Captura de Posturas", url: "/captura-posturas", icon: Camera },
+  { title: "Captura", url: "/captura-posturas", icon: Camera },
   { title: "Análises", url: "/analises", icon: ClipboardCheck },
-  { title: "Análise por Câmera", url: "/analise-camera", icon: Camera },
+  { title: "Câmera", url: "/analise-camera", icon: Camera },
 ];
 
 const reportItems = [
-  { title: "Matriz de Risco", url: "/riscos", icon: AlertTriangle },
-  { title: "Plano de Ação", url: "/acoes", icon: ListTodo },
+  { title: "Riscos", url: "/riscos", icon: AlertTriangle },
+  { title: "Ações", url: "/acoes", icon: ListTodo },
   { title: "Relatórios", url: "/relatorios", icon: FileText },
 ];
 
@@ -52,35 +52,35 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-5 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <img src={spartanLogo} alt="Spartan" className="h-16 shrink-0 object-contain" />
+      <SidebarHeader className="p-3 border-b border-sidebar-border">
+        <div className="flex items-center gap-2">
+          <img src={spartanLogo} alt="Spartan" className="h-10 shrink-0 object-contain" />
           {!collapsed && (
             <div>
-              <h1 className="text-lg font-bold tracking-tight text-sidebar-foreground leading-none">
+              <h1 className="text-sm font-bold tracking-tight text-sidebar-foreground leading-none">
                 Spartan
               </h1>
-              <p className="text-[10px] text-sidebar-muted mt-0.5 tracking-wide uppercase">Ergonomia & Segurança</p>
+              <p className="text-[9px] text-sidebar-muted mt-0.5 tracking-wide uppercase">Ergonomia & Segurança</p>
             </div>
           )}
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="overflow-hidden">
         <SidebarGroup>
-          <SidebarGroupLabel>Cadastro</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] py-1">Cadastro</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild className="h-8">
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
                       className="hover:bg-sidebar-accent/50 transition-colors duration-150"
                       activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
                     >
-                      <item.icon className="mr-2 h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
+                      <item.icon className="mr-2 h-3.5 w-3.5 shrink-0" />
+                      {!collapsed && <span className="text-sm">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -90,19 +90,19 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Análise Ergonômica</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] py-1">Análise</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {analysisItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild className="h-8">
                     <NavLink
                       to={item.url}
                       className="hover:bg-sidebar-accent/50 transition-colors duration-150"
                       activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
                     >
-                      <item.icon className="mr-2 h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
+                      <item.icon className="mr-2 h-3.5 w-3.5 shrink-0" />
+                      {!collapsed && <span className="text-sm">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -112,19 +112,19 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>Resultados</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] py-1">Resultados</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {reportItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild className="h-8">
                     <NavLink
                       to={item.url}
                       className="hover:bg-sidebar-accent/50 transition-colors duration-150"
                       activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
                     >
-                      <item.icon className="mr-2 h-4 w-4 shrink-0" />
-                      {!collapsed && <span>{item.title}</span>}
+                      <item.icon className="mr-2 h-3.5 w-3.5 shrink-0" />
+                      {!collapsed && <span className="text-sm">{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -133,11 +133,11 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
+      <SidebarFooter className="border-t border-sidebar-border px-3 py-2">
         {!collapsed && (
           <div className="flex items-center justify-center gap-1.5 overflow-hidden">
-            <span className="text-[10px] text-sidebar-muted/70 tracking-wider uppercase whitespace-nowrap">Desenvolvido por:</span>
-            <img src={focusLogo} alt="Focus" className="h-5" />
+            <span className="text-[9px] text-sidebar-muted/70 tracking-wider uppercase whitespace-nowrap">Desenvolvido por:</span>
+            <img src={focusLogo} alt="Focus" className="h-4" />
           </div>
         )}
       </SidebarFooter>

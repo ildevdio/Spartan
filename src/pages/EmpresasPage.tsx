@@ -40,17 +40,17 @@ export default function EmpresasPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6 max-w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Empresas</h1>
-          <p className="text-sm text-muted-foreground">Cadastre e gerencie as empresas</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Empresas</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Cadastre e gerencie as empresas</p>
         </div>
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Nova Empresa</Button>
+            <Button size="sm"><Plus className="h-4 w-4 mr-1" />Nova Empresa</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-[95vw] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>{editing ? "Editar Empresa" : "Nova Empresa"}</DialogTitle>
             </DialogHeader>
@@ -65,25 +65,25 @@ export default function EmpresasPage() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {companies.map((company) => {
           const sectorCount = sectors.filter((s) => s.company_id === company.id).length;
           return (
             <Card key={company.id}>
-              <CardHeader className="pb-2 flex-row items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5 text-accent" />
-                  <CardTitle className="text-base">{company.name}</CardTitle>
+              <CardHeader className="pb-2 flex-row items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Building2 className="h-4 w-4 text-accent shrink-0" />
+                  <CardTitle className="text-sm truncate">{company.name}</CardTitle>
                 </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" onClick={() => handleEdit(company)}><Pencil className="h-3.5 w-3.5" /></Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDelete(company.id)}><Trash2 className="h-3.5 w-3.5 text-destructive" /></Button>
+                <div className="flex gap-1 shrink-0">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(company)}><Pencil className="h-3 w-3" /></Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(company.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {company.cnpj && <p className="text-xs text-muted-foreground mb-1">CNPJ: {company.cnpj}</p>}
-                {company.address && <p className="text-xs text-muted-foreground mb-1">{company.address}</p>}
-                <p className="text-sm text-muted-foreground mb-2">{company.description}</p>
+                {company.address && <p className="text-xs text-muted-foreground mb-1 truncate">{company.address}</p>}
+                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{company.description}</p>
                 <p className="text-xs text-muted-foreground">{sectorCount} setor(es)</p>
               </CardContent>
             </Card>
