@@ -75,7 +75,9 @@ export default function AnaliseCameraPage() {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.play();
+        await videoRef.current.play();
+        lastUiUpdateRef.current = 0;
+        setLiveStatus("no_pose");
         setIsStreaming(true);
         isStreamingRef.current = true;
         setSourceType("camera");
