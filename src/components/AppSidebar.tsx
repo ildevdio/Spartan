@@ -37,7 +37,7 @@ const mainItems = [
 const analysisItems = [
   { title: "Captura", url: "/captura-posturas", icon: Camera },
   { title: "Análises", url: "/analises", icon: ClipboardCheck },
-  { title: "Câmera", url: "/analise-camera", icon: Camera },
+  { title: "Live Posture Analysis", url: "/analise-camera", icon: Camera },
 ];
 
 const reportItems = [
