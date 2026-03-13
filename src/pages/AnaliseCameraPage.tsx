@@ -89,6 +89,7 @@ export default function AnaliseCameraPage() {
 
   const stopCamera = () => {
     isStreamingRef.current = false;
+    isDetectingFrameRef.current = false;
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
       animFrameRef.current = 0;
@@ -97,6 +98,11 @@ export default function AnaliseCameraPage() {
       streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      ctx?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    }
+    setLiveStatus("ready");
     setIsStreaming(false);
   };
 
