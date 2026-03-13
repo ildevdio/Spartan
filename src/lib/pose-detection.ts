@@ -32,14 +32,16 @@ let detector: poseDetection.PoseDetector | null = null;
 // Temporal smoothing buffer
 const angleHistory: JointAngles[] = [];
 
-export async function initMoveNet() {
+export async function initPoseDetector() {
   await tf.setBackend("webgl");
   await tf.ready();
 
   detector = await poseDetection.createDetector(
-    poseDetection.SupportedModels.MoveNet,
+    poseDetection.SupportedModels.BlazePose,
     {
-      modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
+      runtime: "tfjs",
+      modelType: "full",
+      enableSmoothing: true,
     }
   );
   return detector;
