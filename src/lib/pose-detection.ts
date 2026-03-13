@@ -342,7 +342,7 @@ export function drawPose(
     const kps = pose.keypoints;
 
     // Draw connections with risk colors
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 6;
     for (const [a, b] of connections) {
       const kpA = kps.find((k) => k.name === a);
       const kpB = kps.find((k) => k.name === b);
@@ -351,7 +351,7 @@ export function drawPose(
         ctx.strokeStyle = RISK_COLORS[risk];
         // Glow effect
         ctx.shadowColor = RISK_COLORS[risk];
-        ctx.shadowBlur = 6;
+        ctx.shadowBlur = 10;
         ctx.beginPath();
         ctx.moveTo(kpA.x, kpA.y);
         ctx.lineTo(kpB.x, kpB.y);
@@ -364,12 +364,20 @@ export function drawPose(
     for (const kp of kps) {
       if ((kp.score ?? 0) > MIN_CONFIDENCE && kp.name) {
         const risk = getKeypointRisk(kp.name, angles ?? null);
+        // Outer glow
+        ctx.beginPath();
+        ctx.arc(kp.x, kp.y, 10, 0, 2 * Math.PI);
+        ctx.fillStyle = RISK_KEYPOINT_COLORS[risk];
+        ctx.globalAlpha = 0.4;
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+        // Inner dot
         ctx.beginPath();
         ctx.arc(kp.x, kp.y, 6, 0, 2 * Math.PI);
         ctx.fillStyle = RISK_KEYPOINT_COLORS[risk];
         ctx.fill();
-        ctx.strokeStyle = "hsla(0, 0%, 100%, 0.9)";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "hsla(0, 0%, 100%, 0.95)";
+        ctx.lineWidth = 2.5;
         ctx.stroke();
       }
     }
