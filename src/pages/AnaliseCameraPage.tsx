@@ -74,6 +74,7 @@ export default function AnaliseCameraPage() {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
         setIsStreaming(true);
+        isStreamingRef.current = true;
         setSourceType("camera");
         runDetectionLoop();
       }
@@ -84,8 +85,10 @@ export default function AnaliseCameraPage() {
   };
 
   const stopCamera = () => {
+    isStreamingRef.current = false;
     if (animFrameRef.current) {
       cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = 0;
     }
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((t) => t.stop());
