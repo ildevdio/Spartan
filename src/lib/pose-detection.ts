@@ -23,7 +23,14 @@ export interface ErgonomicScores {
   OCRA: number;
 }
 
+// --- Confidence & smoothing config ---
+const MIN_CONFIDENCE = 0.35;
+const SMOOTHING_WINDOW = 5;
+
 let detector: poseDetection.PoseDetector | null = null;
+
+// Temporal smoothing buffer
+const angleHistory: JointAngles[] = [];
 
 export async function initMoveNet() {
   await tf.setBackend("webgl");
@@ -52,7 +59,9 @@ function getKeypointByName(
   keypoints: poseDetection.Keypoint[],
   name: string
 ): poseDetection.Keypoint | undefined {
-  return keypoints.find((kp) => kp.name === name);
+  const kp = keypoints.find((k) => k.name === name);
+  if (kp && (kp.score ?? 0) >= MIN_CONFIDENCE) return kp;
+  return undefined;
 }
 
 function angleBetweenPoints(
@@ -70,8 +79,27 @@ function angleBetweenPoints(
   return (Math.acos(cos) * 180) / Math.PI;
 }
 
+function smoothAngles(current: JointAngles): JointAngles {
+  angleHistory.push(current);
+  if (angleHistory.length > SMOOTHING_WINDOW) {
+    angleHistory.shift();
+  }
+  const keys = Object.keys(current) as (keyof JointAngles)[];
+  const smoothed = {} as JointAngles;
+  for (const key of keys) {
+    const sum = angleHistory.reduce((acc, h) => acc + h[key], 0);
+    smoothed[key] = sum / angleHistory.length;
+  }
+  return smoothed;
+}
+
+export function resetSmoothing() {
+  angleHistory.length = 0;
+}
+
 export function calculateJointAngles(
-  keypoints: poseDetection.Keypoint[]
+  keypoints: poseDetection.Keypoint[],
+  applySmoothing = true
 ): JointAngles {
   const nose = getKeypointByName(keypoints, "nose");
   const lShoulder = getKeypointByName(keypoints, "left_shoulder");
@@ -135,7 +163,7 @@ export function calculateJointAngles(
     ? angleBetweenPoints(rHip, rKnee, rAnkle)
     : 180;
 
-  return {
+  const raw: JointAngles = {
     neck: neckAngle,
     trunk: trunkAngle,
     upperArmLeft,
@@ -147,9 +175,21 @@ export function calculateJointAngles(
     kneeLeft,
     kneeRight,
   };
+
+  return applySmoothing ? smoothAngles(raw) : raw;
 }
 
-// Simplified ergonomic scoring based on joint angles
+// --- Knee risk classification ---
+export type KneeRiskLevel = "neutral" | "low" | "moderate" | "high";
+
+export function classifyKneeRisk(kneeAngle: number): KneeRiskLevel {
+  if (kneeAngle >= 160) return "neutral";   // 160-180°
+  if (kneeAngle >= 140) return "low";       // 140-160°
+  if (kneeAngle >= 110) return "moderate";  // 110-140°
+  return "high";                            // < 110°
+}
+
+// --- Ergonomic scoring ---
 function scoreFromAngle(angle: number, thresholds: number[]): number {
   for (let i = 0; i < thresholds.length; i++) {
     if (angle <= thresholds[i]) return i + 1;
@@ -169,7 +209,10 @@ export function calculateErgonomicScores(angles: JointAngles): ErgonomicScores {
   // REBA scoring (simplified)
   const rebaTrunk = scoreFromAngle(angles.trunk, [5, 20, 60]);
   const rebaNeck = scoreFromAngle(angles.neck, [20]);
-  const rebaLegs = scoreFromAngle(180 - Math.min(angles.kneeLeft, angles.kneeRight), [30, 60]);
+  // Corrected knee/leg scoring using classifyKneeRisk
+  const minKnee = Math.min(angles.kneeLeft, angles.kneeRight);
+  const kneeRisk = classifyKneeRisk(minKnee);
+  const rebaLegs = kneeRisk === "neutral" ? 1 : kneeRisk === "low" ? 2 : kneeRisk === "moderate" ? 3 : 4;
   const rebaUpperArm = scoreFromAngle(Math.max(angles.upperArmLeft, angles.upperArmRight), [20, 45, 90]);
   const rebaLowerArm = scoreFromAngle(Math.min(angles.lowerArmLeft, angles.lowerArmRight), [60, 100]);
   const rebaWrist = scoreFromAngle(Math.max(angles.wristLeft, angles.wristRight), [15]);
@@ -178,10 +221,11 @@ export function calculateErgonomicScores(angles: JointAngles): ErgonomicScores {
   // OWAS scoring (simplified: 1-4 scale)
   const owasBack = angles.trunk > 40 ? 4 : angles.trunk > 20 ? 3 : angles.trunk > 10 ? 2 : 1;
   const owasArms = Math.max(angles.upperArmLeft, angles.upperArmRight) > 90 ? 3 : Math.max(angles.upperArmLeft, angles.upperArmRight) > 45 ? 2 : 1;
-  const owasLegs = Math.min(angles.kneeLeft, angles.kneeRight) < 120 ? 3 : Math.min(angles.kneeLeft, angles.kneeRight) < 150 ? 2 : 1;
+  // Corrected leg scoring for OWAS
+  const owasLegs = kneeRisk === "high" ? 4 : kneeRisk === "moderate" ? 3 : kneeRisk === "low" ? 2 : 1;
   const owasScore = Math.round((owasBack + owasArms + owasLegs) / 3 * 1.3);
 
-  // OCRA scoring (simplified based on repetition proxy)
+  // OCRA scoring (simplified)
   const ocraScore = Math.min(10, Math.round(
     (scoreFromAngle(angles.trunk, [10, 20, 40]) +
       scoreFromAngle(Math.max(angles.upperArmLeft, angles.upperArmRight), [20, 45, 90]) +
@@ -204,6 +248,7 @@ export function calculateErgonomicScores(angles: JointAngles): ErgonomicScores {
   };
 }
 
+// --- Drawing ---
 export function drawPose(
   ctx: CanvasRenderingContext2D,
   poses: poseDetection.Pose[],
@@ -231,7 +276,7 @@ export function drawPose(
     for (const [a, b] of connections) {
       const kpA = kps.find((k) => k.name === a);
       const kpB = kps.find((k) => k.name === b);
-      if (kpA && kpB && (kpA.score ?? 0) > 0.3 && (kpB.score ?? 0) > 0.3) {
+      if (kpA && kpB && (kpA.score ?? 0) > MIN_CONFIDENCE && (kpB.score ?? 0) > MIN_CONFIDENCE) {
         ctx.beginPath();
         ctx.moveTo(kpA.x, kpA.y);
         ctx.lineTo(kpB.x, kpB.y);
@@ -241,7 +286,7 @@ export function drawPose(
 
     // Draw keypoints
     for (const kp of kps) {
-      if ((kp.score ?? 0) > 0.3) {
+      if ((kp.score ?? 0) > MIN_CONFIDENCE) {
         ctx.beginPath();
         ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
         ctx.fillStyle = "hsl(174, 58%, 52%)";
