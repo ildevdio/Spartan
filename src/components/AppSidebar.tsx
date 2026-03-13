@@ -47,23 +47,26 @@ const reportItems = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="p-3 border-b border-sidebar-border">
-        <div className="flex items-center gap-2">
+        <button
+          onClick={toggleSidebar}
+          className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity w-full"
+        >
           <img src={spartanLogo} alt="Spartan" className="h-10 shrink-0 object-contain" />
           {!collapsed && (
-            <div>
+            <div className="text-left">
               <h1 className="text-sm font-bold tracking-tight text-sidebar-foreground leading-none">
                 Spartan
               </h1>
               <p className="text-[9px] text-sidebar-muted mt-0.5 tracking-wide uppercase">Ergonomia & Segurança</p>
             </div>
           )}
-        </div>
+        </button>
       </SidebarHeader>
       <SidebarContent className="overflow-hidden">
         <SidebarGroup>

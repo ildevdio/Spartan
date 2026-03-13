@@ -2,16 +2,17 @@ import { SidebarProvider, useSidebar } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import spartanLogo from "@/assets/spartan-logo.png";
+import { useIsMobile } from "@/hooks/use-mobile";
 
-function SidebarToggle() {
+function MobileMenuButton() {
   const { toggleSidebar } = useSidebar();
+  const isMobile = useIsMobile();
+
+  if (!isMobile) return null;
+
   return (
     <Button variant="ghost" size="icon" className="h-8 w-8 mr-3 shrink-0" onClick={toggleSidebar}>
-      {/* Mobile: hamburger menu */}
-      <Menu className="h-5 w-5 sm:hidden" />
-      {/* Desktop/tablet: spartan logo */}
-      <img src={spartanLogo} alt="Menu" className="h-7 w-7 hidden sm:block object-contain" />
+      <Menu className="h-5 w-5" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
@@ -24,7 +25,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
           <header className="h-12 flex items-center border-b border-border bg-card px-3 sm:px-5 shrink-0">
-            <SidebarToggle />
+            <MobileMenuButton />
             <div className="flex items-center gap-2 min-w-0">
               <div className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse shrink-0" />
               <span className="text-xs sm:text-sm text-muted-foreground tracking-wide truncate">Spartan - Gestão Ergonômica</span>
