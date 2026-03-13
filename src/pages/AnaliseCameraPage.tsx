@@ -109,9 +109,14 @@ export default function AnaliseCameraPage() {
         return;
       }
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0);
+      // Match canvas internal size to video
+      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+
+      // Clear canvas (transparent) — video shows through underneath
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       try {
         const poses = await detectPose(video);
@@ -120,17 +125,20 @@ export default function AnaliseCameraPage() {
           const ergScores = calculateErgonomicScores(jointAngles);
           anglesRef.current = jointAngles;
 
-          // Re-draw video frame then overlay skeleton with risk colors
-          ctx.drawImage(video, 0, 0);
+          // Draw only skeleton overlay (transparent background)
           drawPose(ctx, poses, canvas.width, canvas.height, jointAngles);
 
           setAngles(jointAngles);
           setScores(ergScores);
+        } else {
+          // No pose detected — clear overlay
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
       } catch (err) {
         console.error("Detection error:", err);
       }
 
+      // Always continue the loop
       if (isStreamingRef.current) {
         animFrameRef.current = requestAnimationFrame(detect);
       }
@@ -395,7 +403,8 @@ export default function AnaliseCameraPage() {
               />
               <canvas
                 ref={canvasRef}
-                className="absolute top-0 left-0 w-full h-full rounded-lg"
+                className="absolute top-0 left-0 w-full h-full rounded-lg pointer-events-none"
+                style={{ zIndex: 10 }}
               />
             </div>
 
