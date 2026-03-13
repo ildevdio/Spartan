@@ -335,11 +335,11 @@ export default function AnaliseCameraPage() {
             {step === "upload" && !isStreaming && (
               <Tabs defaultValue="file" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="file">
-                    <Upload className="h-4 w-4 mr-2" /> Arquivo
+                  <TabsTrigger value="file" className="text-xs sm:text-sm">
+                    <Upload className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Arquivo</span><span className="sm:hidden">Arquivo</span>
                   </TabsTrigger>
-                  <TabsTrigger value="camera">
-                    <Camera className="h-4 w-4 mr-2" /> Câmera
+                  <TabsTrigger value="camera" className="text-xs sm:text-sm">
+                    <Camera className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Câmera</span><span className="sm:hidden">Câmera</span>
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="file" className="space-y-4">
