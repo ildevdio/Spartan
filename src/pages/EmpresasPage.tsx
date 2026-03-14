@@ -88,7 +88,7 @@ export default function EmpresasPage() {
               </CardHeader>
               <CardContent>
                 {company.cnpj && <p className="text-xs text-muted-foreground mb-1">CNPJ: {company.cnpj}</p>}
-                {company.address && <p className="text-xs text-muted-foreground mb-1 truncate">{company.address}</p>}
+                {company.address && <p className="text-xs text-muted-foreground mb-1 truncate">{company.address} — {company.city}/{company.state}</p>}
                 <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{company.description}</p>
                 <p className="text-xs text-muted-foreground">{sectorCount} setor(es)</p>
               </CardContent>

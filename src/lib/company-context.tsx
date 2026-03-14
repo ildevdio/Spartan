@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useMemo, type ReactNode } from "react";
-import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report } from "./types";
-import { mockCompanies, mockSectors, mockWorkstations, mockAnalyses, mockPosturePhotos, mockReports } from "./mock-data";
+import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, Task } from "./types";
+import { mockCompanies, mockSectors, mockWorkstations, mockAnalyses, mockPosturePhotos, mockReports, mockTasks } from "./mock-data";
 
 interface CompanyContextType {
   companies: Company[];
