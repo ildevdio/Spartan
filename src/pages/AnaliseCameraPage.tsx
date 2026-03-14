@@ -7,8 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Camera, Upload, Play, Square, RotateCcw, Save, Loader2, Eye } from "lucide-react";
-import { mockSectors, mockWorkstations } from "@/lib/mock-data";
 import { CompanySelector } from "@/components/CompanySelector";
+import { useCompany } from "@/lib/company-context";
 import {
   detectPose,
   calculateJointAngles,
@@ -24,6 +24,7 @@ import { toast } from "sonner";
 type AnalysisStep = "upload" | "detecting" | "results" | "details" | "saved";
 
 export default function AnaliseCameraPage() {
+  const { companySectors, companyWorkstations } = useCompany();
   const [step, setStep] = useState<AnalysisStep>("upload");
   const [sourceType, setSourceType] = useState<"camera" | "file">("file");
   const [isStreaming, setIsStreaming] = useState(false);
@@ -591,12 +592,25 @@ export default function AnaliseCameraPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Setor</label>
-                  <Select value={sectorId} onValueChange={setSectorId}>
+                  <Select value={sectorId} onValueChange={(v) => { setSectorId(v); }}>
                     <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
                     <SelectContent>
-                      {mockSectors.map((s) => (
+                      {companySectors.map((s) => (
                         <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Posto de Trabalho</label>
+                  <Select value="" onValueChange={() => {}}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o posto" /></SelectTrigger>
+                    <SelectContent>
+                      {companyWorkstations
+                        .filter((w) => !sectorId || w.sector_id === sectorId)
+                        .map((w) => (
+                          <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
