@@ -24,8 +24,14 @@ import { toast } from "sonner";
 type AnalysisStep = "upload" | "detecting" | "results" | "details" | "saved";
 
 export default function AnaliseCameraPage() {
-  const { companySectors, companyWorkstations } = useCompany();
+  const { companySectors, companyWorkstations, selectedCompanyId } = useCompany();
   const [step, setStep] = useState<AnalysisStep>("upload");
+
+  // Reset sector/workstation when company changes
+  useEffect(() => {
+    setSectorId("");
+    setWorkstationId("");
+  }, [selectedCompanyId]);
   const [sourceType, setSourceType] = useState<"camera" | "file">("file");
   const [isStreaming, setIsStreaming] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(false);
