@@ -3,6 +3,8 @@ export interface Company {
   name: string;
   cnpj: string;
   address: string;
+  city: string;
+  state: string;
   description: string;
   created_at: string;
 }
@@ -20,9 +22,17 @@ export interface Workstation {
   sector_id: string;
   name: string;
   description: string;
+  activity_description: string;
   tasks_performed: string;
   created_at: string;
   sector?: Sector;
+}
+
+export interface Task {
+  id: string;
+  workstation_id: string;
+  description: string;
+  created_at: string;
 }
 
 export interface PosturePhoto {
@@ -31,10 +41,20 @@ export interface PosturePhoto {
   image_url: string;
   posture_type: string;
   notes: string;
+  timestamp: string;
   created_at: string;
 }
 
 export type AnalysisStatus = "pending" | "in_progress" | "completed";
+
+export interface PostureAnalysis {
+  id: string;
+  workstation_id: string;
+  joint_angles: Record<string, number>;
+  ergonomic_scores: Record<string, number>;
+  risk_level: RiskLevel;
+  created_at: string;
+}
 
 export interface Analysis {
   id: string;
@@ -49,6 +69,46 @@ export interface Analysis {
 }
 
 export type ErgonomicMethod = "RULA" | "REBA" | "ROSA" | "OWAS" | "OCRA" | "ANSI-365";
+
+export interface PsychosocialAnalysis {
+  id: string;
+  company_id: string;
+  workstation_id?: string;
+  evaluator_name: string;
+  nasa_tlx_score: number | null;
+  nasa_tlx_details: {
+    mental_demand: number;
+    physical_demand: number;
+    temporal_demand: number;
+    performance: number;
+    effort: number;
+    frustration: number;
+  } | null;
+  hse_it_score: number | null;
+  hse_it_details: {
+    demands: number;
+    control: number;
+    support: number;
+    relationships: number;
+    role: number;
+    change: number;
+  } | null;
+  copenhagen_score: number | null;
+  copenhagen_details: {
+    quantitative_demands: number;
+    work_pace: number;
+    cognitive_demands: number;
+    emotional_demands: number;
+    influence: number;
+    possibilities_development: number;
+    meaning_work: number;
+    commitment: number;
+    predictability: number;
+    social_support: number;
+  } | null;
+  observations: string;
+  created_at: string;
+}
 
 export interface RiskAssessment {
   id: string;
@@ -80,6 +140,7 @@ export type ActionStatus = "pending" | "approved" | "in_progress" | "completed";
 
 export interface Report {
   id: string;
+  company_id?: string;
   type: ReportType;
   title: string;
   content: string;
@@ -131,4 +192,33 @@ export function analysisStatusLabel(status: AnalysisStatus): string {
     completed: "Concluída",
   };
   return labels[status];
+}
+
+export function classifyAngleRisk(joint: string, angle: number): RiskLevel {
+  switch (joint) {
+    case "knee":
+      if (angle >= 160) return "low";
+      if (angle >= 140) return "medium";
+      if (angle >= 110) return "high";
+      return "critical";
+    case "trunk":
+      if (angle <= 10) return "low";
+      if (angle <= 20) return "medium";
+      if (angle <= 40) return "high";
+      return "critical";
+    case "arm":
+    case "shoulder":
+      if (angle <= 20) return "low";
+      if (angle <= 45) return "medium";
+      if (angle <= 90) return "high";
+      return "critical";
+    default:
+      return "low";
+  }
+}
+
+export function nasaTlxOverallScore(details: PsychosocialAnalysis["nasa_tlx_details"]): number {
+  if (!details) return 0;
+  const { mental_demand, physical_demand, temporal_demand, performance, effort, frustration } = details;
+  return Math.round((mental_demand + physical_demand + temporal_demand + performance + effort + frustration) / 6);
 }
