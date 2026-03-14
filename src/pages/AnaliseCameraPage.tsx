@@ -599,7 +599,7 @@ export default function AnaliseCameraPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Setor</label>
-                  <Select value={sectorId} onValueChange={(v) => { setSectorId(v); }}>
+                  <Select value={sectorId} onValueChange={(v) => { setSectorId(v); setWorkstationId(""); }}>
                     <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
                     <SelectContent>
                       {companySectors.map((s) => (
@@ -610,7 +610,7 @@ export default function AnaliseCameraPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Posto de Trabalho</label>
-                  <Select value="" onValueChange={() => {}}>
+                  <Select value={workstationId} onValueChange={setWorkstationId}>
                     <SelectTrigger><SelectValue placeholder="Selecione o posto" /></SelectTrigger>
                     <SelectContent>
                       {companyWorkstations
