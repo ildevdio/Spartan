@@ -24,6 +24,7 @@ import { toast } from "sonner";
 type AnalysisStep = "upload" | "detecting" | "results" | "details" | "saved";
 
 export default function AnaliseCameraPage() {
+  const { companySectors, companyWorkstations } = useCompany();
   const [step, setStep] = useState<AnalysisStep>("upload");
   const [sourceType, setSourceType] = useState<"camera" | "file">("file");
   const [isStreaming, setIsStreaming] = useState(false);
