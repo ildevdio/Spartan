@@ -41,6 +41,7 @@ const App = () => {
               <Route path="/relatorios" element={<RelatoriosPage />} />
               <Route path="/analise-camera" element={<AnaliseCameraPage />} />
               <Route path="/captura-posturas" element={<PostureCapturePage />} />
+              <Route path="/psicossocial" element={<PsicossocialPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
