@@ -24,8 +24,14 @@ import { toast } from "sonner";
 type AnalysisStep = "upload" | "detecting" | "results" | "details" | "saved";
 
 export default function AnaliseCameraPage() {
-  const { companySectors, companyWorkstations } = useCompany();
+  const { companySectors, companyWorkstations, selectedCompanyId } = useCompany();
   const [step, setStep] = useState<AnalysisStep>("upload");
+
+  // Reset sector/workstation when company changes
+  useEffect(() => {
+    setSectorId("");
+    setWorkstationId("");
+  }, [selectedCompanyId]);
   const [sourceType, setSourceType] = useState<"camera" | "file">("file");
   const [isStreaming, setIsStreaming] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(false);
@@ -33,6 +39,7 @@ export default function AnaliseCameraPage() {
   const [angles, setAngles] = useState<JointAngles | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [sectorId, setSectorId] = useState("");
+  const [workstationId, setWorkstationId] = useState("");
   const [activity, setActivity] = useState("");
   const [role, setRole] = useState("");
   const [notes, setNotes] = useState("");
@@ -592,7 +599,7 @@ export default function AnaliseCameraPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Setor</label>
-                  <Select value={sectorId} onValueChange={(v) => { setSectorId(v); }}>
+                  <Select value={sectorId} onValueChange={(v) => { setSectorId(v); setWorkstationId(""); }}>
                     <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
                     <SelectContent>
                       {companySectors.map((s) => (
@@ -603,7 +610,7 @@ export default function AnaliseCameraPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Posto de Trabalho</label>
-                  <Select value="" onValueChange={() => {}}>
+                  <Select value={workstationId} onValueChange={setWorkstationId}>
                     <SelectTrigger><SelectValue placeholder="Selecione o posto" /></SelectTrigger>
                     <SelectContent>
                       {companyWorkstations
