@@ -31,7 +31,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <span className="text-xs sm:text-sm text-muted-foreground tracking-wide truncate">Spartan - Gestão Ergonômica</span>
             </div>
           </header>
-          <main className="flex-1 p-3 sm:p-6 overflow-x-hidden overflow-y-auto">
+          <main className="flex-1 p-3 sm:p-6 overflow-x-hidden overflow-y-auto safe-area-bottom">
             {children}
           </main>
         </div>
