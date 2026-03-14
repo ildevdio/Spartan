@@ -15,6 +15,8 @@ export default function EmpresasPage() {
   const [name, setName] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
   const [description, setDescription] = useState("");
 
   const handleSave = () => {
