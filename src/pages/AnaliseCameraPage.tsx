@@ -592,12 +592,25 @@ export default function AnaliseCameraPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Setor</label>
-                  <Select value={sectorId} onValueChange={setSectorId}>
+                  <Select value={sectorId} onValueChange={(v) => { setSectorId(v); }}>
                     <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
                     <SelectContent>
-                      {mockSectors.map((s) => (
+                      {companySectors.map((s) => (
                         <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-1.5 block">Posto de Trabalho</label>
+                  <Select value="" onValueChange={() => {}}>
+                    <SelectTrigger><SelectValue placeholder="Selecione o posto" /></SelectTrigger>
+                    <SelectContent>
+                      {companyWorkstations
+                        .filter((w) => !sectorId || w.sector_id === sectorId)
+                        .map((w) => (
+                          <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
