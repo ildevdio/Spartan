@@ -100,3 +100,23 @@ All colors MUST be HSL.
 .tiptap blockquote {
   @apply border-l-4 border-accent pl-4 italic my-3;
 }
+
+/* Native app adjustments */
+body {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+
+/* Safe area insets for notched devices */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Keyboard open state */
+body.keyboard-open main {
+  padding-bottom: 0 !important;
+}
