@@ -60,6 +60,10 @@ export default function EmpresasPage() {
               <Input placeholder="Nome da empresa" value={name} onChange={(e) => setName(e.target.value)} />
               <Input placeholder="CNPJ" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
               <Input placeholder="Endereço" value={address} onChange={(e) => setAddress(e.target.value)} />
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
+                <Input placeholder="UF" value={state} onChange={(e) => setState(e.target.value)} />
+              </div>
               <Textarea placeholder="Descrição" value={description} onChange={(e) => setDescription(e.target.value)} />
               <Button onClick={handleSave} className="w-full">{editing ? "Salvar" : "Criar Empresa"}</Button>
             </div>
