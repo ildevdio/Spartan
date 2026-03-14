@@ -19,7 +19,9 @@ import NotFound from "./pages/NotFound";
 import { useNativeApp } from "@/hooks/use-native-app";
 const queryClient = new QueryClient();
 
-const App = () => (
+const App = () => {
+  useNativeApp();
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
