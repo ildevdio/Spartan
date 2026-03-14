@@ -34,7 +34,7 @@ export default function EmpresasPage() {
   };
 
   const handleEdit = (c: Company) => {
-    setEditing(c); setName(c.name); setCnpj(c.cnpj); setAddress(c.address); setDescription(c.description); setOpen(true);
+    setEditing(c); setName(c.name); setCnpj(c.cnpj); setAddress(c.address); setCity(c.city); setState(c.state); setDescription(c.description); setOpen(true);
   };
 
   const handleDelete = (id: string) => {
