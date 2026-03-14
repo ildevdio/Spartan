@@ -293,7 +293,7 @@ export default function AnaliseCameraPage() {
   };
 
   const handleSave = () => {
-    if (!sectorId || !activity || !role || !selectedMethod) {
+    if (!sectorId || !workstationId || !activity || !role || !selectedMethod) {
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
@@ -308,6 +308,7 @@ export default function AnaliseCameraPage() {
     setAngles(null);
     setSelectedMethod("");
     setSectorId("");
+    setWorkstationId("");
     setActivity("");
     setRole("");
     setNotes("");
@@ -610,7 +611,11 @@ export default function AnaliseCameraPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-1.5 block">Posto de Trabalho</label>
-                  <Select value={workstationId} onValueChange={setWorkstationId}>
+                  <Select value={workstationId} onValueChange={(v) => {
+                    setWorkstationId(v);
+                    const ws = companyWorkstations.find((w) => w.id === v);
+                    if (ws?.activity_description) setActivity(ws.activity_description);
+                  }}>
                     <SelectTrigger><SelectValue placeholder="Selecione o posto" /></SelectTrigger>
                     <SelectContent>
                       {companyWorkstations
