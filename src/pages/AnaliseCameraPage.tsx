@@ -33,6 +33,7 @@ export default function AnaliseCameraPage() {
   const [angles, setAngles] = useState<JointAngles | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [sectorId, setSectorId] = useState("");
+  const [workstationId, setWorkstationId] = useState("");
   const [activity, setActivity] = useState("");
   const [role, setRole] = useState("");
   const [notes, setNotes] = useState("");
