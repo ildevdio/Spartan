@@ -308,6 +308,7 @@ export default function AnaliseCameraPage() {
     setAngles(null);
     setSelectedMethod("");
     setSectorId("");
+    setWorkstationId("");
     setActivity("");
     setRole("");
     setNotes("");
