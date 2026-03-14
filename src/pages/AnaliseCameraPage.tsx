@@ -297,6 +297,20 @@ export default function AnaliseCameraPage() {
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
+
+    // Also register a PosturePhoto so it appears in the Posture Capture page
+    const imageUrl = canvasRef.current?.toDataURL("image/png") || "/placeholder.svg";
+    const newPhoto: PosturePhoto = {
+      id: `pp${Date.now()}`,
+      workstation_id: workstationId,
+      image_url: imageUrl,
+      posture_type: `${selectedMethod} - ${activity}`,
+      notes,
+      timestamp: new Date().toISOString(),
+      created_at: new Date().toISOString().split("T")[0],
+    };
+    setPosturePhotos([...posturePhotos, newPhoto]);
+
     toast.success("Análise salva com sucesso!");
     setStep("saved");
   };
