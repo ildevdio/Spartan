@@ -28,9 +28,9 @@ export default function PostosPage() {
   const handleSave = () => {
     if (!name.trim() || !sectorId) return;
     if (editingId) {
-      setWorkstations(workstations.map((w) => w.id === editingId ? { ...w, name, sector_id: sectorId, description, tasks_performed: tasks } : w));
+      setWorkstations(workstations.map((w) => w.id === editingId ? { ...w, name, sector_id: sectorId, description, activity_description: description, tasks_performed: tasks } : w));
     } else {
-      setWorkstations([...workstations, { id: `w${Date.now()}`, sector_id: sectorId, name, description, tasks_performed: tasks, created_at: new Date().toISOString().split("T")[0] }]);
+      setWorkstations([...workstations, { id: `w${Date.now()}`, sector_id: sectorId, name, description, activity_description: description, tasks_performed: tasks, created_at: new Date().toISOString().split("T")[0] }]);
     }
     resetForm();
   };

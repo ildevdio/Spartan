@@ -15,24 +15,26 @@ export default function EmpresasPage() {
   const [name, setName] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
   const [description, setDescription] = useState("");
 
   const handleSave = () => {
     if (!name.trim()) return;
     if (editing) {
-      setCompanies(companies.map((c) => c.id === editing.id ? { ...c, name, cnpj, address, description } : c));
+      setCompanies(companies.map((c) => c.id === editing.id ? { ...c, name, cnpj, address, city, state, description } : c));
     } else {
-      setCompanies([...companies, { id: `comp${Date.now()}`, name, cnpj, address, description, created_at: new Date().toISOString().split("T")[0] }]);
+      setCompanies([...companies, { id: `comp${Date.now()}`, name, cnpj, address, city, state, description, created_at: new Date().toISOString().split("T")[0] }]);
     }
     resetForm();
   };
 
   const resetForm = () => {
-    setName(""); setCnpj(""); setAddress(""); setDescription(""); setEditing(null); setOpen(false);
+    setName(""); setCnpj(""); setAddress(""); setCity(""); setState(""); setDescription(""); setEditing(null); setOpen(false);
   };
 
   const handleEdit = (c: Company) => {
-    setEditing(c); setName(c.name); setCnpj(c.cnpj); setAddress(c.address); setDescription(c.description); setOpen(true);
+    setEditing(c); setName(c.name); setCnpj(c.cnpj); setAddress(c.address); setCity(c.city); setState(c.state); setDescription(c.description); setOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -58,6 +60,10 @@ export default function EmpresasPage() {
               <Input placeholder="Nome da empresa" value={name} onChange={(e) => setName(e.target.value)} />
               <Input placeholder="CNPJ" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
               <Input placeholder="Endereço" value={address} onChange={(e) => setAddress(e.target.value)} />
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
+                <Input placeholder="UF" value={state} onChange={(e) => setState(e.target.value)} />
+              </div>
               <Textarea placeholder="Descrição" value={description} onChange={(e) => setDescription(e.target.value)} />
               <Button onClick={handleSave} className="w-full">{editing ? "Salvar" : "Criar Empresa"}</Button>
             </div>
@@ -82,7 +88,7 @@ export default function EmpresasPage() {
               </CardHeader>
               <CardContent>
                 {company.cnpj && <p className="text-xs text-muted-foreground mb-1">CNPJ: {company.cnpj}</p>}
-                {company.address && <p className="text-xs text-muted-foreground mb-1 truncate">{company.address}</p>}
+                {company.address && <p className="text-xs text-muted-foreground mb-1 truncate">{company.address} — {company.city}/{company.state}</p>}
                 <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{company.description}</p>
                 <p className="text-xs text-muted-foreground">{sectorCount} setor(es)</p>
               </CardContent>

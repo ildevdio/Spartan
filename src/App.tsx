@@ -15,6 +15,7 @@ import AcoesPage from "./pages/AcoesPage";
 import RelatoriosPage from "./pages/RelatoriosPage";
 import AnaliseCameraPage from "./pages/AnaliseCameraPage";
 import PostureCapturePage from "./pages/PostureCapturePage";
+import PsicossocialPage from "./pages/PsicossocialPage";
 import NotFound from "./pages/NotFound";
 import { useNativeApp } from "@/hooks/use-native-app";
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => {
               <Route path="/relatorios" element={<RelatoriosPage />} />
               <Route path="/analise-camera" element={<AnaliseCameraPage />} />
               <Route path="/captura-posturas" element={<PostureCapturePage />} />
+              <Route path="/psicossocial" element={<PsicossocialPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>

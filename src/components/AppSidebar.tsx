@@ -8,6 +8,7 @@ import {
   FileText,
   Camera,
   Layers,
+  Brain,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -38,6 +39,7 @@ const analysisItems = [
   { title: "Captura", url: "/captura-posturas", icon: Camera },
   { title: "Análises", url: "/analises", icon: ClipboardCheck },
   { title: "Câmera", url: "/analise-camera", icon: Camera },
+  { title: "Psicossocial", url: "/psicossocial", icon: Brain },
 ];
 
 const reportItems = [

@@ -43,6 +43,7 @@ export default function PostureCapturePage() {
       image_url: previewUrl || "/placeholder.svg",
       posture_type: postureType,
       notes,
+      timestamp: new Date().toISOString(),
       created_at: new Date().toISOString().split("T")[0],
     };
     setPosturePhotos([...posturePhotos, newPhoto]);
