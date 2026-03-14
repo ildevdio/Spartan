@@ -7,8 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Camera, Upload, Play, Square, RotateCcw, Save, Loader2, Eye } from "lucide-react";
-import { mockSectors, mockWorkstations } from "@/lib/mock-data";
 import { CompanySelector } from "@/components/CompanySelector";
+import { useCompany } from "@/lib/company-context";
 import {
   detectPose,
   calculateJointAngles,
