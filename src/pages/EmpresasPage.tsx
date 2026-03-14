@@ -30,7 +30,7 @@ export default function EmpresasPage() {
   };
 
   const resetForm = () => {
-    setName(""); setCnpj(""); setAddress(""); setDescription(""); setEditing(null); setOpen(false);
+    setName(""); setCnpj(""); setAddress(""); setCity(""); setState(""); setDescription(""); setEditing(null); setOpen(false);
   };
 
   const handleEdit = (c: Company) => {
