@@ -22,9 +22,9 @@ export default function EmpresasPage() {
   const handleSave = () => {
     if (!name.trim()) return;
     if (editing) {
-      setCompanies(companies.map((c) => c.id === editing.id ? { ...c, name, cnpj, address, description } : c));
+      setCompanies(companies.map((c) => c.id === editing.id ? { ...c, name, cnpj, address, city, state, description } : c));
     } else {
-      setCompanies([...companies, { id: `comp${Date.now()}`, name, cnpj, address, description, created_at: new Date().toISOString().split("T")[0] }]);
+      setCompanies([...companies, { id: `comp${Date.now()}`, name, cnpj, address, city, state, description, created_at: new Date().toISOString().split("T")[0] }]);
     }
     resetForm();
   };
