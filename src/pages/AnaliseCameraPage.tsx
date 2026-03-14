@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import type { PosturePhoto } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -24,7 +25,7 @@ import { toast } from "sonner";
 type AnalysisStep = "upload" | "detecting" | "results" | "details" | "saved";
 
 export default function AnaliseCameraPage() {
-  const { companySectors, companyWorkstations, selectedCompanyId } = useCompany();
+  const { companySectors, companyWorkstations, selectedCompanyId, posturePhotos, setPosturePhotos } = useCompany();
   const [step, setStep] = useState<AnalysisStep>("upload");
 
   // Reset sector/workstation when company changes
@@ -297,6 +298,20 @@ export default function AnaliseCameraPage() {
       toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
+
+    // Also register a PosturePhoto so it appears in the Posture Capture page
+    const imageUrl = canvasRef.current?.toDataURL("image/png") || "/placeholder.svg";
+    const newPhoto: PosturePhoto = {
+      id: `pp${Date.now()}`,
+      workstation_id: workstationId,
+      image_url: imageUrl,
+      posture_type: `${selectedMethod} - ${activity}`,
+      notes,
+      timestamp: new Date().toISOString(),
+      created_at: new Date().toISOString().split("T")[0],
+    };
+    setPosturePhotos([...posturePhotos, newPhoto]);
+
     toast.success("Análise salva com sucesso!");
     setStep("saved");
   };
