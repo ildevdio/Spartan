@@ -461,7 +461,7 @@ function createInfoTable(company: Company, sectorName: string, wsName: string): 
     rows: [
       new TableRow({
         children: [mergedCell("DADOS DA ORGANIZAÇÃO", 2, true, COLORS.headerBg)],
-        height: { value: convertInchesToTwip(0.35), rule: HeightRule.AT_LEAST },
+        height: { value: convertInchesToTwip(0.35), rule: HeightRule.ATLEAST },
       }),
       ...rows.map(([label, value], i) =>
         new TableRow({
