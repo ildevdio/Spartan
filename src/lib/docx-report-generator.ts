@@ -1960,16 +1960,10 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
     title: `PGR - ${company.name}`,
     sections: [{
       properties: {
-        page: { margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(1), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) } },
+        page: { margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(0.8), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) } },
       },
-      headers: {
-        default: new Header({
-          children: [new Paragraph({
-            children: [new TextRun({ text: `PGR — ${company.name}`, size: 16, font: "Calibri", color: COLORS.light, italics: true })],
-            alignment: AlignmentType.RIGHT,
-          })],
-        }),
-      },
+      headers: { default: createProfessionalHeader("PGR", company.name) },
+      footers: { default: createProfessionalFooter() },
       children,
     }],
   });
