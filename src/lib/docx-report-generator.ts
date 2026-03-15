@@ -357,6 +357,111 @@ function pageBreak(): Paragraph {
   return new Paragraph({ children: [new PageBreak()] });
 }
 
+// ============ CONTENT EXPANSION SYSTEM ============
+// Adds rich, detailed supplementary content to fill empty page space
+function expandSection(topic: string): Paragraph[] {
+  const expansions: Record<string, string[]> = {
+    ergonomia_intro: [
+      "A Ergonomia, derivada dos termos gregos 'ergon' (trabalho) e 'nomos' (regras/leis), é a disciplina científica que estuda a interação entre o ser humano e os elementos de um sistema. Seu campo de atuação é amplo, englobando aspectos físicos, cognitivos, organizacionais e ambientais do trabalho.",
+      "De acordo com a International Ergonomics Association (IEA), a ergonomia divide-se em três domínios: Ergonomia Física (anatomia, antropometria, fisiologia e biomecânica), Ergonomia Cognitiva (processos mentais como percepção, memória, raciocínio e resposta motora) e Ergonomia Organizacional (otimização de sistemas sociotécnicos, incluindo estruturas, políticas e processos).",
+      "No contexto brasileiro, a NR-17 estabelece parâmetros que permitem a adaptação das condições de trabalho às características psicofisiológicas dos trabalhadores, de modo a proporcionar conforto, segurança, saúde e desempenho eficiente. A norma abrange desde o mobiliário até os aspectos organizacionais, como pausas, turnos e metas de produtividade.",
+      "Estudos epidemiológicos demonstram que ambientes de trabalho ergonomicamente inadequados são responsáveis por até 60% dos afastamentos por doenças ocupacionais no Brasil, sendo as LER/DORT (Lesões por Esforços Repetitivos / Distúrbios Osteomusculares Relacionados ao Trabalho) as mais prevalentes, correspondendo a cerca de 65% dos auxílios-doença acidentários concedidos pelo INSS.",
+    ],
+    biomecânica: [
+      "A biomecânica ocupacional estuda as forças que atuam sobre o corpo humano durante a execução de tarefas laborais. Os principais fatores biomecânicos de risco incluem: força excessiva, repetitividade, postura inadequada, vibração e compressão mecânica localizada.",
+      "O sistema musculoesquelético possui mecanismos de recuperação natural que, quando insuficientes frente à demanda imposta, resultam em microlesões cumulativas. O tempo de recuperação necessário varia conforme o tipo de esforço: contrações estáticas requerem períodos de descanso 2 a 3 vezes superiores aos de contrações dinâmicas.",
+      "A fadiga muscular localizada inicia-se quando a demanda excede 15% da Contração Voluntária Máxima (CVM) em atividades estáticas prolongadas. Em atividades dinâmicas repetitivas, o risco aumenta significativamente quando a frequência excede 15 movimentos por minuto sem pausas adequadas.",
+      "A postura de trabalho ideal mantém as articulações próximas à posição neutra: tronco ereto com apoio lombar, ombros relaxados e alinhados, cotovelos entre 90° e 110° de flexão, punhos em posição neutra, quadris entre 90° e 110°, e pés apoiados no solo ou em suporte. Desvios significativos destas posições aumentam exponencialmente a carga sobre as estruturas articulares e musculares.",
+    ],
+    nr17_detalhada: [
+      "A NR-17 (Ergonomia) foi atualizada pela Portaria MTP nº 423/2021, passando a vigorar com nova redação que reforça a integração com o Gerenciamento de Riscos Ocupacionais (GRO) previsto na NR-01. As principais exigências incluem:",
+      "• Levantamento, transporte e descarga de materiais: peso máximo admissível de 60 kg para trabalhadores do sexo masculino e 25 kg para trabalhadoras do sexo feminino. A movimentação manual de cargas deve ser avaliada considerando distância, frequência, postura e condições ambientais.",
+      "• Mobiliário dos postos de trabalho: as dimensões devem ser ajustáveis, permitindo alternância de posturas. Assentos devem possuir encosto com apoio lombar, altura regulável e borda frontal arredondada. Superfícies de trabalho devem estar entre 65 cm e 78 cm de altura para postos sentados.",
+      "• Equipamentos dos postos de trabalho: monitores devem estar posicionados a uma distância entre 50 cm e 75 cm dos olhos, com a borda superior na altura dos olhos ou ligeiramente abaixo. Teclados devem permitir apoio de antebraço e punhos em posição neutra.",
+      "• Condições ambientais de trabalho: níveis de iluminamento conforme NBR 5413/ABNT, temperatura efetiva entre 20°C e 23°C, velocidade do ar não superior a 0,75 m/s, umidade relativa do ar não inferior a 40%. O nível de ruído aceitável para conforto acústico é de até 65 dB(A).",
+      "• Organização do trabalho: a norma estabelece que nas atividades que exijam sobrecarga muscular estática ou dinâmica, devem ser incluídas pausas para descanso. Para atividades de processamento eletrônico de dados (digitação), é assegurada uma pausa de 10 minutos a cada 50 minutos trabalhados.",
+    ],
+    metodos_ergonomicos: [
+      "Os métodos de avaliação ergonômica são instrumentos quantitativos que permitem classificar o nível de risco postural de forma objetiva e replicável. Cada método possui especificidades quanto ao tipo de atividade e segmentos corporais avaliados:",
+      "REBA (Rapid Entire Body Assessment): Desenvolvido por Hignett e McAtamney (2000), avalia o corpo inteiro dividindo-o em dois grupos: Grupo A (tronco, pescoço e pernas) e Grupo B (braços, antebraços e punhos). A pontuação final varia de 1 a 15+, classificada em: Insignificante (1), Baixo (2-3), Médio (4-7), Alto (8-10) e Muito Alto (11+). É particularmente indicado para atividades com posturas estáticas e dinâmicas variadas.",
+      "RULA (Rapid Upper Limb Assessment): Criado por McAtamney e Corlett (1993), é focado nos membros superiores. Avalia separadamente braço, antebraço e punho (Grupo A) e pescoço, tronco e pernas (Grupo B). A classificação final indica: Aceitável (1-2), Investigar (3-4), Mudança necessária em breve (5-6), e Mudança imediata (7). Ideal para postos de trabalho com uso intenso de computadores.",
+      "ROSA (Rapid Office Strain Assessment): Desenvolvido por Sonne et al. (2012), é específico para ambientes de escritório. Avalia cadeira (altura, profundidade, apoio de braço, encosto), monitor e telefone, teclado e mouse. Classificação: Desprezível (1-2), Baixo (3-4), Médio (5-6), Alto (7+). É o método de referência para postos informatizados.",
+      "OWAS (Ovako Working Posture Analysing System): Criado por Karhu et al. (1977), avalia as posturas de costas (4 posições), braços (3 posições), pernas (7 posições) e cargas manuseadas (3 faixas). Categoria de Ação: 1 — Normal, 2 — Ações corretivas em futuro próximo, 3 — Ações corretivas assim que possível, 4 — Ações corretivas imediatas.",
+      "OCRA (Occupational Repetitive Actions): Avalia o risco de distúrbios musculoesqueléticos nos membros superiores em atividades repetitivas. Considera frequência de ações, força, postura, fatores complementares e recuperação insuficiente. O Índice OCRA classifica: ≤2.2 Aceitável, 2.3-3.5 Limítrofe, >3.5 Risco presente.",
+    ],
+    pgr_intro: [
+      "O Programa de Gerenciamento de Riscos (PGR) é o documento-base do sistema de gestão de riscos ocupacionais das organizações brasileiras, conforme estabelecido pela NR-01. Ele substitui o antigo PPRA (Programa de Prevenção de Riscos Ambientais) da NR-09 e amplia significativamente o escopo de análise.",
+      "Enquanto o PPRA se limitava a agentes físicos, químicos e biológicos, o PGR contempla todos os riscos ocupacionais, incluindo riscos de acidentes (mecânicos), riscos ergonômicos e riscos psicossociais. Esta abordagem integrada permite uma gestão mais eficiente e abrangente da saúde e segurança no trabalho.",
+      "O PGR é composto por dois documentos fundamentais: o Inventário de Riscos Ocupacionais e o Plano de Ação. O Inventário deve conter a identificação dos perigos, a avaliação dos riscos e a classificação por nível de prioridade. O Plano de Ação deve definir medidas de prevenção, cronogramas, responsáveis e acompanhamento da implementação.",
+      "A avaliação de riscos no PGR segue a metodologia de análise matricial, onde o Nível de Risco é determinado pelo cruzamento da Probabilidade de ocorrência com a Gravidade das consequências. Esta abordagem permite priorizar as ações de prevenção de forma objetiva e alinhada com os recursos disponíveis da organização.",
+    ],
+    riscos_ambientais: [
+      "Os riscos ambientais são classificados em cinco categorias conforme sua natureza: físicos (ruído, vibração, radiações, pressões anormais, temperaturas extremas, umidade), químicos (poeiras, fumos, névoas, neblinas, gases, vapores e substâncias compostas), biológicos (vírus, bactérias, protozoários, fungos, parasitas e bacilos), ergonômicos (esforço físico intenso, postura inadequada, ritmo excessivo, monotonia e repetitividade) e de acidentes (arranjo físico inadequado, máquinas sem proteção, ferramentas defeituosas, incêndio e explosão).",
+      "A mensuração dos agentes físicos segue protocolos específicos da FUNDACENTRO: NHO-01 para ruído contínuo ou intermitente (limite de tolerância de 85 dB(A) para jornada de 8h), NHO-06 para calor (avaliação por IBUTG), NHO-11 para iluminamento (conforme NBR ISO 8995-1). A avaliação quantitativa deve ser realizada por profissional habilitado utilizando equipamentos devidamente calibrados.",
+      "Para agentes químicos, os Limites de Exposição Ocupacional (LEO) são definidos na NR-15 e atualizados pela ACGIH (TLV-TWA, TLV-STEL, TLV-C). A avaliação quantitativa envolve coleta de amostras pessoais e análise laboratorial, devendo considerar as vias de absorção (inalação, cutânea e ingestão) e os efeitos sinérgicos entre agentes diferentes.",
+    ],
+    epc_detalhado: [
+      "Os Equipamentos de Proteção Coletiva (EPCs) têm prioridade sobre os EPIs conforme a hierarquia de controle de riscos estabelecida pela NR-01. A implementação deve seguir a ordem: eliminação do perigo, substituição por processo menos perigoso, controles de engenharia (EPCs), controles administrativos e, por último, uso de EPIs.",
+      "Os principais tipos de EPCs incluem: sistemas de ventilação e exaustão (para controle de agentes químicos e térmicos), enclausuramento de fontes de ruído (para redução de níveis sonoros), proteções de máquinas (para prevenção de acidentes mecânicos), sistemas de iluminação adequada (para conforto visual e prevenção de acidentes), sinalização de segurança (para orientação e alerta), sistemas de combate a incêndio (para proteção patrimonial e pessoal) e barreiras de proteção (para delimitação de áreas de risco).",
+      "A eficácia dos EPCs deve ser monitorada continuamente através de inspeções periódicas, manutenção preventiva e medições ambientais de verificação. O registro destas atividades deve ser mantido em arquivo por no mínimo 20 anos, conforme exigência da NR-01.",
+    ],
+    epi_detalhado: [
+      "O Equipamento de Proteção Individual (EPI) é regulamentado pela NR-06 e deve possuir Certificado de Aprovação (CA) emitido pelo Ministério do Trabalho. O CA tem validade de 5 anos, devendo ser renovado antes do vencimento para garantir a conformidade legal.",
+      "A seleção do EPI adequado deve considerar: o tipo de risco e o nível de proteção necessário, o conforto e a aceitação pelo trabalhador, as condições de trabalho (temperatura, umidade, esforço físico), a compatibilidade com outros EPIs utilizados simultaneamente e as recomendações do fabricante quanto à vida útil e condições de uso.",
+      "As obrigações do empregador quanto aos EPIs incluem: aquisição do tipo adequado à atividade, fornecimento gratuito, treinamento sobre uso correto, exigência de utilização, substituição imediata quando danificado ou fora da validade do CA, higienização e manutenção periódica, registro do fornecimento e comunicação ao MTE sobre irregularidades observadas.",
+      "O trabalhador tem a obrigação de: utilizar o EPI apenas para a finalidade a que se destina, responsabilizar-se por sua guarda e conservação, comunicar ao empregador qualquer alteração que o torne impróprio para uso e cumprir as determinações do empregador sobre o uso adequado.",
+    ],
+    psicossocial_detalhado: [
+      "Os fatores de risco psicossociais no trabalho referem-se a aspectos do desenho do trabalho, da organização e da gestão que possuem potencial de causar danos físicos ou psicológicos aos trabalhadores. A Organização Internacional do Trabalho (OIT) os classifica em seis categorias: conteúdo do trabalho, carga e ritmo de trabalho, horários de trabalho, controle sobre o trabalho, relações interpessoais e papel na organização.",
+      "A exposição prolongada a fatores psicossociais adversos está associada a: transtornos de ansiedade e depressão, síndrome de burnout (esgotamento profissional), distúrbios do sono, doenças cardiovasculares (hipertensão, cardiopatias), distúrbios gastrointestinais, comprometimento imunológico e agravamento de condições musculoesqueléticas pré-existentes.",
+      "O COPSOQ II (Copenhagen Psychosocial Questionnaire) é o instrumento mais utilizado internacionalmente para avaliação de riscos psicossociais no trabalho. Desenvolvido pelo National Research Centre for the Working Environment da Dinamarca, avalia 28 dimensões agrupadas em: exigências no trabalho, organização do trabalho e conteúdo, relações interpessoais e liderança, interface trabalho-indivíduo, valores no local de trabalho, saúde e bem-estar.",
+      "O NASA-TLX (Task Load Index) é um instrumento de avaliação multidimensional da carga de trabalho percebida. Desenvolvido pelo NASA Ames Research Center, avalia seis dimensões: Demanda Mental, Demanda Física, Demanda Temporal, Performance Percebida, Esforço e Frustração. Cada dimensão é pontuada de 0 a 100, e o score geral é calculado pela média ponderada.",
+      "A NR-01, atualizada em 2024, estabelece expressamente a obrigatoriedade de identificação e gerenciamento dos riscos psicossociais no PGR. As organizações devem realizar avaliação periódica destes fatores e implementar medidas de prevenção, incluindo adequação da organização do trabalho, programas de saúde mental, treinamentos de gestão de pessoas e canais de comunicação e apoio.",
+    ],
+    pcmso_detalhado: [
+      "O PCMSO deve ser planejado e implantado com base nos riscos à saúde identificados no PGR, conferindo caráter de prevenção, rastreamento e diagnóstico precoce dos agravos à saúde relacionados ao trabalho. A nova NR-7 (Portaria 6.734/2020) trouxe mudanças significativas, incluindo a obrigatoriedade de relatório analítico anual e a integração com o PGR.",
+      "Os exames médicos ocupacionais obrigatórios são: Admissional (antes do início das atividades), Periódico (conforme periodicidade definida pelo médico coordenador), Retorno ao Trabalho (no primeiro dia de retorno após afastamento ≥ 30 dias por motivo de doença ou acidente), Mudança de Riscos Ocupacionais (antes da data da alteração) e Demissional (até 10 dias antes do término do contrato).",
+      "O exame clínico compreende anamnese ocupacional (história clínica e ocupacional do trabalhador, incluindo exposições pregressas), exame físico completo e exames complementares conforme riscos identificados. O ASO (Atestado de Saúde Ocupacional) deve ser emitido em duas vias, sendo uma para o empregador e outra para o trabalhador.",
+      "O relatório analítico anual do PCMSO deve conter: número de exames clínicos e complementares realizados, estatísticas de resultados anormais por tipo de exame, incidência de doenças ocupacionais e comuns, indicadores de saúde coletiva (absenteísmo, taxa de afastamentos, acidentes de trabalho), análise epidemiológica dos dados e planejamento das ações para o próximo período.",
+    ],
+    medições_ambientais: [
+      "As medições ambientais são realizadas para quantificar a exposição dos trabalhadores aos agentes de risco presentes no ambiente de trabalho. Os parâmetros avaliados incluem:",
+      "• Iluminância (NHO-11): medida em lux com luxímetro calibrado, seguindo a NBR ISO 8995-1. Os níveis mínimos variam conforme o tipo de atividade: 150 lux (circulação), 300 lux (trabalho bruto), 500 lux (trabalho moderado), 750 lux (trabalho fino), 1000+ lux (trabalho muito fino). A uniformidade de iluminação (relação entre mínimo e médio) deve ser ≥ 0,7.",
+      "• Ruído Ocupacional (NHO-01): avaliado com dosímetro de ruído pessoal calibrado, durante toda a jornada de trabalho. O limite de tolerância é de 85 dB(A) para jornada de 8 horas, com incremento de duplicação (q) de 3 dB conforme NR-15 Anexo 1. Acima de 115 dB(A) a exposição é proibida sem proteção adequada.",
+      "• Calor (NHO-06): avaliado pelo Índice de Bulbo Úmido e Termômetro de Globo (IBUTG). Os limites de tolerância dependem do tipo de atividade: trabalho leve (30,0°C IBUTG), trabalho moderado (26,7°C IBUTG) e trabalho pesado (25,0°C IBUTG). O regime de trabalho-descanso é determinado conforme o IBUTG medido.",
+      "• Vibração (NHO-09 e NHO-10): avaliada para mãos-braços (HAV) e corpo inteiro (WBV). Os limites de exposição normalizada (aren) são: HAV — nível de ação 2,5 m/s² e limite 5,0 m/s²; WBV — nível de ação 0,5 m/s² e limite 1,1 m/s² para aceleração em qualquer eixo.",
+    ],
+    legislacao_sst: [
+      "O arcabouço legal de Segurança e Saúde no Trabalho (SST) no Brasil é composto por normas constitucionais, legais e regulamentares. A Constituição Federal (Art. 7°, XXII) garante a redução dos riscos inerentes ao trabalho por meio de normas de saúde, higiene e segurança.",
+      "A Consolidação das Leis do Trabalho (CLT), nos artigos 154 a 201, estabelece as disposições gerais sobre segurança e medicina do trabalho, incluindo obrigações de empregadores e empregados. A Lei nº 8.213/1991 dispõe sobre os Planos de Benefícios da Previdência Social e regulamenta os acidentes de trabalho e doenças ocupacionais.",
+      "As Normas Regulamentadoras (NRs), instituídas pela Portaria MTb nº 3.214/1978, são de observância obrigatória pelas empresas. As principais NRs aplicáveis incluem: NR-01 (Disposições Gerais e GRO), NR-04 (SESMT), NR-05 (CIPA), NR-06 (EPI), NR-07 (PCMSO), NR-09 (Agentes de Risco), NR-15 (Insalubridade), NR-17 (Ergonomia), NR-23 (Proteção contra Incêndios), NR-24 (Condições Sanitárias), NR-26 (Sinalização de Segurança) e NR-35 (Trabalho em Altura).",
+      "O descumprimento das NRs pode resultar em: autuações e multas pelo MTE (variando de R$ 2.396,35 a R$ 6.708,59 por infração), embargo ou interdição de atividades, ações regressivas da Previdência Social, indenizações civis e criminais, e aumento do Fator Acidentário de Prevenção (FAP), que pode majorar a alíquota do Seguro de Acidente de Trabalho (SAT) em até 100%.",
+    ],
+    ginastica_laboral: [
+      "A Ginástica Laboral é um programa de exercícios físicos realizados no ambiente de trabalho, com duração de 10 a 15 minutos, visando prevenir lesões musculoesqueléticas e promover o bem-estar dos trabalhadores. Classificações: Preparatória (antes da jornada — aquecimento e preparação neuromuscular), Compensatória (durante a jornada — alívio de tensões e fadiga) e Relaxamento (ao final — redução do estresse e reorganização corporal).",
+      "Estudos demonstram que programas regulares de ginástica laboral podem reduzir em até 40% a incidência de doenças ocupacionais, diminuir o absenteísmo em até 25%, aumentar a produtividade em até 15% e melhorar significativamente a satisfação e o clima organizacional.",
+      "Exercícios recomendados incluem: alongamentos de cervical e trapézio (manutenção por 15-20 segundos), rotação e flexão de ombros, alongamento de flexores e extensores de punho (essencial para digitadores), fortalecimento de musculatura paravertebral, exercícios de mobilidade articular de membros inferiores e técnicas de respiração diafragmática para redução do estresse.",
+    ],
+    cronograma_acoes: [
+      "O cronograma de ações é uma ferramenta de gestão que organiza temporalmente todas as atividades previstas no programa. Deve incluir: capacitações e treinamentos (frequência trimestral ou semestral), inspeções de segurança (mensal), medições ambientais (conforme agente — semestral ou anual), revisão de procedimentos operacionais (anual), simulações de emergência (semestral), campanhas de saúde (conforme calendário — SIPAT, Outubro Rosa, Novembro Azul), auditorias internas (semestral) e reuniões da CIPA (mensal).",
+      "A responsabilidade pelo cumprimento do cronograma é compartilhada: o SESMT coordena as ações técnicas, a CIPA participa das inspeções e campanhas, a gerência operacional viabiliza a liberação dos trabalhadores, e o RH gerencia os aspectos administrativos (convocações, registros, prontuários). O acompanhamento deve ser realizado mensalmente em reunião específica.",
+    ],
+  };
+
+  const texts = expansions[topic];
+  if (!texts || texts.length === 0) return [];
+
+  const paragraphs: Paragraph[] = [];
+  texts.forEach(text => {
+    if (text.startsWith("•")) {
+      paragraphs.push(bulletItem(text.substring(2)));
+    } else {
+      paragraphs.push(body(text));
+    }
+  });
+  return paragraphs;
+}
+
 async function fetchImageAsBuffer(url: string): Promise<{ buffer: ArrayBuffer; width: number; height: number } | null> {
   try {
     if (url.startsWith("data:")) {
@@ -707,9 +812,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   // 1. Introdução
   children.push(heading("1. INTRODUÇÃO"));
   children.push(accentCallout("A ergonomia é fundamental para a saúde, segurança e produtividade dos trabalhadores.", "info"));
-  children.push(body("Na busca por elevar a produtividade, a qualidade, a segurança e o conforto durante a execução das atividades — sejam elas rotineiras ou mais complexas — a ergonomia tem ganhado cada vez mais espaço dentro das organizações. Seu uso tornou-se essencial para reduzir falhas e otimizar processos nos setores produtivos, administrativos e, sobretudo, nos aspectos que envolvem comportamento e interação humana."));
-  children.push(body("A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa."));
-  children.push(body("Locais de trabalho planejados de forma incorreta tendem a reduzir o desempenho, comprometer a qualidade, elevar o absenteísmo e aumentar custos operacionais. A ergonomia busca tornar a interação entre trabalhador, equipamentos e ambiente o mais segura, eficiente e confortável possível."));
+  children.push(...expandSection("ergonomia_intro"));
   children.push(body(`Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17.`));
   children.push(pageBreak());
 
@@ -750,6 +853,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
     ],
   });
   children.push(normasTable);
+  children.push(...expandSection("nr17_detalhada"));
   children.push(pageBreak());
 
   // 5. Análise da demanda
@@ -820,8 +924,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   // 6. Referencial teórico
   children.push(heading("6. REFERENCIAL TEÓRICO"));
   children.push(accentCallout("O uso inadequado do sistema osteomuscular pode levar a lesões quando os mecanismos de recuperação são insuficientes.", "warning"));
-  children.push(body("A produtividade tende a aumentar quando o trabalhador adota posturas corretas e quando o ambiente é organizado para prevenir riscos. As pausas durante atividades físicas trazem benefícios relevantes: em esforços estáticos auxiliam na remoção do ácido lático; em tarefas repetitivas oferecem tempo para recuperação dos tendões."));
-  children.push(body("Os principais fatores biomecânicos relacionados ao surgimento de lesões incluem força excessiva, posturas inadequadas, repetitividade elevada e compressões mecânicas, sendo o descanso insuficiente o fator crítico."));
+  children.push(...expandSection("biomecânica"));
 
   children.push(heading("Posturas dos membros superiores e sua relação patológica:", HeadingLevel.HEADING_3));
   [
@@ -833,6 +936,8 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
     "Cabeça excessivamente estendida — fibromialgia do trapézio",
     "Cabeça excessivamente fletida — cervicobraquialgia",
   ].forEach(t => children.push(bulletItem(t)));
+
+  children.push(...expandSection("ginastica_laboral"));
   children.push(pageBreak());
 
   // 7. Estudo ergonômico
@@ -901,6 +1006,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
 
   // 8. Métodos
   children.push(heading("8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS"));
+  children.push(...expandSection("metodos_ergonomicos"));
   children.push(new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
@@ -1371,7 +1477,7 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("6. INTRODUÇÃO"));
   children.push(accentCallout("O PGR tem como objetivo a identificação, avaliação e controle de riscos ocupacionais de forma sistemática e contínua.", "info"));
-  children.push(body("A elaboração deste Programa de Gerenciamento de Riscos tem como propósito um estudo das condições ambientais atuais existentes nesta empresa, a fim de identificar os agentes de riscos e caracterizar as atividades e operações desenvolvidas."));
+  children.push(...expandSection("pgr_intro"));
 
   children.push(heading("7. OBJETIVOS"));
   children.push(heading("7.1 Objetivo Geral", HeadingLevel.HEADING_3));
@@ -1398,8 +1504,10 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
   children.push(heading("9. METODOLOGIA UTILIZADA"));
   children.push(heading("9.1 Análise Qualitativa", HeadingLevel.HEADING_3));
   children.push(body("Análise preliminar dos riscos ambientais envolvendo instalações, métodos e processos de trabalho."));
+  children.push(...expandSection("riscos_ambientais"));
   children.push(heading("9.2 Análise Quantitativa", HeadingLevel.HEADING_3));
   children.push(body("Monitoramento ambiental que mensura a exposição dos trabalhadores utilizando dosimetria de ruído, medição de luminosidade e calor/IBUTG."));
+  children.push(...expandSection("medições_ambientais"));
 
   children.push(heading("9.3 Probabilidade (P)", HeadingLevel.HEADING_3));
   children.push(new Table({
@@ -1515,9 +1623,11 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("12. EPC — EQUIPAMENTO DE PROTEÇÃO COLETIVA"));
   children.push(body("O estudo e implantação de medidas de proteção coletiva deverá obedecer à hierarquia: eliminação na fonte, prevenção de disseminação, redução de níveis."));
+  children.push(...expandSection("epc_detalhado"));
 
   children.push(heading("13. EPI — EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL"));
   children.push(body("O EPI é todo dispositivo de uso individual destinado à proteção de riscos suscetíveis de ameaçar a segurança e a saúde no trabalho."));
+  children.push(...expandSection("epi_detalhado"));
   ["Adquirir o EPI adequado ao risco", "Exigir seu uso", "Orientar e treinar sobre uso, guarda e conservação", "Substituir imediatamente quando danificado", "Registrar o fornecimento ao trabalhador"].forEach(item => children.push(bulletItem(`Cabe ao empregador: ${item}`)));
 
   children.push(heading("14. RESPONSABILIDADES"));
@@ -1531,6 +1641,7 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("16. REFERÊNCIAS BIBLIOGRÁFICAS"));
   ["Normas Regulamentadoras — Ministério do Trabalho", "ABNT NBR ISO 31000:2009 — Gestão de Riscos", "BS 8800:1996 — OHS Management Systems", "FUNDACENTRO — NHO 01, NHO 06, NHO 11"].forEach(item => children.push(bulletItem(item)));
+  children.push(...expandSection("legislacao_sst"));
 
   children.push(...signatureBlock(consultant));
 
@@ -1572,6 +1683,7 @@ function generateAPRDocx(ctx: DocxReportContext): Document {
   children.push(heading("2. METODOLOGIA"));
   children.push(body("A metodologia utilizada para a avaliação preliminar dos riscos psicossociais é baseada no instrumento COPSOQ II (Copenhagen Psychosocial Questionnaire), reconhecido internacionalmente como ferramenta de referência para avaliação de fatores psicossociais no trabalho."));
   children.push(body("O questionário contempla dimensões como demandas quantitativas, cognitivas e emocionais, influência no trabalho, possibilidades de desenvolvimento, significado do trabalho, compromisso, previsibilidade e suporte social."));
+  children.push(...expandSection("psicossocial_detalhado"));
 
   children.push(heading("Critérios de Classificação", HeadingLevel.HEADING_3));
   children.push(new Table({
@@ -1782,6 +1894,7 @@ function generatePCMSODocx(ctx: DocxReportContext): Document {
   children.push(accentCallout("O PCMSO é um programa de caráter preventivo, rastreamento e diagnóstico precoce dos agravos à saúde relacionados ao trabalho.", "info"));
   children.push(body("O Programa de Controle Médico de Saúde Ocupacional (PCMSO) tem como finalidade a promoção e preservação da saúde do conjunto dos trabalhadores da empresa. Deve ser planejado e implantado com base nos riscos à saúde dos trabalhadores, especialmente os identificados nas avaliações previstas na NR-1 (PGR)."));
   children.push(body("O PCMSO deve considerar as questões incidentes sobre o indivíduo e a coletividade de trabalhadores, privilegiando o instrumental clínico-epidemiológico na abordagem da relação entre sua saúde e o trabalho."));
+  children.push(...expandSection("pcmso_detalhado"));
 
   // 5. Objetivos
   children.push(heading("5. OBJETIVOS"));
@@ -1876,6 +1989,7 @@ function generatePCMSODocx(ctx: DocxReportContext): Document {
 
   // 18. Cronograma
   children.push(heading("18. CRONOGRAMA ANUAL DE AÇÕES"));
+  children.push(...expandSection("cronograma_acoes"));
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   children.push(accentCallout("O cronograma deve ser revisado anualmente e ajustado conforme demandas identificadas.", "info"));
   children.push(new Table({
