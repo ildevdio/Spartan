@@ -150,7 +150,7 @@ export interface Report {
   created_at: string;
 }
 
-export type ReportType = "AEP" | "AET" | "PGR" | "PCMSO" | "LTCAT" | "Insalubridade" | "Periculosidade" | "PCA" | "PPR";
+export type ReportType = "AEP" | "AET" | "PGR" | "PCMSO" | "LTCAT" | "Insalubridade" | "Periculosidade" | "PCA" | "PPR" | "APR";
 
 export const MIN_PHOTOS_REQUIRED = 5;
 

@@ -22,41 +22,58 @@ export interface DocxReportContext {
   consultantName?: string;
 }
 
-// ============ PROFESSIONAL COLOR PALETTE ============
+// ============ VIVID COLOR PALETTE — PowerPoint-like ============
 const COLORS = {
-  // Main palette
-  primary: "1B2A4A",      // Deep navy blue
-  secondary: "3D5A80",    // Steel blue
-  muted: "6B7B8D",        // Warm gray
-  light: "98A2B3",        // Light gray
-  accent: "2E86AB",       // Professional teal-blue accent
-  accentDark: "1A6B8A",   // Darker accent
+  // Primary blues — rich and bold
+  primary: "0A1F44",        // Deep midnight navy
+  secondary: "1565C0",      // Vivid royal blue
+  tertiary: "1E88E5",       // Bright sky blue
+  muted: "546E7A",          // Blue-gray
+  light: "90A4AE",          // Light blue-gray
 
-  // Table colors
-  headerBg: "1B2A4A",     // Dark navy header
-  headerText: "FFFFFF",   // White text on headers
-  headerBg2: "3D5A80",    // Secondary header (sub-sections)
-  rowAlt: "F0F4F8",       // Alternating row (light blue-gray)
-  rowWhite: "FFFFFF",     // Normal row
-  cellLabel: "EDF2F7",    // Label cells in info tables
+  // Accent — vivid teal/cyan
+  accent: "00838F",         // Deep teal
+  accentBright: "00BCD4",   // Bright cyan
+  accentLight: "B2EBF2",    // Light cyan tint
 
-  // Status colors
+  // Warm accents — for highlights and warnings
+  highlight: "FF6F00",      // Vivid amber
+  highlightLight: "FFF3E0", // Light amber tint
+  warmRed: "D32F2F",        // Bold red
+
+  // Table colors — vibrant
+  headerBg: "0A1F44",       // Dark navy header
+  headerText: "FFFFFF",     // White text on headers
+  headerBg2: "1565C0",      // Bright blue sub-header
+  headerBg3: "00838F",      // Teal header variant
+  rowAlt: "E3F2FD",         // Vivid light blue alternating
+  rowWhite: "FFFFFF",       // Normal row
+  cellLabel: "E1F5FE",      // Bright blue label cells
+  sectionBg: "00838F",      // Teal section banner
+  sectionText: "FFFFFF",    // White on section banner
+
+  // Status colors — vivid and bold
   white: "FFFFFF",
-  border: "CBD5E1",       // Softer border
-  borderDark: "94A3B8",   // Stronger border for headers
-  greenBg: "D1FAE5",
-  greenText: "065F46",
-  yellowBg: "FEF3C7",
-  yellowText: "92400E",
-  redBg: "FEE2E2",
-  redText: "991B1B",
-  orangeBg: "FFEDD5",
-  orangeText: "9A3412",
+  border: "B0BEC5",         // Medium gray border
+  borderDark: "78909C",     // Strong gray border
+  greenBg: "C8E6C9",        // Vivid green
+  greenText: "1B5E20",      // Deep green text
+  greenBright: "43A047",    // Bright green
+  yellowBg: "FFF9C4",       // Vivid yellow
+  yellowText: "F57F17",     // Deep amber text
+  yellowBright: "FFB300",   // Bright amber
+  redBg: "FFCDD2",          // Vivid red
+  redText: "B71C1C",        // Deep red text
+  redBright: "E53935",      // Bright red
+  orangeBg: "FFE0B2",       // Vivid orange
+  orangeText: "E65100",     // Deep orange text
+  orangeBright: "FB8C00",   // Bright orange
 
   // Cover & decorative
-  coverBorder: "1B2A4A",
-  coverAccent: "2E86AB",
-  footerBg: "F8FAFC",
+  coverGradientTop: "0A1F44",   // Navy
+  coverGradientMid: "1565C0",   // Blue
+  coverAccent: "00BCD4",        // Cyan accent
+  footerBg: "F5F5F5",
 };
 
 // ============ BORDER STYLES ============
@@ -87,20 +104,29 @@ function borderHeader() {
   };
 }
 
+function borderAccent() {
+  return {
+    top: { style: BorderStyle.SINGLE, size: 2, color: COLORS.accent },
+    bottom: { style: BorderStyle.SINGLE, size: 2, color: COLORS.accent },
+    left: { style: BorderStyle.SINGLE, size: 2, color: COLORS.accent },
+    right: { style: BorderStyle.SINGLE, size: 2, color: COLORS.accent },
+  };
+}
+
 // ============ CELL HELPERS ============
 const CELL_MARGINS = {
-  top: convertInchesToTwip(0.04),
-  bottom: convertInchesToTwip(0.04),
-  left: convertInchesToTwip(0.08),
-  right: convertInchesToTwip(0.08),
+  top: convertInchesToTwip(0.05),
+  bottom: convertInchesToTwip(0.05),
+  left: convertInchesToTwip(0.1),
+  right: convertInchesToTwip(0.1),
 };
 
 function headerCell(text: string, width?: number): TableCell {
   return new TableCell({
     children: [new Paragraph({
-      children: [new TextRun({ text, bold: true, size: 19, font: "Calibri", color: COLORS.headerText })],
+      children: [new TextRun({ text, bold: true, size: 20, font: "Calibri", color: COLORS.headerText })],
       alignment: AlignmentType.LEFT,
-      spacing: { before: 40, after: 40 },
+      spacing: { before: 50, after: 50 },
     })],
     shading: { type: ShadingType.SOLID, fill: COLORS.headerBg, color: COLORS.headerBg },
     borders: borderHeader(),
@@ -113,12 +139,27 @@ function headerCell(text: string, width?: number): TableCell {
 function headerCell2(text: string, width?: number): TableCell {
   return new TableCell({
     children: [new Paragraph({
-      children: [new TextRun({ text, bold: true, size: 19, font: "Calibri", color: COLORS.white })],
+      children: [new TextRun({ text, bold: true, size: 20, font: "Calibri", color: COLORS.white })],
       alignment: AlignmentType.LEFT,
-      spacing: { before: 40, after: 40 },
+      spacing: { before: 50, after: 50 },
     })],
     shading: { type: ShadingType.SOLID, fill: COLORS.headerBg2, color: COLORS.headerBg2 },
-    borders: borderHeader(),
+    borders: borderAccent(),
+    width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
+    verticalAlign: VerticalAlign.CENTER,
+    margins: CELL_MARGINS,
+  });
+}
+
+function headerCell3(text: string, width?: number): TableCell {
+  return new TableCell({
+    children: [new Paragraph({
+      children: [new TextRun({ text, bold: true, size: 20, font: "Calibri", color: COLORS.white })],
+      alignment: AlignmentType.LEFT,
+      spacing: { before: 50, after: 50 },
+    })],
+    shading: { type: ShadingType.SOLID, fill: COLORS.headerBg3, color: COLORS.headerBg3 },
+    borders: borderAccent(),
     width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
     verticalAlign: VerticalAlign.CENTER,
     margins: CELL_MARGINS,
@@ -129,7 +170,7 @@ function textCell(text: string, bold = false, width?: number): TableCell {
   return new TableCell({
     children: [new Paragraph({
       children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: COLORS.primary })],
-      spacing: { before: 30, after: 30 },
+      spacing: { before: 40, after: 40 },
     })],
     borders: borderStyle(),
     width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
@@ -142,7 +183,7 @@ function altCell(text: string, isAlt: boolean, bold = false, width?: number): Ta
   return new TableCell({
     children: [new Paragraph({
       children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: COLORS.primary })],
-      spacing: { before: 30, after: 30 },
+      spacing: { before: 40, after: 40 },
     })],
     borders: borderStyle(),
     width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
@@ -156,7 +197,7 @@ function labelCell(text: string, width?: number): TableCell {
   return new TableCell({
     children: [new Paragraph({
       children: [new TextRun({ text, size: 20, font: "Calibri", bold: true, color: COLORS.secondary })],
-      spacing: { before: 30, after: 30 },
+      spacing: { before: 40, after: 40 },
     })],
     borders: borderStyle(),
     width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
@@ -170,7 +211,7 @@ function shadedCell(text: string, fill: string, bold = false, width?: number): T
   return new TableCell({
     children: [new Paragraph({
       children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: COLORS.primary })],
-      spacing: { before: 30, after: 30 },
+      spacing: { before: 40, after: 40 },
     })],
     shading: { type: ShadingType.SOLID, fill, color: fill },
     borders: borderStyle(),
@@ -185,9 +226,9 @@ function statusCell(text: string, level: "green" | "yellow" | "orange" | "red", 
   const colors = { green: COLORS.greenText, yellow: COLORS.yellowText, orange: COLORS.orangeText, red: COLORS.redText };
   return new TableCell({
     children: [new Paragraph({
-      children: [new TextRun({ text, size: 19, font: "Calibri", bold: true, color: colors[level] })],
+      children: [new TextRun({ text, size: 20, font: "Calibri", bold: true, color: colors[level] })],
       alignment: AlignmentType.CENTER,
-      spacing: { before: 30, after: 30 },
+      spacing: { before: 40, after: 40 },
     })],
     shading: { type: ShadingType.SOLID, fill: fills[level], color: fills[level] },
     borders: borderStyle(),
@@ -200,10 +241,10 @@ function statusCell(text: string, level: "green" | "yellow" | "orange" | "red", 
 function mergedCell(text: string, colSpan: number, bold = false, fill?: string): TableCell {
   return new TableCell({
     children: [new Paragraph({
-      children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: fill === COLORS.headerBg ? COLORS.white : COLORS.primary })],
-      spacing: { before: 40, after: 40 },
+      children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: fill === COLORS.headerBg || fill === COLORS.headerBg2 || fill === COLORS.headerBg3 || fill === COLORS.sectionBg ? COLORS.white : COLORS.primary })],
+      spacing: { before: 50, after: 50 },
     })],
-    borders: fill === COLORS.headerBg ? borderHeader() : borderStyle(),
+    borders: fill === COLORS.headerBg || fill === COLORS.headerBg2 ? borderHeader() : borderStyle(),
     columnSpan: colSpan,
     shading: fill ? { type: ShadingType.SOLID, fill, color: fill } : undefined,
     verticalAlign: VerticalAlign.CENTER,
@@ -211,24 +252,55 @@ function mergedCell(text: string, colSpan: number, bold = false, fill?: string):
   });
 }
 
-// ============ TEXT HELPERS ============
+// ============ TEXT HELPERS — VIVID ============
 function heading(text: string, level: typeof HeadingLevel[keyof typeof HeadingLevel] = HeadingLevel.HEADING_1): Paragraph {
   const isH1 = level === HeadingLevel.HEADING_1;
   const isH2 = level === HeadingLevel.HEADING_2;
   return new Paragraph({
     children: [
       new TextRun({
-        text,
+        text: isH1 ? `■  ${text}` : text,
         bold: true,
-        size: isH1 ? 28 : isH2 ? 24 : 22,
+        size: isH1 ? 30 : isH2 ? 26 : 22,
         font: "Calibri",
-        color: isH1 ? COLORS.primary : isH2 ? COLORS.secondary : COLORS.secondary,
+        color: isH1 ? COLORS.white : isH2 ? COLORS.secondary : COLORS.accent,
       }),
     ],
-    spacing: { before: isH1 ? 480 : 360, after: isH1 ? 200 : 120 },
-    border: isH1 ? {
-      bottom: { style: BorderStyle.SINGLE, size: 6, color: COLORS.accent, space: 4 },
-    } : undefined,
+    spacing: { before: isH1 ? 500 : 360, after: isH1 ? 200 : 140 },
+    shading: isH1 ? { type: ShadingType.SOLID, fill: COLORS.headerBg, color: COLORS.headerBg } : undefined,
+    border: isH1 ? undefined : isH2 ? {
+      bottom: { style: BorderStyle.SINGLE, size: 8, color: COLORS.accentBright, space: 6 },
+      left: { style: BorderStyle.SINGLE, size: 16, color: COLORS.secondary, space: 8 },
+    } : {
+      left: { style: BorderStyle.SINGLE, size: 12, color: COLORS.accent, space: 6 },
+    },
+    indent: isH1 ? { left: convertInchesToTwip(0.15), right: convertInchesToTwip(0.15) } : undefined,
+  });
+}
+
+function sectionBanner(text: string, bgColor = COLORS.sectionBg): Paragraph {
+  return new Paragraph({
+    children: [new TextRun({ text: `  ${text}`, bold: true, size: 26, font: "Calibri", color: COLORS.white })],
+    shading: { type: ShadingType.SOLID, fill: bgColor, color: bgColor },
+    spacing: { before: 400, after: 200 },
+    indent: { left: convertInchesToTwip(0.1), right: convertInchesToTwip(0.1) },
+  });
+}
+
+function accentCallout(text: string, type: "info" | "warning" | "success" | "danger" = "info"): Paragraph {
+  const configs = {
+    info: { bg: COLORS.cellLabel, border: COLORS.secondary, textColor: COLORS.secondary },
+    warning: { bg: COLORS.highlightLight, border: COLORS.highlight, textColor: COLORS.highlight },
+    success: { bg: COLORS.greenBg, border: COLORS.greenBright, textColor: COLORS.greenText },
+    danger: { bg: COLORS.redBg, border: COLORS.warmRed, textColor: COLORS.redText },
+  };
+  const c = configs[type];
+  return new Paragraph({
+    children: [new TextRun({ text, size: 20, font: "Calibri", color: c.textColor, italics: true })],
+    shading: { type: ShadingType.SOLID, fill: c.bg, color: c.bg },
+    border: { left: { style: BorderStyle.SINGLE, size: 18, color: c.border, space: 8 } },
+    spacing: { before: 120, after: 120 },
+    indent: { left: convertInchesToTwip(0.15) },
   });
 }
 
@@ -263,10 +335,17 @@ function numberedItem(text: string): Paragraph {
   });
 }
 
-function decorativeLine(color = COLORS.accent): Paragraph {
+function decorativeLine(color = COLORS.accentBright): Paragraph {
   return new Paragraph({
-    border: { bottom: { style: BorderStyle.SINGLE, size: 4, color, space: 2 } },
+    border: { bottom: { style: BorderStyle.SINGLE, size: 6, color, space: 2 } },
     spacing: { before: 100, after: 200 },
+  });
+}
+
+function thickDivider(color = COLORS.secondary): Paragraph {
+  return new Paragraph({
+    border: { bottom: { style: BorderStyle.SINGLE, size: 12, color, space: 4 } },
+    spacing: { before: 200, after: 300 },
   });
 }
 
@@ -354,45 +433,68 @@ function getTodayFull(): string {
   return `${d.getDate()} de ${months[d.getMonth()]} de ${d.getFullYear()}`;
 }
 
+// ============ VIVID COVER PAGE ============
 function createCoverPage(title: string, subtitle: string, company: Company, consultant: string): Paragraph[] {
   const year = new Date().getFullYear().toString();
   return [
-    // Top decorative line
+    // Top decorative thick bar
     new Paragraph({
-      border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: COLORS.accent, space: 1 } },
-      spacing: { before: 800, after: 200 },
+      shading: { type: ShadingType.SOLID, fill: COLORS.coverGradientTop, color: COLORS.coverGradientTop },
+      spacing: { before: 0, after: 0 },
+      children: [new TextRun({ text: " ", size: 24 })],
     }),
-    new Paragraph({ spacing: { before: 1200 } }),
-    // Title
     new Paragraph({
-      children: [new TextRun({ text: title, bold: true, size: 52, font: "Calibri", color: COLORS.primary })],
+      shading: { type: ShadingType.SOLID, fill: COLORS.secondary, color: COLORS.secondary },
+      spacing: { before: 0, after: 0 },
+      children: [new TextRun({ text: " ", size: 16 })],
+    }),
+    new Paragraph({
+      shading: { type: ShadingType.SOLID, fill: COLORS.accentBright, color: COLORS.accentBright },
+      spacing: { before: 0, after: 0 },
+      children: [new TextRun({ text: " ", size: 8 })],
+    }),
+    // Spacer
+    new Paragraph({ spacing: { before: 1600 } }),
+    // Title — large and bold
+    new Paragraph({
+      children: [new TextRun({ text: title, bold: true, size: 56, font: "Calibri", color: COLORS.primary })],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 80 },
+      spacing: { after: 60 },
     }),
     // Accent line under title
     new Paragraph({
-      border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: COLORS.accent, space: 1 } },
-      spacing: { after: 80 },
-      indent: { left: convertInchesToTwip(2), right: convertInchesToTwip(2) },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: COLORS.accentBright, space: 1 } },
+      spacing: { after: 60 },
+      indent: { left: convertInchesToTwip(1.5), right: convertInchesToTwip(1.5) },
     }),
-    // Subtitle / year
+    // Subtitle badge
     new Paragraph({
       children: [
-        new TextRun({ text: subtitle, size: 36, font: "Calibri", color: COLORS.accent, bold: true }),
-        new TextRun({ text: `  —  ${year}`, size: 28, font: "Calibri", color: COLORS.muted }),
+        new TextRun({ text: `  ${subtitle}  `, size: 40, font: "Calibri", color: COLORS.white, bold: true }),
       ],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 60 },
+      shading: { type: ShadingType.SOLID, fill: COLORS.secondary, color: COLORS.secondary },
+      indent: { left: convertInchesToTwip(2.5), right: convertInchesToTwip(2.5) },
+    }),
+    // Year
+    new Paragraph({
+      children: [new TextRun({ text: year, size: 28, font: "Calibri", color: COLORS.accent, bold: true })],
       alignment: AlignmentType.CENTER,
       spacing: { after: 800 },
     }),
-    // Company name
+    // Company name — vivid
     new Paragraph({
-      children: [new TextRun({ text: company.name.toUpperCase(), bold: true, size: 36, font: "Calibri", color: COLORS.primary })],
+      children: [new TextRun({ text: company.name.toUpperCase(), bold: true, size: 40, font: "Calibri", color: COLORS.primary })],
       alignment: AlignmentType.CENTER,
       spacing: { after: 80 },
     }),
-    // CNPJ
+    // CNPJ in accent
     new Paragraph({
-      children: [new TextRun({ text: `CNPJ: ${company.cnpj}`, size: 22, font: "Calibri", color: COLORS.muted })],
+      children: [
+        new TextRun({ text: "CNPJ: ", size: 22, font: "Calibri", color: COLORS.muted }),
+        new TextRun({ text: company.cnpj, size: 22, font: "Calibri", color: COLORS.secondary, bold: true }),
+      ],
       alignment: AlignmentType.CENTER,
       spacing: { after: 40 },
     }),
@@ -402,14 +504,16 @@ function createCoverPage(title: string, subtitle: string, company: Company, cons
       alignment: AlignmentType.CENTER,
       spacing: { after: 800 },
     }),
-    // Consultant
+    // Consultant box
     new Paragraph({
       children: [
-        new TextRun({ text: "Responsável Técnico: ", size: 20, font: "Calibri", color: COLORS.secondary }),
-        new TextRun({ text: consultant, size: 20, font: "Calibri", color: COLORS.primary, bold: true }),
+        new TextRun({ text: "  RESPONSÁVEL TÉCNICO:  ", size: 18, font: "Calibri", color: COLORS.white, bold: true }),
+        new TextRun({ text: `  ${consultant}  `, size: 20, font: "Calibri", color: COLORS.white }),
       ],
       alignment: AlignmentType.CENTER,
+      shading: { type: ShadingType.SOLID, fill: COLORS.accent, color: COLORS.accent },
       spacing: { after: 120 },
+      indent: { left: convertInchesToTwip(1), right: convertInchesToTwip(1) },
     }),
     // Firm name
     new Paragraph({
@@ -417,10 +521,22 @@ function createCoverPage(title: string, subtitle: string, company: Company, cons
       alignment: AlignmentType.CENTER,
       spacing: { after: 60 },
     }),
-    // Bottom decorative line
+    // Bottom decorative bars
+    spacer(400),
     new Paragraph({
-      border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: COLORS.accent, space: 1 } },
-      spacing: { before: 400, after: 200 },
+      shading: { type: ShadingType.SOLID, fill: COLORS.accentBright, color: COLORS.accentBright },
+      spacing: { before: 0, after: 0 },
+      children: [new TextRun({ text: " ", size: 8 })],
+    }),
+    new Paragraph({
+      shading: { type: ShadingType.SOLID, fill: COLORS.secondary, color: COLORS.secondary },
+      spacing: { before: 0, after: 0 },
+      children: [new TextRun({ text: " ", size: 16 })],
+    }),
+    new Paragraph({
+      shading: { type: ShadingType.SOLID, fill: COLORS.coverGradientTop, color: COLORS.coverGradientTop },
+      spacing: { before: 0, after: 0 },
+      children: [new TextRun({ text: " ", size: 24 })],
     }),
     pageBreak(),
   ];
@@ -460,7 +576,7 @@ function createInfoTable(company: Company, sectorName: string, wsName: string): 
     rows: [
       new TableRow({
         children: [mergedCell("DADOS DA ORGANIZAÇÃO", 2, true, COLORS.headerBg)],
-        height: { value: convertInchesToTwip(0.35), rule: HeightRule.ATLEAST },
+        height: { value: convertInchesToTwip(0.4), rule: HeightRule.ATLEAST },
       }),
       ...rows.map(([label, value], i) =>
         new TableRow({
@@ -481,10 +597,10 @@ function createProfessionalHeader(reportType: string, companyName: string): Head
         children: [
           new TextRun({ text: `${reportType} — ${companyName}`, size: 16, font: "Calibri", color: COLORS.light, italics: true }),
           new TextRun({ text: "    |    ", size: 16, font: "Calibri", color: COLORS.border }),
-          new TextRun({ text: "MG Consultoria", size: 16, font: "Calibri", color: COLORS.accent, bold: true }),
+          new TextRun({ text: "MG Consultoria", size: 16, font: "Calibri", color: COLORS.secondary, bold: true }),
         ],
         alignment: AlignmentType.RIGHT,
-        border: { bottom: { style: BorderStyle.SINGLE, size: 2, color: COLORS.accent, space: 4 } },
+        border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: COLORS.accentBright, space: 4 } },
         spacing: { after: 200 },
       }),
     ],
@@ -497,17 +613,62 @@ function createProfessionalFooter(): Footer {
       new Paragraph({
         children: [
           new TextRun({ text: "Documento confidencial — ", size: 14, font: "Calibri", color: COLORS.light, italics: true }),
-          new TextRun({ text: "Spartan / MG Consultoria", size: 14, font: "Calibri", color: COLORS.accent, italics: true }),
+          new TextRun({ text: "Spartan / MG Consultoria", size: 14, font: "Calibri", color: COLORS.secondary, italics: true, bold: true }),
         ],
         alignment: AlignmentType.CENTER,
-        border: { top: { style: BorderStyle.SINGLE, size: 2, color: COLORS.accent, space: 4 } },
+        border: { top: { style: BorderStyle.SINGLE, size: 4, color: COLORS.accentBright, space: 4 } },
         spacing: { before: 200 },
       }),
     ],
   });
 }
 
-// ========== AET REPORT — Full professional structure ==========
+function createDocumentShell(title: string, companyName: string, reportType: string, children: any[]): Document {
+  return new Document({
+    creator: "Spartan - MG Consultoria",
+    title: `${reportType} - ${companyName}`,
+    description: title,
+    sections: [{
+      properties: {
+        page: {
+          margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(0.8), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) },
+        },
+      },
+      headers: { default: createProfessionalHeader(reportType, companyName) },
+      footers: { default: createProfessionalFooter() },
+      children,
+    }],
+  });
+}
+
+function signatureBlock(consultant: string, title = "Engenheiro de Segurança do Trabalho"): Paragraph[] {
+  return [
+    spacer(600),
+    new Paragraph({
+      children: [new TextRun({ text: "_____________________________________________", size: 22, font: "Calibri", color: COLORS.primary })],
+      alignment: AlignmentType.CENTER,
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: consultant, bold: true, size: 22, font: "Calibri", color: COLORS.primary })],
+      alignment: AlignmentType.CENTER,
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: title, size: 20, font: "Calibri", color: COLORS.secondary })],
+      alignment: AlignmentType.CENTER,
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: "CREA/CONFEA: XXXXX", size: 20, font: "Calibri", color: COLORS.muted })],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 400 },
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: "Documento gerado pelo sistema Spartan — MG Consultoria", size: 18, font: "Calibri", color: COLORS.light, italics: true })],
+      alignment: AlignmentType.CENTER,
+    }),
+  ];
+}
+
+// ========== AET REPORT ==========
 async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   const { company, sector, workstation, workstations, sectors, analyses, photos } = ctx;
   const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
@@ -523,80 +684,67 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
 
   const children: any[] = [];
 
-  // ===== COVER PAGE =====
+  // Cover
   children.push(...createCoverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant));
 
-  // ===== TABLE OF CONTENTS =====
+  // TOC
   children.push(heading("ÍNDICE"));
   const tocItems = [
-    "INTRODUÇÃO",
-    "IDENTIFICAÇÃO E CARACTERIZAÇÃO DA EMPRESA",
-    "OBJETIVOS",
-    "REFERÊNCIAS NORMATIVAS",
-    "ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO",
-    "REFERENCIAL TEÓRICO",
-    "ESTUDO ERGONÔMICO DO TRABALHO",
+    "INTRODUÇÃO", "IDENTIFICAÇÃO E CARACTERIZAÇÃO DA EMPRESA", "OBJETIVOS",
+    "REFERÊNCIAS NORMATIVAS", "ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO",
+    "REFERENCIAL TEÓRICO", "ESTUDO ERGONÔMICO DO TRABALHO",
     "DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS",
     "AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA",
-    "ANÁLISE DOS RISCOS PSICOSSOCIAIS",
-    "RESPONSABILIDADE TÉCNICA",
+    "ANÁLISE DOS RISCOS PSICOSSOCIAIS", "RESPONSABILIDADE TÉCNICA",
   ];
-  tocItems.forEach((item, i) => {
-    children.push(body(`${i + 1}. ${item}`));
-  });
+  tocItems.forEach((item, i) => children.push(body(`${i + 1}. ${item}`)));
   children.push(pageBreak());
 
-  // ===== REVISION CONTROL =====
+  // Revision control
   children.push(...createRevisionTable());
   children.push(pageBreak());
 
-  // ===== 1. INTRODUÇÃO =====
+  // 1. Introdução
   children.push(heading("1. INTRODUÇÃO"));
+  children.push(accentCallout("A ergonomia é fundamental para a saúde, segurança e produtividade dos trabalhadores.", "info"));
   children.push(body("Na busca por elevar a produtividade, a qualidade, a segurança e o conforto durante a execução das atividades — sejam elas rotineiras ou mais complexas — a ergonomia tem ganhado cada vez mais espaço dentro das organizações. Seu uso tornou-se essencial para reduzir falhas e otimizar processos nos setores produtivos, administrativos e, sobretudo, nos aspectos que envolvem comportamento e interação humana."));
-  children.push(body("A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa. Em qualquer ambiente industrial, pode-se compreender a atividade como um sistema que integra pessoas, máquinas e o meio ao redor. Quando esse sistema opera em condições inadequadas, surgem desconfortos imediatos, fadiga e até lesões ao longo do tempo."));
-  children.push(body("Locais de trabalho planejados de forma incorreta tendem a reduzir o desempenho, comprometer a qualidade, elevar o absenteísmo e aumentar custos operacionais. A ergonomia busca tornar a interação entre trabalhador, equipamentos e ambiente o mais segura, eficiente e confortável possível, priorizando inicialmente a preservação da saúde e o bem-estar do colaborador e, como consequência, contribuindo para melhores resultados empresariais."));
-  children.push(body(`Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17, com o objetivo de subsidiar a elaboração da Análise Ergonômica do Trabalho.`));
+  children.push(body("A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa."));
+  children.push(body("Locais de trabalho planejados de forma incorreta tendem a reduzir o desempenho, comprometer a qualidade, elevar o absenteísmo e aumentar custos operacionais. A ergonomia busca tornar a interação entre trabalhador, equipamentos e ambiente o mais segura, eficiente e confortável possível."));
+  children.push(body(`Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17.`));
   children.push(pageBreak());
 
-  // ===== 2. IDENTIFICAÇÃO E CARACTERIZAÇÃO DA EMPRESA =====
+  // 2. Identificação
   children.push(heading("2. IDENTIFICAÇÃO E CARACTERIZAÇÃO DA EMPRESA"));
-  children.push(heading("DADOS DA ORGANIZAÇÃO", HeadingLevel.HEADING_2));
   children.push(createInfoTable(company, sectorName, wsName));
   children.push(pageBreak());
 
-  // ===== 3. OBJETIVOS =====
+  // 3. Objetivos
   children.push(heading("3. OBJETIVOS"));
   [
     "Observar e descrever o posto de trabalho e suas funções correspondentes;",
     "Avaliar a questão da biomecânica nas diferentes atividades;",
     "Estudar as condições de trabalho físico e mental dos colaboradores;",
-    "Levantamento das relações interpessoais nos grupos;",
-    "Identificar situações de risco quanto ao mobiliário, equipamentos, ferramentas e atitudes posturais inadequadas nos setores da empresa;",
-    "Criar sensibilização para a cultura ergonômica dentro da empresa, através dos resultados da Análise Ergonômica do Trabalho;",
-    "Sugerir soluções ergonômicas visando redução de queixas e melhora do desempenho e bem estar dos colaboradores.",
+    "Identificar situações de risco quanto ao mobiliário, equipamentos e atitudes posturais inadequadas;",
+    "Criar sensibilização para a cultura ergonômica dentro da empresa;",
+    "Sugerir soluções ergonômicas visando redução de queixas e melhora do desempenho;",
     "Atender a NR 17 do Ministério do Trabalho e Emprego.",
   ].forEach(t => children.push(bulletItem(t)));
 
-  // ===== 4. REFERÊNCIAS NORMATIVAS =====
+  // 4. Referências normativas
   children.push(heading("4. REFERÊNCIAS NORMATIVAS"));
-  children.push(body("Norma Regulamentadora nº 17 – Ergonomia;"));
-  children.push(body("Norma Regulamentadora nº 17 – Ergonomia – Anexo II – Call Center"));
-  children.push(body("Esta Norma Regulamentadora tem como propósito definir critérios que permitam ajustar as condições laborais às características psicofisiológicas dos trabalhadores, garantindo maior conforto, segurança e eficiência na execução das atividades."));
-  children.push(body("As condições de trabalho abrangem fatores relacionados ao levantamento, movimentação e descarga de materiais, ao mobiliário e equipamentos utilizados, bem como aos aspectos ambientais do posto e à própria forma de organização das tarefas."));
-
+  children.push(body("Este trabalho foi elaborado com base nas seguintes normas e legislações:"));
   const normasTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
       new TableRow({ children: [headerCell("Norma", 20), headerCell("Descrição", 80)] }),
-      ...([
-        ["NR-17", "Ergonomia — Parâmetros para adaptação das condições de trabalho às características psicofisiológicas dos trabalhadores"],
-        ["NR-01", "Disposições Gerais e Gerenciamento de Riscos Ocupacionais — PGR"],
+      ...[
+        ["NR-17", "Ergonomia — Parâmetros para adaptação das condições de trabalho"],
+        ["NR-01", "Disposições Gerais e Gerenciamento de Riscos Ocupacionais"],
         ["NR-15", "Atividades e Operações Insalubres"],
         ["ISO 11228", "Ergonomia — Movimentação manual de cargas"],
         ["ISO 11226", "Ergonomia — Avaliação de posturas de trabalho estáticas"],
-        ["ABNT NBR 11226", "Avaliação de Postura Estática do Trabalho"],
-        ["CLT Art. 157-158", "Obrigações do empregador e empregados quanto à segurança do trabalho"],
-      ] as [string, string][]).map(([norm, desc]) =>
+        ["CLT Art. 157-158", "Obrigações do empregador e empregados quanto à segurança"],
+      ].map(([norm, desc]) =>
         new TableRow({ children: [textCell(norm, true, 20), textCell(desc, false, 80)] })
       ),
     ],
@@ -604,25 +752,23 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   children.push(normasTable);
   children.push(pageBreak());
 
-  // ===== 5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO =====
+  // 5. Análise da demanda
   children.push(heading("5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO"));
-  children.push(body(`A ${company.name} atua no segmento de ${company.description.toLowerCase()}. Suas atividades envolvem processos diversos desenvolvidos em ambiente interno e externo. As rotinas operacionais exigem permanência prolongada em pé, movimentos repetitivos de membros superiores, atenção constante e ritmo de trabalho variável conforme a demanda, fatores considerados na presente Análise Ergonômica do Trabalho, em conformidade com os preceitos da NR-17.`));
+  children.push(body(`A ${company.name} atua no segmento de ${company.description.toLowerCase()}. Suas atividades envolvem processos diversos desenvolvidos em ambiente interno e externo.`));
 
-  // Organizational summary table
   const orgTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
-      new TableRow({ children: [mergedCell("ORGANIZAÇÃO DO TRABALHO", 2, true, COLORS.headerBg)] }),
-      new TableRow({ children: [textCell("Setores Avaliados", true, 35), textCell(sectors.map(s => s.name).join(", "), false, 65)] }),
-      new TableRow({ children: [textCell("Nº de Postos Analisados", true, 35), textCell(String(workstations.length), false, 65)] }),
-      new TableRow({ children: [textCell("Métodos Aplicados", true, 35), textCell(methods, false, 65)] }),
-      new TableRow({ children: [textCell("Nº de Fotos Posturais", true, 35), textCell(String(photos.length), false, 65)] }),
-      new TableRow({ children: [textCell("Nº de Análises Realizadas", true, 35), textCell(String(analyses.length), false, 65)] }),
-      new TableRow({ children: [textCell("Riscos Identificados", true, 35), textCell(String(risks.length), false, 65)] }),
+      new TableRow({ children: [mergedCell("ORGANIZAÇÃO DO TRABALHO", 2, true, COLORS.headerBg2)] }),
+      new TableRow({ children: [labelCell("Setores Avaliados", 35), textCell(sectors.map(s => s.name).join(", "), false, 65)] }),
+      new TableRow({ children: [labelCell("Nº de Postos", 35), textCell(String(workstations.length), false, 65)] }),
+      new TableRow({ children: [labelCell("Métodos Aplicados", 35), textCell(methods, false, 65)] }),
+      new TableRow({ children: [labelCell("Nº de Fotos", 35), textCell(String(photos.length), false, 65)] }),
+      new TableRow({ children: [labelCell("Nº de Análises", 35), textCell(String(analyses.length), false, 65)] }),
+      new TableRow({ children: [labelCell("Riscos Identificados", 35), textCell(String(risks.length), false, 65)] }),
     ],
   });
   children.push(orgTable);
-  children.push(new Paragraph({ spacing: { after: 200 } }));
 
   workstations.forEach(ws => {
     const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
@@ -631,18 +777,16 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
     const wsPhotos = photos.filter(p => p.workstation_id === ws.id);
     const posAnalysis = mockPostureAnalyses.find(pa => pa.workstation_id === ws.id);
 
-    children.push(heading(`Posto: ${ws.name}${wsSector ? ` (${wsSector.name})` : ""}`, HeadingLevel.HEADING_3));
+    children.push(sectionBanner(`POSTO: ${ws.name}${wsSector ? ` — ${wsSector.name}` : ""}`, COLORS.headerBg2));
 
-    // Per-workstation detail table
     const wsDetailTable = new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
-        new TableRow({ children: [textCell("Setor", true, 30), textCell(wsSector?.name || "—", false, 70)] }),
-        new TableRow({ children: [textCell("Descrição da Atividade", true, 30), textCell(ws.activity_description || ws.description, false, 70)] }),
-        new TableRow({ children: [textCell("Descrição Física do Posto", true, 30), textCell(ws.description, false, 70)] }),
-        new TableRow({ children: [textCell("Tarefas Executadas", true, 30), textCell(ws.tasks_performed, false, 70)] }),
-        new TableRow({ children: [textCell("Nº de Fotos Registradas", true, 30), textCell(String(wsPhotos.length), false, 70)] }),
-        new TableRow({ children: [textCell("Análises Aplicadas", true, 30), textCell(wsAnalyses.map(a => `${a.method} (Score: ${a.score})`).join(", ") || "Nenhuma", false, 70)] }),
+        new TableRow({ children: [labelCell("Setor", 30), textCell(wsSector?.name || "—", false, 70)] }),
+        new TableRow({ children: [labelCell("Descrição da Atividade", 30), textCell(ws.activity_description || ws.description, false, 70)] }),
+        new TableRow({ children: [labelCell("Tarefas Executadas", 30), textCell(ws.tasks_performed, false, 70)] }),
+        new TableRow({ children: [labelCell("Nº de Fotos", 30), textCell(String(wsPhotos.length), false, 70)] }),
+        new TableRow({ children: [labelCell("Análises", 30), textCell(wsAnalyses.map(a => `${a.method} (Score: ${a.score})`).join(", ") || "Nenhuma", false, 70)] }),
       ],
     });
     children.push(wsDetailTable);
@@ -652,12 +796,13 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
       const angleTable = new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [
-          new TableRow({ children: [headerCell("Articulação", 40), headerCell("Ângulo (°)", 30), headerCell("Classificação", 30)] }),
+          new TableRow({ children: [headerCell3("Articulação", 40), headerCell3("Ângulo (°)", 30), headerCell3("Classificação", 30)] }),
           ...Object.entries(posAnalysis.joint_angles).map(([joint, angle]) => {
             const jointLabel = { neck: "Pescoço", shoulder: "Ombro", elbow: "Cotovelo", trunk: "Tronco", hip: "Quadril", knee: "Joelho" }[joint] || joint;
             const riskClass = angle > 45 ? "Atenção" : angle > 20 ? "Moderado" : "Aceitável";
+            const fill = angle > 45 ? COLORS.redBg : angle > 20 ? COLORS.yellowBg : COLORS.greenBg;
             return new TableRow({
-              children: [textCell(jointLabel, false, 40), textCell(`${angle}°`, true, 30), textCell(riskClass, false, 30)],
+              children: [textCell(jointLabel, false, 40), textCell(`${angle}°`, true, 30), shadedCell(riskClass, fill, true, 30)],
             });
           }),
         ],
@@ -665,41 +810,34 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
       children.push(angleTable);
     }
 
-    children.push(body("Tarefas executadas:", { bold: true, spacing: { before: 120, after: 60 } }));
     if (wsTasks.length > 0) {
+      children.push(body("Tarefas:", { bold: true, spacing: { before: 120, after: 60 } }));
       wsTasks.forEach(t => children.push(bulletItem(t.description)));
-    } else {
-      children.push(bulletItem(ws.tasks_performed));
     }
   });
   children.push(pageBreak());
 
-  // ===== 6. REFERENCIAL TEÓRICO (expanded) =====
+  // 6. Referencial teórico
   children.push(heading("6. REFERENCIAL TEÓRICO"));
-  children.push(body("O uso inadequado do sistema osteomuscular pode ser compensado por mecanismos naturais de recuperação, que restauram tecidos desgastados. Entretanto, quando esforços contínuos e traumas repetitivos se acumulam, torna-se essencial oferecer períodos de repouso para permitir a regeneração muscular; caso contrário, instala-se o processo de lesão."));
-  children.push(body("A produtividade tende a aumentar quando o trabalhador adota posturas corretas e quando o ambiente é organizado para prevenir riscos. Medidas como a eliminação de barreiras à movimentação, remoção de passagens estreitas, correção de pisos escorregadios e proteção de superfícies cortantes tornam o local mais seguro e eficiente."));
-  children.push(body("As pausas durante atividades físicas trazem benefícios relevantes. Em esforços estáticos, auxiliam na remoção do ácido lático das fibras musculares; em tarefas muito repetitivas, oferecem tempo para que tendões recuperem sua forma, respeitando sua natureza viscoelástica. Além disso, as interrupções favorecem a produção de líquido sinovial, que reduz o atrito entre estruturas articulares."));
-  children.push(body("Os principais fatores biomecânicos relacionados ao surgimento de lesões incluem força excessiva, posturas inadequadas, repetitividade elevada e compressões mecânicas, sendo o descanso insuficiente o fator crítico. Temperaturas baixas reduzem o fluxo sanguíneo periférico e dificultam a nutrição e reparação dos tecidos, enquanto ambientes muito quentes geram desconforto e potencializam o componente psicológico do adoecimento."));
-  children.push(body("As mulheres apresentam maior suscetibilidade ao desenvolvimento de lesões musculoesqueléticas devido a particularidades fisiológicas, como menor resistência de determinadas estruturas e influência hormonal dos estrógenos, que podem retardar a resolução de processos inflamatórios. Soma-se a isso a sobrecarga decorrente da dupla jornada, incluindo atividades domésticas."));
-  children.push(body("Um trabalho é classificado como altamente repetitivo quando o ciclo de execução possui duração inferior a 30 segundos ou, quando superior a esse tempo, mais de 50% do ciclo é dedicado ao mesmo padrão de movimento."));
+  children.push(accentCallout("O uso inadequado do sistema osteomuscular pode levar a lesões quando os mecanismos de recuperação são insuficientes.", "warning"));
+  children.push(body("A produtividade tende a aumentar quando o trabalhador adota posturas corretas e quando o ambiente é organizado para prevenir riscos. As pausas durante atividades físicas trazem benefícios relevantes: em esforços estáticos auxiliam na remoção do ácido lático; em tarefas repetitivas oferecem tempo para recuperação dos tendões."));
+  children.push(body("Os principais fatores biomecânicos relacionados ao surgimento de lesões incluem força excessiva, posturas inadequadas, repetitividade elevada e compressões mecânicas, sendo o descanso insuficiente o fator crítico."));
 
   children.push(heading("Posturas dos membros superiores e sua relação patológica:", HeadingLevel.HEADING_3));
   [
-    "Braço fletido ou abduzido durante um tempo significativo – contribui para o aparecimento de tendinite do ombro;",
-    "O antebraço fletido sobre o braço, associado à supinação – gera uma sobrecarga tensional sobre o bíceps, com a possibilidade de tendinite do músculo bíceps;",
-    "Movimentação frequente de supinação e pronação – leva a tendinite de pronador redondo;",
-    "Flexão frequente do punho – leva a tenossinovite dos flexores, compressão do nervo mediano no túnel do carpo e a epicondilite medial;",
-    "Extensão frequente do punho – leva a tenossinovite dos extensores, compressão do nervo mediano no túnel do carpo e epicondilite lateral;",
-    "Desvio ulnar frequente – leva a Tenossinovite de Quervain;",
-    "Cabeça excessivamente estendida – leva a fibromialgia do trapézio e esternocleidomastóideo;",
-    "Cabeça excessivamente fletida – leva a cervicobraquialgia.",
+    "Braço fletido ou abduzido — tendinite do ombro",
+    "Movimentação frequente de supinação e pronação — tendinite de pronador redondo",
+    "Flexão frequente do punho — tenossinovite dos flexores, síndrome do túnel do carpo",
+    "Extensão frequente do punho — tenossinovite dos extensores, epicondilite lateral",
+    "Desvio ulnar frequente — Tenossinovite de Quervain",
+    "Cabeça excessivamente estendida — fibromialgia do trapézio",
+    "Cabeça excessivamente fletida — cervicobraquialgia",
   ].forEach(t => children.push(bulletItem(t)));
-  children.push(body("Com base nos pontos analisados, conclui-se que as ações ergonômicas necessárias devem priorizar a diminuição de posturas inadequadas da cabeça, tronco e membros superiores, a redução de movimentos repetitivos e a adequação da altura dos equipamentos à estatura dos trabalhadores, além da implementação de um rodízio de funções eficaz."));
   children.push(pageBreak());
 
-  // ===== 7. ESTUDO ERGONÔMICO DO TRABALHO =====
+  // 7. Estudo ergonômico
   children.push(heading("7. ESTUDO ERGONÔMICO DO TRABALHO"));
-  children.push(body("A realização do Estudo Ergonômico do Trabalho é indispensável não apenas pelo cumprimento da NR-17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral. Há diversas metodologias para conduzir esse estudo, e o presente trabalho foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT."));
+  children.push(body("A realização do Estudo Ergonômico do Trabalho é indispensável não apenas pelo cumprimento da NR-17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO."));
 
   children.push(heading("7.1 Registro Postural", HeadingLevel.HEADING_3));
   if (photos.length > 0) {
@@ -728,8 +866,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
 
   children.push(heading("7.2 Análises Ergonômicas", HeadingLevel.HEADING_3));
   if (analyses.length > 0) {
-    children.push(body(`As análises foram realizadas utilizando os métodos: ${methods}. O detalhamento por segmento corporal é apresentado a seguir:`));
-
+    children.push(body(`As análises foram realizadas utilizando os métodos: ${methods}.`));
     const bodyPartLabels: Record<string, string> = {
       trunk: "Tronco", neck: "Pescoço", legs: "Pernas", upper_arm: "Braço Superior",
       lower_arm: "Antebraço", wrist: "Punho", chair: "Cadeira", monitor: "Monitor",
@@ -738,233 +875,101 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
 
     analyses.forEach(a => {
       const ws = workstations.find(w => w.id === a.workstation_id);
-      const risk = risks.find(r => r.analysis_id === a.id);
-      const wsSector = sectors.find(s => s.id === ws?.sector_id);
-
-      // Summary table
-      const analysisTable = new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        rows: [
-          new TableRow({ children: [mergedCell(`${ws?.name || "—"} — ${wsSector?.name || ""}`, 2, true, COLORS.headerBg)] }),
-          new TableRow({ children: [textCell("Método", true, 30), textCell(a.method, false, 70)] }),
-          new TableRow({ children: [textCell("Score Final", true, 30), textCell(String(a.score), false, 70)] }),
-          new TableRow({ children: [textCell("Nível de Risco", true, 30), textCell(risk ? riskLevelLabel(risk.risk_level) : "N/A", false, 70)] }),
-          new TableRow({ children: [textCell("Status", true, 30), textCell(a.analysis_status === "completed" ? "Concluída" : a.analysis_status === "in_progress" ? "Em Andamento" : "Pendente", false, 70)] }),
-          new TableRow({ children: [textCell("Observações", true, 30), textCell(a.notes, false, 70)] }),
-        ],
-      });
-      children.push(analysisTable);
-      children.push(new Paragraph({ spacing: { after: 100 } }));
-
-      // Body parts breakdown
-      if (Object.keys(a.body_parts).length > 0) {
-        children.push(body("Pontuação por Segmento Corporal:", { bold: true, spacing: { before: 60, after: 60 } }));
-        const bpRows: TableRow[] = [
-          new TableRow({ children: [headerCell("Segmento Corporal", 40), headerCell("Pontuação", 20), headerCell("Interpretação", 40)] }),
-        ];
-        Object.entries(a.body_parts).forEach(([part, score]) => {
-          const label = bodyPartLabels[part] || part;
-          const interp = score <= 1 ? "Postura aceitável" : score <= 2 ? "Risco leve – monitorar" : score <= 3 ? "Risco moderado – investigar" : score <= 4 ? "Risco alto – ação necessária" : "Risco muito alto – ação imediata";
-          const fill = score <= 1 ? COLORS.greenBg : score <= 2 ? COLORS.greenBg : score <= 3 ? COLORS.yellowBg : COLORS.redBg;
-          bpRows.push(new TableRow({
-            children: [textCell(label, false, 40), textCell(String(score), true, 20), shadedCell(interp, fill, false, 40)],
-          }));
-        });
-        children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: bpRows }));
+      children.push(sectionBanner(`${ws?.name || "—"} — ${a.method}`, COLORS.accent));
+      const bpEntries = Object.entries(a.body_parts || {});
+      if (bpEntries.length > 0) {
+        children.push(new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({ children: [headerCell3("Segmento Corporal", 40), headerCell3("Score Parcial", 30), headerCell3("Classificação", 30)] }),
+            ...bpEntries.map(([part, score]) => {
+              const label = bodyPartLabels[part] || part;
+              const cls = score <= 2 ? "Aceitável" : score <= 4 ? "Investigar" : score <= 6 ? "Médio" : "Alto";
+              const fill = score <= 2 ? COLORS.greenBg : score <= 4 ? COLORS.yellowBg : score <= 6 ? COLORS.orangeBg : COLORS.redBg;
+              return new TableRow({
+                children: [textCell(label, false, 40), textCell(String(score), true, 30), shadedCell(cls, fill, true, 30)],
+              });
+            }),
+          ],
+        }));
       }
-
-      // Risk details if available
-      if (risk) {
-        children.push(body(`Avaliação de Risco: Probabilidade ${risk.probability} × Exposição ${risk.exposure} × Consequência ${risk.consequence} = Score ${risk.risk_score} (${riskLevelLabel(risk.risk_level)})`, { spacing: { before: 60, after: 60 } }));
-      }
-
-      children.push(new Paragraph({ spacing: { after: 300 } }));
+      children.push(body(`Score Final: ${a.score} — ${a.notes}`));
     });
   } else {
     children.push(body("Nenhuma análise realizada."));
   }
-  children.push(pageBreak());
 
-  // ===== 8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS =====
+  // 8. Métodos
   children.push(heading("8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS"));
-  children.push(body("No âmbito do Programa de Análise Ergonômica do Trabalho da empresa, adotou-se a seguinte abordagem metodológica:"));
-  [
-    "Consultoria Inicial: Etapa destinada à coleta de informações sobre a empresa, seus colaboradores e as prioridades de avaliação, realizada em conjunto com os setores de Segurança e Medicina do Trabalho.",
-    "Observação dos Postos e Postura de Trabalho Descritiva: Inspeção presencial minuciosa de cada posto, aliada a entrevistas e troca de informações com os trabalhadores.",
-    "Aplicação de questionários: Utilizados para identificar a percepção dos colaboradores quanto às condições ergonômicas.",
-  ].forEach(t => children.push(bulletItem(t)));
-
-  children.push(heading("Ferramentas Ergonômicas:", HeadingLevel.HEADING_3));
-  children.push(body("REBA (Rapid Entire Body Assessment): Criado por Hignett e McAtamney (2000), o método tem como finalidade estimar o risco de desenvolvimento de distúrbios musculoesqueléticos decorrentes das posturas adotadas no trabalho. Trata-se de uma ferramenta indicada para analisar tarefas que envolvem manipulação de pessoas ou cargas em movimento. O REBA considera fatores posturais estáticos e dinâmicos na interação trabalhador–carga e incorpora o conceito de \"assistência gravitacional\". A análise é realizada por meio de observação estruturada dos ciclos de trabalho, pontuando posturas de tronco, pescoço, membros superiores e inferiores conforme tabelas específicas para cada segmento corporal."));
-  children.push(body("OCRA (Occupational Repetitive Actions): Metodologia internacionalmente reconhecida para avaliação do risco de lesões musculoesqueléticas associadas a movimentos repetitivos dos membros superiores. Desenvolvido por Colombini, Occhipinti e colaboradores, sendo amplamente utilizado em setores que exigem repetição contínua de tarefas."));
-  children.push(body("ROSA (Rapid Office Strain Assessment): Ferramenta ergonômica usada para identificar riscos musculoesqueléticos em postos administrativos, especialmente aqueles com uso contínuo de computador. O método avalia cadeira, mesa, monitor, teclado, mouse e telefone, gerando um escore que indica o nível de risco."));
-
-  // Methods classification table
-  const methodsTable = new Table({
+  children.push(new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
       new TableRow({ children: [headerCell("Método", 15), headerCell("Aplicação", 45), headerCell("Classificação", 40)] }),
-      ...([
-        ["REBA", "Avaliação rápida do corpo inteiro", "1: Insignificante | 2-3: Baixo | 4-7: Médio | 8-10: Alto | >11: Muito Alto"],
-        ["RULA", "Avaliação rápida de membros superiores", "1-2: Aceitável | 3-4: Investigar | 5-6: Mudar breve | 7: Mudar já"],
-        ["ROSA", "Avaliação de postos informatizados", "1-2: Desprezível | 3-4: Baixo | 5-6: Médio | 7+: Alto"],
-        ["OWAS", "Sistema de análise de posturas", "1: Normal | 2: Leve | 3: Severo | 4: Muito severo"],
-        ["OCRA", "Avaliação de movimentos repetitivos", "≤2.2: Aceitável | 2.3-3.5: Borderline | >3.5: Risco"],
-      ] as [string, string, string][]).map(([m, app, cls]) =>
-        new TableRow({ children: [textCell(m, true, 15), textCell(app, false, 45), textCell(cls, false, 40)] })
-      ),
+      new TableRow({ children: [textCell("REBA", true, 15), textCell("Avaliação rápida do corpo inteiro", false, 45), textCell("1-3: Baixo | 4-7: Médio | 8-10: Alto | 11+: Muito Alto", false, 40)] }),
+      new TableRow({ children: [textCell("RULA", true, 15), textCell("Avaliação rápida de membros superiores", false, 45), textCell("1-2: Aceitável | 3-4: Investigar | 5-6: Mudar breve | 7: Mudar já", false, 40)] }),
+      new TableRow({ children: [textCell("ROSA", true, 15), textCell("Avaliação de postos informatizados", false, 45), textCell("1-2: Desprezível | 3-4: Baixo | 5-6: Médio | 7+: Alto", false, 40)] }),
+      new TableRow({ children: [textCell("OWAS", true, 15), textCell("Sistema de análise de posturas", false, 45), textCell("1: Normal | 2: Leve | 3: Severo | 4: Muito severo", false, 40)] }),
     ],
-  });
-  children.push(methodsTable);
-
-  children.push(body("Normas referenciais consideradas:", { bold: true }));
-  children.push(bulletItem("Levantamento, transporte e descarga individual de materiais."));
-  children.push(bulletItem("Mobiliário dos postos de trabalho."));
-  children.push(bulletItem("Equipamentos dos postos de trabalho."));
-  children.push(bulletItem("Condições ambientais de trabalho."));
-  children.push(bulletItem("Pausas para descanso."));
-
-  // 8.1 Equipment
-  children.push(heading("8.1 EQUIPAMENTOS UTILIZADOS PARA MEDIÇÃO NO AMBIENTE DE TRABALHO", HeadingLevel.HEADING_2));
-
-  const equipCalor = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: [
-      new TableRow({ children: [mergedCell("CALOR", 2, true, COLORS.headerBg)] }),
-      new TableRow({ children: [textCell("Instrumento", true, 30), textCell("Medidor de stress térmico", false, 70)] }),
-      new TableRow({ children: [textCell("Método", true, 30), textCell("NR-15, Portaria 3214/78, do MTE.", false, 70)] }),
-      new TableRow({ children: [textCell("MOD", true, 30), textCell("Protemp-3", false, 70)] }),
-      new TableRow({ children: [textCell("MARCA", true, 30), textCell("CRIFFER", false, 70)] }),
-    ],
-  });
-  children.push(equipCalor);
-  children.push(new Paragraph({ spacing: { after: 200 } }));
-
-  const equipRuido = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: [
-      new TableRow({ children: [mergedCell("RUÍDO", 2, true, COLORS.headerBg)] }),
-      new TableRow({ children: [textCell("Instrumentos", true, 30), textCell("Decibelímetro", false, 70)] }),
-      new TableRow({ children: [textCell("Método", true, 30), textCell("NHT – 06, FUNDACENTRO / NR-15, Portaria 3214/78, do MTE.", false, 70)] }),
-      new TableRow({ children: [textCell("MOD", true, 30), textCell("DEC 490", false, 70)] }),
-      new TableRow({ children: [textCell("MARCA", true, 30), textCell("INTRUTERM", false, 70)] }),
-    ],
-  });
-  children.push(equipRuido);
-  children.push(new Paragraph({ spacing: { after: 200 } }));
-
-  const equipLuz = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: [
-      new TableRow({ children: [mergedCell("ILUMINAÇÃO", 2, true, COLORS.headerBg)] }),
-      new TableRow({ children: [textCell("Instrumento", true, 30), textCell("Luxímetro", false, 70)] }),
-      new TableRow({ children: [textCell("Método", true, 30), textCell("NHO 11", false, 70)] }),
-      new TableRow({ children: [textCell("MOD", true, 30), textCell("Ld 550", false, 70)] }),
-      new TableRow({ children: [textCell("MARCA", true, 30), textCell("INSTRUTERM", false, 70)] }),
-    ],
-  });
-  children.push(equipLuz);
+  }));
   children.push(pageBreak());
 
-  // ===== 9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA =====
+  // 9. GHE
   children.push(heading("9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA"));
-  children.push(body(`A ${company.name} atua no segmento de ${company.description.toLowerCase()}, os trabalhadores são classificados em Grupos Homogêneos de Exposição (GHE), conforme metodologia adotada pelo Programa de Gerenciamento de Riscos (PGR). Essa classificação visa agrupar funções com condições de exposição semelhantes, possibilitando uma avaliação mais precisa dos riscos ergonômicos, biomecânicos e psicossociais presentes nas diferentes áreas da empresa.`));
-  children.push(body("O enquadramento por GHE permite a integração entre os programas de gestão de riscos (GRO/PGR) e a Análise Ergonômica do Trabalho (AET), promovendo uma visão unificada da exposição ocupacional e das ações preventivas aplicáveis."));
-  children.push(body(`Para isso, foram utilizadas metodologias reconhecidas, como ${methods}, associadas à Matriz de Classificação de Risco.`));
-
-  // 9.1 GHE Table
-  children.push(heading("9.1 Grupo Homogêneo de Exposição – GHE", HeadingLevel.HEADING_2));
-  const gheRows: TableRow[] = [
-    new TableRow({ children: [headerCell("GHE", 30), headerCell("Setor / Atividade", 20), headerCell("Descrição das Atividades", 50)] }),
-  ];
-  workstations.forEach((ws, i) => {
-    const wsSector = sectors.find(s => s.id === ws.sector_id);
-    gheRows.push(new TableRow({
-      children: [
-        textCell(`GHE ${String(i + 1).padStart(2, "0")} - ${ws.name}`, true, 30),
-        textCell(wsSector?.name || "—", false, 20),
-        textCell(ws.activity_description || ws.description, false, 50),
-      ],
-    }));
-  });
-  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: gheRows }));
-  children.push(pageBreak());
-
-  // 9.2 Risk Matrix
-  children.push(heading("9.2 Matriz de Avaliação de Riscos", HeadingLevel.HEADING_2));
-  children.push(body("A análise dos riscos ergonômicos foi realizada com base na Matriz de Probabilidade × Severidade, metodologia utilizada no PGR da empresa e alinhada aos princípios da AIHA (1998) e da norma BS 8800 (1996):"));
-  children.push(body("Essa matriz permite avaliar o potencial de dano de uma situação de trabalho combinando dois fatores principais:"));
-  children.push(bulletItem("Probabilidade (P): representa a chance de o trabalhador desenvolver um agravo ergonômico, considerando tempo de exposição, frequência e intensidade da tarefa;"));
-  children.push(bulletItem("Severidade (S): expressa o grau de gravidade do possível dano à saúde, como desconforto, dor musculoesquelética, ou distúrbio osteomuscular (LER/DORT);"));
-  children.push(body("O cruzamento desses dois fatores resulta no Nível de Risco (NR), que orienta a priorização das medidas corretivas ou preventivas:"));
-
-  const riskMatrixTable = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: [
-      new TableRow({ children: [headerCell("Severidade (S)", 25), headerCell("Probabilidade (P)", 25), headerCell("Nível de Risco", 15), headerCell("Classificação / Ação Recomendada", 35)] }),
-      new TableRow({ children: [
-        shadedCell("Leve / Reversível – desconfortos temporários, sem impacto funcional", COLORS.greenBg, false, 25),
-        textCell("Baixa probabilidade – exposição eventual ou sob controle", false, 25),
-        shadedCell("Baixo (Aceitável)", COLORS.greenBg, true, 15),
-        textCell("Manter as condições atuais, reforçando boas práticas e pausas.", false, 35),
-      ] }),
-      new TableRow({ children: [
-        shadedCell("Moderada / Desconforto persistente – sintomas repetitivos ou leves", COLORS.yellowBg, false, 25),
-        textCell("Média probabilidade – exposição frequente, posturas mantidas", false, 25),
-        shadedCell("Médio (Tolerável)", COLORS.yellowBg, true, 15),
-        textCell("Promover ajustes ergonômicos, pausas regulares e orientação postural.", false, 35),
-      ] }),
-      new TableRow({ children: [
-        shadedCell("Grave / Potencial de LER/DORT – dor crônica, limitação de movimento", COLORS.redBg, false, 25),
-        textCell("Alta probabilidade – exposição contínua, sem pausas ou ajustes", false, 25),
-        shadedCell("Alto (Crítico)", COLORS.redBg, true, 15),
-        textCell("Implementar medidas corretivas imediatas no posto de trabalho.", false, 35),
-      ] }),
-    ],
-  });
-  children.push(riskMatrixTable);
-  children.push(body("Critério de interpretação: quanto maior a severidade e a probabilidade combinadas, mais urgente é a necessidade de intervenção."));
-  children.push(body("As medidas de controle podem envolver adequação de mobiliário, redistribuição de tarefas, pausas, ou revezamento funcional."));
-
   if (risks.length > 0) {
-    children.push(heading("Matriz de Risco por Posto", HeadingLevel.HEADING_3));
-    const riskTable = new Table({
+    children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
-        new TableRow({ children: [headerCell("GHE/Posto", 20), headerCell("Risco", 30), headerCell("P × E × C", 20), headerCell("Score", 15), headerCell("Nível", 15)] }),
+        new TableRow({ children: [headerCell("GHE/Posto", 25), headerCell("Risco", 25), headerCell("P × E × C", 15), headerCell("Score", 15), headerCell("Nível", 20)] }),
         ...risks.map((r, i) => {
           const analysis = analyses.find(a => a.id === r.analysis_id);
           const ws = analysis ? workstations.find(w => w.id === analysis.workstation_id) : null;
+          const levelColor = r.risk_level === "critical" ? "red" : r.risk_level === "high" ? "orange" : r.risk_level === "medium" ? "yellow" : "green";
           return new TableRow({
             children: [
-              textCell(ws?.name || `GHE ${i + 1}`, false, 20),
-              textCell(r.description, false, 30),
-              textCell(`${r.probability} × ${r.exposure} × ${r.consequence}`, false, 20),
+              textCell(ws?.name || `GHE ${i + 1}`, true, 25),
+              textCell(r.description, false, 25),
+              textCell(`${r.probability} × ${r.exposure} × ${r.consequence}`, false, 15),
               textCell(String(r.risk_score), true, 15),
-              textCell(riskLevelLabel(r.risk_level), true, 15),
+              statusCell(riskLevelLabel(r.risk_level), levelColor as any, 20),
             ],
           });
         }),
       ],
-    });
-    children.push(riskTable);
+    }));
+
+    children.push(heading("Plano de Ação", HeadingLevel.HEADING_3));
+    if (actions.length > 0) {
+      children.push(new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: [headerCell("Ação", 35), headerCell("Responsável", 20), headerCell("Prazo", 20), headerCell("Status", 25)] }),
+          ...actions.map(ap => {
+            const stColor = ap.status === "completed" ? "green" : ap.status === "in_progress" ? "yellow" : "orange";
+            return new TableRow({
+              children: [
+                textCell(ap.description, false, 35),
+                textCell(ap.responsible, false, 20),
+                textCell(ap.deadline, false, 20),
+                statusCell(statusLabel(ap.status), stColor as any, 25),
+              ],
+            });
+          }),
+        ],
+      }));
+    }
+  } else {
+    children.push(body("Nenhum risco avaliado."));
   }
   children.push(pageBreak());
 
-  // ===== 10. ANÁLISE DOS RISCOS PSICOSSOCIAIS =====
+  // 10. Psicossocial
   children.push(heading("10. ANÁLISE DOS RISCOS PSICOSSOCIAIS"));
-  children.push(heading("10.1 Análise Complementar dos Riscos Psicossociais", HeadingLevel.HEADING_2));
   if (psychosocial.length > 0) {
-    children.push(body(`A validação dos resultados psicossociais foi realizada também por meio da aplicação do instrumento COPSOQ II (Copenhagen Psychosocial Questionnaire), aplicado junto aos colaboradores da ${company.name}.`));
-    children.push(body("Os resultados confirmam integralmente as observações descritas nesta AET: o ambiente organizacional apresenta níveis predominantemente baixos de risco psicossocial, com atenção pontual às demandas quantitativas e ao ritmo de trabalho, classificadas como moderadas, especialmente nos setores de produção."));
-    children.push(body("A convergência entre as duas ferramentas (AET e COPSOQ II) reforça a confiabilidade da análise e evidencia a eficácia das medidas preventivas já adotadas pela empresa. Sendo apenas recomendada a manutenção do monitoramento contínuo dos fatores psicossociais no contexto do PGR e do PCMSO."));
-
     psychosocial.forEach(psa => {
-      children.push(heading(`Avaliação${psa.workstation_id ? ` — ${workstations.find(w => w.id === psa.workstation_id)?.name || ""}` : ""}`, HeadingLevel.HEADING_3));
-      children.push(body(`Avaliador: ${psa.evaluator_name}`, { bold: true }));
+      children.push(heading(`Avaliação — ${psa.evaluator_name}`, HeadingLevel.HEADING_3));
 
       if (psa.nasa_tlx_details) {
-        children.push(heading("NASA-TLX", HeadingLevel.HEADING_4));
+        children.push(sectionBanner("NASA-TLX — Carga de Trabalho", COLORS.headerBg2));
         const nasaTable = new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           rows: [
@@ -977,8 +982,8 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
               ["Esforço", psa.nasa_tlx_details.effort],
               ["Frustração", psa.nasa_tlx_details.frustration],
               ["Score Geral", psa.nasa_tlx_score],
-            ] as [string, number | null][]).map(([dim, val]) =>
-              new TableRow({ children: [textCell(String(dim), dim === "Score Geral", 50), textCell(String(val ?? "—"), dim === "Score Geral", 50)] })
+            ] as [string, number | null][]).map(([dim, val], i) =>
+              new TableRow({ children: [altCell(String(dim), i % 2 === 0, dim === "Score Geral", 50), altCell(String(val ?? "—"), i % 2 === 0, dim === "Score Geral", 50)] })
             ),
           ],
         });
@@ -986,11 +991,13 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
       }
 
       if (psa.copenhagen_details) {
-        children.push(heading("COPSOQ II (Copenhagen Psychosocial Questionnaire)", HeadingLevel.HEADING_4));
+        children.push(sectionBanner("COPSOQ II — Riscos Psicossociais", COLORS.accent));
+        const classifyPsyRisk = (v: number) => v >= 75 ? "Baixo risco" : v >= 50 ? "Moderado" : "Alto risco";
+        const riskColor = (v: number) => v >= 75 ? COLORS.greenBg : v >= 50 ? COLORS.yellowBg : COLORS.redBg;
         const copTable = new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           rows: [
-            new TableRow({ children: [headerCell("Dimensão", 50), headerCell("Score (0-100)", 50)] }),
+            new TableRow({ children: [headerCell3("Dimensão", 40), headerCell3("Score", 20), headerCell3("Classificação", 40)] }),
             ...([
               ["Demandas Quantitativas", psa.copenhagen_details.quantitative_demands],
               ["Ritmo de Trabalho", psa.copenhagen_details.work_pace],
@@ -1002,9 +1009,8 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
               ["Compromisso", psa.copenhagen_details.commitment],
               ["Previsibilidade", psa.copenhagen_details.predictability],
               ["Suporte Social", psa.copenhagen_details.social_support],
-              ["Score Geral", psa.copenhagen_score],
-            ] as [string, number | null][]).map(([dim, val]) =>
-              new TableRow({ children: [textCell(String(dim), dim === "Score Geral", 50), textCell(String(val ?? "—"), dim === "Score Geral", 50)] })
+            ] as [string, number][]).map(([dim, val]) =>
+              new TableRow({ children: [textCell(dim, false, 40), textCell(String(val), true, 20), shadedCell(classifyPsyRisk(val), riskColor(val), true, 40)] })
             ),
           ],
         });
@@ -1013,83 +1019,42 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
 
       if (psa.hse_it_details) {
         children.push(heading("HSE-IT", HeadingLevel.HEADING_4));
-        const hseTable = new Table({
+        children.push(new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           rows: [
             new TableRow({ children: [headerCell("Dimensão", 50), headerCell("Score (1-5)", 50)] }),
             ...([
-              ["Demandas", psa.hse_it_details.demands],
-              ["Controle", psa.hse_it_details.control],
-              ["Suporte", psa.hse_it_details.support],
-              ["Relacionamentos", psa.hse_it_details.relationships],
-              ["Papel", psa.hse_it_details.role],
-              ["Mudança", psa.hse_it_details.change],
+              ["Demandas", psa.hse_it_details.demands], ["Controle", psa.hse_it_details.control],
+              ["Suporte", psa.hse_it_details.support], ["Relacionamentos", psa.hse_it_details.relationships],
+              ["Papel", psa.hse_it_details.role], ["Mudança", psa.hse_it_details.change],
               ["Score Geral", psa.hse_it_score],
             ] as [string, number | null][]).map(([dim, val]) =>
               new TableRow({ children: [textCell(String(dim), dim === "Score Geral", 50), textCell(String(val ?? "—"), dim === "Score Geral", 50)] })
             ),
           ],
-        });
-        children.push(hseTable);
+        }));
       }
 
       children.push(body(`Observações: ${psa.observations}`));
     });
   } else {
-    children.push(body("Nenhuma avaliação psicossocial realizada para esta empresa. Recomenda-se a aplicação dos questionários NASA-TLX, HSE-IT e Copenhagen Psychosocial Questionnaire para uma avaliação completa dos fatores psicossociais do trabalho."));
+    children.push(accentCallout("Nenhuma avaliação psicossocial realizada. Recomenda-se aplicação dos questionários NASA-TLX, HSE-IT e COPSOQ.", "warning"));
   }
   children.push(pageBreak());
 
-  // ===== 11. RESPONSABILIDADE TÉCNICA =====
+  // 11. Responsabilidade técnica
   children.push(heading("11. RESPONSABILIDADE TÉCNICA"));
-  children.push(body("O presente documento foi elaborado sob a responsabilidade técnica de profissional habilitado, Especialista em Ergonomia e Engenheiro(a) de Segurança do Trabalho com registro nos seus respectivos conselhos."));
-  children.push(body("Sendo de responsabilidade da empresa, programar, monitorar e assegurar o cumprimento desta Análise Ergonômica."));
+  children.push(body("O presente documento foi elaborado sob a responsabilidade técnica de profissional habilitado, Especialista em Ergonomia e Engenheiro(a) de Segurança do Trabalho."));
   children.push(body(`${company.city}, ${getTodayFull()}.`));
-
-  children.push(new Paragraph({ spacing: { before: 800 } }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: "_____________________________________________", size: 22, font: "Calibri" })],
-    alignment: AlignmentType.CENTER,
-  }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: "Empregador ou Preposto", size: 20, font: "Calibri", color: COLORS.secondary })],
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 400 },
-  }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: "_____________________________________________", size: 22, font: "Calibri" })],
-    alignment: AlignmentType.CENTER,
-  }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: consultant, bold: true, size: 22, font: "Calibri" })],
-    alignment: AlignmentType.CENTER,
-  }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: "Eng. de Segurança do Trabalho", size: 20, font: "Calibri", color: COLORS.secondary })],
-    alignment: AlignmentType.CENTER,
-  }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: "Especialista em Ergonomia", size: 20, font: "Calibri", color: COLORS.secondary })],
-    alignment: AlignmentType.CENTER,
-  }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: "CREA/CONFEA: XXXXX", size: 20, font: "Calibri", color: COLORS.secondary })],
-    alignment: AlignmentType.CENTER,
-    spacing: { after: 400 },
-  }));
+  children.push(...signatureBlock(consultant));
   children.push(pageBreak());
 
-  // ===== ANEXOS — Cover =====
+  // ANEXOS
   children.push(heading("ANEXOS"));
-  [
-    "ANÁLISE ERGONÔMICA DOS POSTOS;",
-    "FERRAMENTAS APLICADAS;",
-    "RELATÓRIO TÉCNICO FATORES PSICOSSOCIAIS;",
-    "PLANO DE AÇÃO;",
-  ].forEach(t => children.push(bulletItem(t)));
+  ["ANÁLISE ERGONÔMICA DOS POSTOS;", "FERRAMENTAS APLICADAS;", "RELATÓRIO TÉCNICO FATORES PSICOSSOCIAIS;", "PLANO DE AÇÃO;"].forEach(t => children.push(bulletItem(t)));
   children.push(pageBreak());
 
-  // ===== ANEXO: Per-Workstation Detailed Analysis =====
+  // Per-workstation annexes
   for (const ws of workstations) {
     const wsSector = sectors.find(s => s.id === ws.sector_id);
     const wsAnalyses = analyses.filter(a => a.workstation_id === ws.id);
@@ -1099,83 +1064,56 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
     const posAnalysis = mockPostureAnalyses.find(pa => pa.workstation_id === ws.id);
     const gheIndex = workstations.indexOf(ws) + 1;
 
-    children.push(heading("RELATÓRIO DA ANÁLISE ERGONÔMICA", HeadingLevel.HEADING_1));
+    children.push(sectionBanner(`RELATÓRIO DA ANÁLISE ERGONÔMICA — GHE ${String(gheIndex).padStart(2, "0")}`, COLORS.headerBg));
 
     // Header table
-    const headerTable = new Table({
+    children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
-        new TableRow({ children: [headerCell("SETOR", 30), headerCell("FUNÇÕES", 50), headerCell("Nº AVALIAÇÃO", 20)] }),
-        new TableRow({ children: [
-          textCell(wsSector?.name || "—", false, 30),
-          textCell(`GHE ${String(gheIndex).padStart(2, "0")}: ${ws.name}`, true, 50),
-          textCell(String(gheIndex).padStart(2, "0"), false, 20),
-        ] }),
+        new TableRow({ children: [headerCell("SETOR", 30), headerCell("FUNÇÕES", 50), headerCell("Nº", 20)] }),
+        new TableRow({ children: [textCell(wsSector?.name || "—", false, 30), textCell(`GHE ${String(gheIndex).padStart(2, "0")}: ${ws.name}`, true, 50), textCell(String(gheIndex).padStart(2, "0"), false, 20)] }),
       ],
-    });
-    children.push(headerTable);
-    children.push(new Paragraph({ spacing: { after: 200 } }));
+    }));
+    children.push(spacer(100));
 
-    // Equipment & tools
-    const detailTable = new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({ children: [headerCell("MÁQUINAS E EQUIPAMENTOS", 50), headerCell("FERRAMENTAS E ACESSÓRIOS", 50)] }),
-        new TableRow({ children: [textCell(ws.description || "—", false, 50), textCell(ws.tasks_performed || "—", false, 50)] }),
-      ],
-    });
-    children.push(detailTable);
-    children.push(new Paragraph({ spacing: { after: 100 } }));
-
-    // Description física
+    // Description
     children.push(heading("DESCRIÇÃO FÍSICA DO POSTO", HeadingLevel.HEADING_3));
     children.push(body(ws.activity_description || ws.description));
     children.push(body(`Tarefas: ${ws.tasks_performed}`));
-    if (wsTasks.length > 0) {
-      wsTasks.forEach(t => children.push(bulletItem(t.description)));
-    }
-    children.push(new Paragraph({ spacing: { after: 100 } }));
+    if (wsTasks.length > 0) wsTasks.forEach(t => children.push(bulletItem(t.description)));
 
     // Measurements
-    const measTable = new Table({
+    children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
-        new TableRow({ children: [mergedCell("MEDIÇÕES", 2, true, COLORS.headerBg)] }),
-        new TableRow({ children: [textCell("ILUMINAÇÃO – NHO11", true, 50), textCell("586 lux", false, 50)] }),
-        new TableRow({ children: [textCell("CONFORTO TÉRMICO – NR-17", true, 50), textCell("Ventilação artificial e natural", false, 50)] }),
-        new TableRow({ children: [textCell("RUÍDO", true, 50), textCell("Dentro dos limites aceitáveis", false, 50)] }),
+        new TableRow({ children: [mergedCell("MEDIÇÕES AMBIENTAIS", 2, true, COLORS.headerBg2)] }),
+        new TableRow({ children: [labelCell("ILUMINAÇÃO – NHO11", 50), textCell("586 lux", false, 50)] }),
+        new TableRow({ children: [labelCell("CONFORTO TÉRMICO", 50), textCell("Ventilação artificial e natural", false, 50)] }),
+        new TableRow({ children: [labelCell("RUÍDO", 50), textCell("Dentro dos limites aceitáveis", false, 50)] }),
       ],
-    });
-    children.push(measTable);
-    children.push(new Paragraph({ spacing: { after: 200 } }));
+    }));
 
-    // Joint angles table if available
+    // Joint angles
     if (posAnalysis) {
       children.push(heading("ÂNGULOS ARTICULARES MEDIDOS", HeadingLevel.HEADING_3));
-      const jointLabels: Record<string, string> = {
-        neck: "Pescoço", shoulder: "Ombro", elbow: "Cotovelo",
-        trunk: "Tronco", hip: "Quadril", knee: "Joelho",
-      };
+      const jointLabels: Record<string, string> = { neck: "Pescoço", shoulder: "Ombro", elbow: "Cotovelo", trunk: "Tronco", hip: "Quadril", knee: "Joelho" };
+      const acceptableRanges: Record<string, string> = { neck: "0° – 20°", shoulder: "0° – 20°", elbow: "80° – 100°", trunk: "0° – 10°", hip: "85° – 100°", knee: "160° – 180°" };
       const angleRows: TableRow[] = [
-        new TableRow({ children: [headerCell("Articulação", 25), headerCell("Ângulo Medido", 20), headerCell("Faixa Aceitável", 25), headerCell("Classificação", 30)] }),
+        new TableRow({ children: [headerCell3("Articulação", 25), headerCell3("Ângulo", 20), headerCell3("Faixa Aceitável", 25), headerCell3("Classificação", 30)] }),
       ];
-      const acceptableRanges: Record<string, string> = {
-        neck: "0° – 20°", shoulder: "0° – 20°", elbow: "80° – 100°",
-        trunk: "0° – 10°", hip: "85° – 100°", knee: "160° – 180°",
-      };
       Object.entries(posAnalysis.joint_angles).forEach(([joint, angle]) => {
         const label = jointLabels[joint] || joint;
         const range = acceptableRanges[joint] || "—";
         let classification: string;
         let fill: string;
         if (joint === "knee") {
-          classification = angle >= 160 ? "Aceitável" : angle >= 140 ? "Atenção" : angle >= 110 ? "Risco Alto" : "Crítico";
+          classification = angle >= 160 ? "Aceitável" : angle >= 140 ? "Atenção" : "Risco Alto";
           fill = angle >= 160 ? COLORS.greenBg : angle >= 140 ? COLORS.yellowBg : COLORS.redBg;
         } else if (joint === "trunk") {
-          classification = angle <= 10 ? "Aceitável" : angle <= 20 ? "Atenção" : angle <= 40 ? "Risco Alto" : "Crítico";
+          classification = angle <= 10 ? "Aceitável" : angle <= 20 ? "Atenção" : "Risco Alto";
           fill = angle <= 10 ? COLORS.greenBg : angle <= 20 ? COLORS.yellowBg : COLORS.redBg;
         } else if (joint === "shoulder" || joint === "neck") {
-          classification = angle <= 20 ? "Aceitável" : angle <= 45 ? "Atenção" : angle <= 90 ? "Risco Alto" : "Crítico";
+          classification = angle <= 20 ? "Aceitável" : angle <= 45 ? "Atenção" : "Risco Alto";
           fill = angle <= 20 ? COLORS.greenBg : angle <= 45 ? COLORS.yellowBg : COLORS.redBg;
         } else {
           classification = "Aceitável";
@@ -1186,459 +1124,156 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
         }));
       });
       children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: angleRows }));
-      children.push(new Paragraph({ spacing: { after: 200 } }));
     }
 
-    // Situações encontradas — generated from actual data
+    // Situações encontradas
     children.push(heading("SITUAÇÕES ENCONTRADAS", HeadingLevel.HEADING_3));
-    const situacoes: string[] = [];
-
-    // Always add base situações
-    situacoes.push(`Permanência prolongada em posição ortostática (em pé) durante praticamente toda a jornada – NR-17, item 17.3.4.`);
-    situacoes.push(`Ausência de assentos para descanso ou alternância postural durante a atividade – NR-17, item 17.3.4.`);
-
-    // Add specific situações based on analysis data
+    const situacoes: string[] = [
+      `Permanência prolongada em posição ortostática (em pé) durante a jornada – NR-17, item 17.3.4.`,
+      `Ausência de assentos para descanso ou alternância postural – NR-17, item 17.3.4.`,
+    ];
     if (posAnalysis) {
       const angles = posAnalysis.joint_angles;
-      if (angles.trunk && angles.trunk > 10) {
-        situacoes.push(`Postura estática com flexão de tronco de ${angles.trunk}° durante a execução da atividade, acima do limite aceitável de 10° – NR-17, item 17.3.2.`);
-      }
-      if (angles.neck && angles.neck > 20) {
-        situacoes.push(`Flexão cervical de ${angles.neck}° durante a atividade, exigindo inclinação da cabeça para visualização do trabalho – NR-17, item 17.3.2.`);
-      }
-      if (angles.shoulder && angles.shoulder > 20) {
-        situacoes.push(`Elevação dos braços com ângulo de ${angles.shoulder}° nos ombros, acima da faixa neutra de 20° – NR-17, item 17.2.3.`);
-      }
-      if (angles.knee && angles.knee < 160) {
-        situacoes.push(`Flexão dos joelhos a ${angles.knee}°, indicando posição agachada ou semi-agachada durante partes da tarefa – NR-17, item 17.3.4.`);
-      }
+      if (angles.trunk > 10) situacoes.push(`Flexão de tronco de ${angles.trunk}° – NR-17, item 17.3.2.`);
+      if (angles.neck > 20) situacoes.push(`Flexão cervical de ${angles.neck}° – NR-17, item 17.3.2.`);
+      if (angles.shoulder > 20) situacoes.push(`Elevação dos braços com ângulo de ${angles.shoulder}° – NR-17, item 17.2.3.`);
     }
+    situacoes.push(`Exigência de atenção contínua e concentração – NR-17, item 17.6.`);
+    [...new Set(situacoes)].forEach((s, i) => children.push(body(`${i + 1}. ${s}`)));
 
-    // Add from analysis notes
-    wsAnalyses.forEach(a => {
-      if (a.notes.toLowerCase().includes("repetitivo") || a.notes.toLowerCase().includes("movimentos")) {
-        situacoes.push(`Movimentos repetitivos de membros superiores identificados pela análise ${a.method} – NR-17, item 17.6.`);
-      }
-      if (a.notes.toLowerCase().includes("elevação") || a.notes.toLowerCase().includes("ombro")) {
-        situacoes.push(`Alcance frequente de objetos posicionados acima da linha dos ombros – NR-17, item 17.2.3.`);
-      }
-    });
-
-    situacoes.push(`Exigência de atenção contínua, agilidade e concentração durante a jornada de trabalho – NR-17, item 17.6.`);
-
-    // Remove duplicates
-    const uniqueSituacoes = [...new Set(situacoes)];
-    uniqueSituacoes.forEach((s, i) => children.push(body(`${i + 1}. ${s}`)));
-
-    // Risk description table — enriched with multiple risk types
+    // Risk table
     children.push(heading("DESCRIÇÃO DOS RISCOS ERGONÔMICOS", HeadingLevel.HEADING_3));
     const riskDescRows: TableRow[] = [
-      new TableRow({
-        children: [
-          headerCell("Tipos", 12),
-          headerCell("Identificação de perigos", 20),
-          headerCell("Possíveis Danos", 16),
-          headerCell("Fonte Geradora", 16),
-          headerCell("Tempo de exposição", 12),
-          headerCell("P", 6),
-          headerCell("S", 6),
-          headerCell("NR", 8),
-        ],
-      }),
+      new TableRow({ children: [headerCell("Tipos", 12), headerCell("Perigo", 20), headerCell("Danos", 16), headerCell("Fonte", 16), headerCell("Exposição", 12), headerCell("P", 6), headerCell("S", 6), headerCell("NR", 8)] }),
     ];
-
-    // Always add base risks
     const defaultRiskData = [
-      { type: "Biomecânico", hazard: "Permanência prolongada em pé, sem alternância postural", damage: "Fadiga muscular, dores lombares e em membros inferiores", source: "Atividade contínua", exposure: "Contínuo (6–8h/dia)", p: "M", s: "B", nr: "Baixo" },
-      { type: "Biomecânico", hazard: "Movimentos repetitivos de membros superiores", damage: "Tendinites, dores em punhos, braços e ombros", source: ws.activity_description || ws.name, exposure: "Frequente", p: "M", s: "B", nr: "Baixo" },
-      { type: "Organizacionais", hazard: "Ritmo intenso de trabalho, especialmente em horários de pico", damage: "Fadiga física e mental", source: "Organização do trabalho", exposure: "Diário", p: "M", s: "B", nr: "Baixo" },
-      { type: "Psicossociais", hazard: "Ausência de pausas programadas", damage: "Sobrecarga física", source: "Jornada contínua em pé", exposure: "Frequente", p: "M", s: "B", nr: "Baixo" },
+      { type: "Biomecânico", hazard: "Permanência prolongada em pé", damage: "Fadiga muscular, dores lombares", source: "Atividade contínua", exposure: "Contínuo", p: "M", s: "B", nr: "Baixo" },
+      { type: "Biomecânico", hazard: "Movimentos repetitivos de membros superiores", damage: "Tendinites, dores em punhos", source: ws.name, exposure: "Frequente", p: "M", s: "B", nr: "Baixo" },
+      { type: "Organizacionais", hazard: "Ritmo intenso de trabalho", damage: "Fadiga física e mental", source: "Organização do trabalho", exposure: "Diário", p: "M", s: "B", nr: "Baixo" },
     ];
-
-    // Enrich with actual risk data if available
     if (wsRisks.length > 0) {
       wsRisks.forEach(r => {
         const pLabel = r.probability <= 3 ? "B" : r.probability <= 6 ? "M" : "A";
         const sLabel = r.consequence <= 3 ? "B" : r.consequence <= 6 ? "M" : "A";
         riskDescRows.push(new TableRow({
-          children: [
-            textCell("Biomecânico", false, 12),
-            textCell(r.description, false, 20),
-            textCell("Desconfortos, fadiga, LER/DORT", false, 16),
-            textCell(ws.name, false, 16),
-            textCell("Contínuo", false, 12),
-            textCell(pLabel, true, 6),
-            textCell(sLabel, true, 6),
-            textCell(riskLevelLabel(r.risk_level), true, 8),
-          ],
+          children: [textCell("Biomecânico", false, 12), textCell(r.description, false, 20), textCell("LER/DORT, fadiga", false, 16), textCell(ws.name, false, 16), textCell("Contínuo", false, 12), textCell(pLabel, true, 6), textCell(sLabel, true, 6), textCell(riskLevelLabel(r.risk_level), true, 8)],
         }));
       });
     }
-
-    // Add default rows
     defaultRiskData.forEach(d => {
       riskDescRows.push(new TableRow({
-        children: [
-          textCell(d.type, false, 12),
-          textCell(d.hazard, false, 20),
-          textCell(d.damage, false, 16),
-          textCell(d.source, false, 16),
-          textCell(d.exposure, false, 12),
-          textCell(d.p, true, 6),
-          textCell(d.s, true, 6),
-          textCell(d.nr, true, 8),
-        ],
+        children: [textCell(d.type, false, 12), textCell(d.hazard, false, 20), textCell(d.damage, false, 16), textCell(d.source, false, 16), textCell(d.exposure, false, 12), textCell(d.p, true, 6), textCell(d.s, true, 6), textCell(d.nr, true, 8)],
       }));
     });
-
-    // Add posture-specific risks based on joint angles
-    if (posAnalysis) {
-      const angles = posAnalysis.joint_angles;
-      if (angles.trunk && angles.trunk > 20) {
-        riskDescRows.push(new TableRow({
-          children: [
-            textCell("Biomecânico", false, 12),
-            textCell(`Flexão de tronco acentuada (${angles.trunk}°)`, false, 20),
-            textCell("Lombalgias, hérnias discais", false, 16),
-            textCell("Bancadas e preparo manual", false, 16),
-            textCell("Frequente", false, 12),
-            textCell("M", true, 6),
-            textCell("M", true, 6),
-            textCell("Médio", true, 8),
-          ],
-        }));
-      }
-      if (angles.shoulder && angles.shoulder > 20) {
-        riskDescRows.push(new TableRow({
-          children: [
-            textCell("Biomecânico", false, 12),
-            textCell(`Elevação dos ombros (${angles.shoulder}°)`, false, 20),
-            textCell("Tendinite do ombro, bursite", false, 16),
-            textCell("Alcance de objetos elevados", false, 16),
-            textCell("Frequente", false, 12),
-            textCell("M", true, 6),
-            textCell("M", true, 6),
-            textCell("Médio", true, 8),
-          ],
-        }));
-      }
-      if (angles.neck && angles.neck > 20) {
-        riskDescRows.push(new TableRow({
-          children: [
-            textCell("Biomecânico", false, 12),
-            textCell(`Flexão cervical excessiva (${angles.neck}°)`, false, 20),
-            textCell("Cervicalgia, cervicobraquialgia", false, 16),
-            textCell("Posição de visualização do trabalho", false, 16),
-            textCell("Contínuo", false, 12),
-            textCell("M", true, 6),
-            textCell("B", true, 6),
-            textCell("Baixo", true, 8),
-          ],
-        }));
-      }
-    }
-
     children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: riskDescRows }));
-    children.push(body("Legendas: P: Probabilidade / S: Gravidade (Severidade) / B: Baixa / M: Médio / A: Alta / NR: Nível de Risco", { spacing: { before: 60, after: 200 } }));
 
-    // Embed photos for this workstation
+    // Photos
     if (wsPhotos.length > 0) {
       children.push(heading("Registro Fotográfico", HeadingLevel.HEADING_3));
       for (const photo of wsPhotos) {
         if (photo.image_url && photo.image_url !== "/placeholder.svg") {
           const imgData = await fetchImageAsBuffer(photo.image_url);
-          if (imgData) {
-            children.push(...createImageParagraph(imgData.buffer, imgData.width, imgData.height, `${photo.posture_type} — ${photo.notes}`));
-          }
+          if (imgData) children.push(...createImageParagraph(imgData.buffer, imgData.width, imgData.height, `${photo.posture_type} — ${photo.notes}`));
         }
       }
     }
 
-    // REBA/RULA/ROSA result with Tabela A/B/C format
+    // Analysis results
     if (wsAnalyses.length > 0) {
       wsAnalyses.forEach(a => {
-        const bodyPartLabels: Record<string, string> = {
-          trunk: "Tronco", neck: "Pescoço", legs: "Pernas", upper_arm: "Braço Superior",
-          lower_arm: "Antebraço", wrist: "Punho", chair: "Cadeira", monitor: "Monitor",
-          keyboard: "Teclado", mouse: "Mouse", telephone: "Telefone",
-        };
-
-        children.push(heading(`${a.method} (${a.method === "REBA" ? "Rapid Entire Body Assessment" : a.method === "RULA" ? "Rapid Upper Limb Assessment" : a.method === "ROSA" ? "Rapid Office Strain Assessment" : a.method})`, HeadingLevel.HEADING_3));
-
-        // Reference line
-        if (a.method === "REBA") {
-          children.push(body("Referência: Sue Hignett and Lynn McAtamney, Rapid entire body assessment (REBA); Applied Ergonomics. 31:201-205, 2000.", { spacing: { after: 60 } }));
-        } else if (a.method === "RULA") {
-          children.push(body("Referência: McAtamney, L. & Corlett, E.N. RULA: a survey method for the investigation of work-related upper limb disorders. Applied Ergonomics, 24(2), 91-99, 1993.", { spacing: { after: 60 } }));
+        const bpLabels: Record<string, string> = { trunk: "Tronco", neck: "Pescoço", legs: "Pernas", upper_arm: "Braço Superior", lower_arm: "Antebraço", wrist: "Punho", chair: "Cadeira", monitor: "Monitor", keyboard: "Teclado", mouse: "Mouse", telephone: "Telefone" };
+        children.push(sectionBanner(`RESULTADO ${a.method} — Score: ${a.score}`, COLORS.accent));
+        const entries = Object.entries(a.body_parts || {});
+        if (entries.length > 0) {
+          children.push(new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({ children: [headerCell3("Segmento", 40), headerCell3("Score", 30), headerCell3("Classificação", 30)] }),
+              ...entries.map(([part, score]) => {
+                const cls = score <= 2 ? "Aceitável" : score <= 4 ? "Investigar" : "Risco";
+                const fill = score <= 2 ? COLORS.greenBg : score <= 4 ? COLORS.yellowBg : COLORS.redBg;
+                return new TableRow({ children: [textCell(bpLabels[part] || part, false, 40), textCell(String(score), true, 30), shadedCell(cls, fill, true, 30)] });
+              }),
+            ],
+          }));
         }
-
-        // Info header
-        const infoTable = new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [
-            new TableRow({ children: [textCell("Empresa", true, 25), textCell(company.name, false, 75)] }),
-            new TableRow({ children: [textCell("Função", true, 25), textCell(`GHE ${String(gheIndex).padStart(2, "0")}: ${ws.name}`, false, 75)] }),
-            new TableRow({ children: [textCell("Data", true, 25), textCell(a.created_at, false, 75)] }),
-            new TableRow({ children: [textCell("Local", true, 25), textCell(wsSector?.name || "—", false, 75)] }),
-            new TableRow({ children: [textCell("Atividade", true, 25), textCell(ws.activity_description || ws.description, false, 75)] }),
-            new TableRow({ children: [textCell("Analista", true, 25), textCell(consultant, false, 75)] }),
-          ],
-        });
-        children.push(infoTable);
-        children.push(new Paragraph({ spacing: { after: 120 } }));
-
-        // Body parts score table (Tabela A/B/C format)
-        if (a.method === "REBA" || a.method === "RULA") {
-          const tabelaAparts = ["trunk", "neck", "legs"];
-          const tabelaBparts = ["upper_arm", "lower_arm", "wrist"];
-
-          children.push(body("Tabela A — Tronco, Pescoço e Pernas:", { bold: true, spacing: { before: 100, after: 60 } }));
-          const tabARows: TableRow[] = [
-            new TableRow({ children: [headerCell("Segmento", 40), headerCell("Pontuação", 30), headerCell("Observação", 30)] }),
-          ];
-          tabelaAparts.forEach(part => {
-            const score = a.body_parts[part] ?? 0;
-            const label = bodyPartLabels[part] || part;
-            const obs = score >= 4 ? "Ação imediata" : score >= 3 ? "Ação necessária" : score >= 2 ? "Monitorar" : "Aceitável";
-            tabARows.push(new TableRow({
-              children: [textCell(label, false, 40), textCell(String(score), true, 30), textCell(obs, false, 30)],
-            }));
-          });
-          // Add load/force
-          tabARows.push(new TableRow({
-            children: [textCell("Carga/Força", true, 40), textCell("0-1", true, 30), textCell("Carga leve ou intermitente", false, 30)],
-          }));
-          children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tabARows }));
-          children.push(new Paragraph({ spacing: { after: 120 } }));
-
-          children.push(body("Tabela B — Braço, Antebraço e Punho:", { bold: true, spacing: { before: 60, after: 60 } }));
-          const tabBRows: TableRow[] = [
-            new TableRow({ children: [headerCell("Segmento", 40), headerCell("Pontuação", 30), headerCell("Observação", 30)] }),
-          ];
-          tabelaBparts.forEach(part => {
-            const score = a.body_parts[part] ?? 0;
-            const label = bodyPartLabels[part] || part;
-            const obs = score >= 4 ? "Ação imediata" : score >= 3 ? "Ação necessária" : score >= 2 ? "Monitorar" : "Aceitável";
-            tabBRows.push(new TableRow({
-              children: [textCell(label, false, 40), textCell(String(score), true, 30), textCell(obs, false, 30)],
-            }));
-          });
-          // Add coupling
-          tabBRows.push(new TableRow({
-            children: [textCell("Pega (Coupling)", true, 40), textCell("0-1", true, 30), textCell("Pega aceitável", false, 30)],
-          }));
-          children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tabBRows }));
-          children.push(new Paragraph({ spacing: { after: 120 } }));
-
-          children.push(body("Tabela C — Resultado:", { bold: true, spacing: { before: 60, after: 60 } }));
-          const tabCRows: TableRow[] = [
-            new TableRow({ children: [headerCell("Score Tabela A", 25), headerCell("Score Tabela B", 25), headerCell("Atividade (+1)", 25), headerCell("Score Final", 25)] }),
-            new TableRow({ children: [
-              textCell(String(tabelaAparts.reduce((s, p) => s + (a.body_parts[p] ?? 0), 0)), true, 25),
-              textCell(String(tabelaBparts.reduce((s, p) => s + (a.body_parts[p] ?? 0), 0)), true, 25),
-              textCell("1", true, 25),
-              textCell(String(a.score), true, 25),
-            ] }),
-          ];
-          children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tabCRows }));
-        } else if (a.method === "ROSA") {
-          // ROSA specific table
-          children.push(body("Avaliação por Componente do Posto:", { bold: true, spacing: { before: 100, after: 60 } }));
-          const rosaRows: TableRow[] = [
-            new TableRow({ children: [headerCell("Componente", 40), headerCell("Pontuação", 30), headerCell("Observação", 30)] }),
-          ];
-          Object.entries(a.body_parts).forEach(([part, score]) => {
-            const label = bodyPartLabels[part] || part;
-            const obs = score >= 4 ? "Inadequado – ajustar" : score >= 3 ? "Atenção – verificar" : "Adequado";
-            rosaRows.push(new TableRow({
-              children: [textCell(label, false, 40), textCell(String(score), true, 30), textCell(obs, false, 30)],
-            }));
-          });
-          rosaRows.push(new TableRow({
-            children: [textCell("Score Final ROSA", true, 40), textCell(String(a.score), true, 30), textCell(
-              a.score <= 2 ? "Desprezível" : a.score <= 4 ? "Baixo" : a.score <= 6 ? "Médio" : "Alto"
-            , true, 30)],
-          }));
-          children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: rosaRows }));
-        }
-
-        children.push(new Paragraph({ spacing: { after: 120 } }));
-
-        // Classification legend
-        const legendTable = new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [
-            new TableRow({ children: [headerCell("Pontuação", 20), headerCell("Nível do Risco", 30), headerCell("Ação", 50)] }),
-            new TableRow({ children: [shadedCell("1", COLORS.greenBg, false, 20), shadedCell("Insignificante", COLORS.greenBg, false, 30), textCell("Não necessária", false, 50)] }),
-            new TableRow({ children: [shadedCell("2 a 3", COLORS.greenBg, false, 20), shadedCell("Baixo", COLORS.greenBg, false, 30), textCell("Pode ser necessária", false, 50)] }),
-            new TableRow({ children: [shadedCell("4 a 7", COLORS.yellowBg, false, 20), shadedCell("Médio", COLORS.yellowBg, false, 30), textCell("Necessária", false, 50)] }),
-            new TableRow({ children: [shadedCell("8 a 10", COLORS.redBg, false, 20), shadedCell("Alto", COLORS.redBg, false, 30), textCell("Necessária em breve", false, 50)] }),
-            new TableRow({ children: [shadedCell("> 11", COLORS.redBg, false, 20), shadedCell("Muito alto", COLORS.redBg, false, 30), textCell("Necessária imediatamente", false, 50)] }),
-          ],
-        });
-        children.push(legendTable);
-        children.push(new Paragraph({ spacing: { after: 200 } }));
-
-        // Conclusion paragraph
-        const riskLevel = a.score <= 1 ? "insignificante" : a.score <= 3 ? "baixo" : a.score <= 7 ? "médio" : a.score <= 10 ? "alto" : "muito alto";
-        const actionNeeded = a.score <= 1 ? "não sendo necessária intervenção imediata" : a.score <= 3 ? "com ação que pode ser necessária" : a.score <= 7 ? "com ação necessária" : a.score <= 10 ? "com ação necessária em breve" : "com ação necessária imediatamente";
-        children.push(body(`Com base na análise ergonômica realizada, verificou-se que a atividade desenvolvida no setor de ${wsSector?.name || "—"} apresenta risco ergonômico de nível ${riskLevel}, decorrente principalmente de ${a.notes.toLowerCase()}.`));
-        children.push(body(`A aplicação do método ${a.method} resultou em pontuação ${a.score}, caracterizando Nível de Risco ${riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}, ${actionNeeded}, sendo recomendada a adoção de medidas corretivas, como melhoria na organização do posto de trabalho, adequação das alturas de armazenamento e manuseio, incentivo à alternância postural e orientação ergonômica aos trabalhadores, com o objetivo de reduzir a sobrecarga musculoesquelética e prevenir o surgimento de desconfortos e possíveis distúrbios osteomusculares relacionados ao trabalho.`));
       });
     }
     children.push(pageBreak());
   }
 
-  // ===== ANEXO: COPSOQ II Full Report =====
+  // Psychosocial annex
   if (psychosocial.length > 0) {
-    children.push(heading("Relatório Técnico — Análise de Riscos Psicossociais no Ambiente de Trabalho"));
-    children.push(body(`Empresa: ${company.name}`, { bold: true }));
-    children.push(body("Ferramenta: COPSOQ II"));
-    children.push(body(`Data da Análise: ${getTodayFull()}`));
-    children.push(body(`Responsável pela Análise: ${consultant}`));
-
+    children.push(sectionBanner("ANÁLISE DE RISCOS PSICOSSOCIAIS", COLORS.headerBg));
     children.push(heading("1. Introdução", HeadingLevel.HEADING_2));
-    children.push(body("Este relatório apresenta os resultados da análise dos riscos psicossociais no ambiente de trabalho, realizados com o apoio da ferramenta COPSOQ II. O objetivo da análise foi identificar os setores e os domínios com maior risco psicossocial, classificando-os conforme a demanda quantitativa, cognitiva e emocional, a fim de direcionar ações corretivas e de prevenção."));
-
+    children.push(body("Este relatório apresenta os resultados da análise dos riscos psicossociais no ambiente de trabalho, realizados com o apoio da ferramenta COPSOQ II."));
     children.push(heading("2. Metodologia", HeadingLevel.HEADING_2));
-    children.push(body("A análise foi realizada a partir da aplicação do COPSOQ II, que coleta respostas dos colaboradores de diferentes setores da empresa. Os dados obtidos são organizados e classificados conforme os seguintes critérios:"));
     children.push(bulletItem("Demandas Quantitativas: Nível de intensidade e volume de trabalho."));
-    children.push(bulletItem("Demandas Cognitivas: Exigências de raciocínio, concentração e tomada de decisão."));
+    children.push(bulletItem("Demandas Cognitivas: Exigências de raciocínio e concentração."));
     children.push(bulletItem("Demandas Emocionais: Impacto emocional devido ao trabalho."));
-    children.push(body("Cada setor foi classificado com base nos seguintes níveis de risco:"));
-    children.push(bulletItem("0 a 49: Alto risco (vermelho)"));
-    children.push(bulletItem("50 a 74: Moderado risco (amarelo)"));
-    children.push(bulletItem("75+: Baixo risco (verde)"));
+    children.push(accentCallout("0 a 49: Alto risco  |  50 a 74: Moderado  |  75+: Baixo risco", "info"));
 
-    children.push(heading("3. Resultados da Análise", HeadingLevel.HEADING_2));
-
+    children.push(heading("3. Resultados", HeadingLevel.HEADING_2));
     psychosocial.forEach(psa => {
       if (psa.copenhagen_details) {
         const cd = psa.copenhagen_details;
-        const classifyPsyRisk = (v: number) => v >= 75 ? "Baixo risco" : v >= 50 ? "Moderado risco" : "Alto risco";
+        const classifyPsyRisk = (v: number) => v >= 75 ? "Baixo risco" : v >= 50 ? "Moderado" : "Alto risco";
         const riskColor = (v: number) => v >= 75 ? COLORS.greenBg : v >= 50 ? COLORS.yellowBg : COLORS.redBg;
-
-        const psyTable = new Table({
+        children.push(new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           rows: [
             new TableRow({ children: [headerCell("Domínio", 40), headerCell("Score", 20), headerCell("Classificação", 40)] }),
             ...([
-              ["Demandas Quantitativas", cd.quantitative_demands],
-              ["Ritmo de Trabalho", cd.work_pace],
-              ["Demandas Cognitivas", cd.cognitive_demands],
-              ["Demandas Emocionais", cd.emotional_demands],
-              ["Influência no Trabalho", cd.influence],
-              ["Possibilidades de Desenvolvimento", cd.possibilities_development],
-              ["Significado do Trabalho", cd.meaning_work],
-              ["Compromisso", cd.commitment],
-              ["Previsibilidade", cd.predictability],
-              ["Suporte Social", cd.social_support],
+              ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace],
+              ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands],
+              ["Influência no Trabalho", cd.influence], ["Desenvolvimento", cd.possibilities_development],
+              ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment],
+              ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support],
             ] as [string, number][]).map(([dim, val]) =>
               new TableRow({ children: [textCell(dim, false, 40), textCell(String(val), true, 20), shadedCell(classifyPsyRisk(val), riskColor(val), true, 40)] })
             ),
           ],
-        });
-        children.push(psyTable);
+        }));
       }
     });
 
     children.push(heading("4. Recomendações", HeadingLevel.HEADING_2));
-    children.push(heading("Ações para Redução de Riscos", HeadingLevel.HEADING_3));
-    children.push(bulletItem("Treinamentos de Gestão de Estresse: Implementar programas regulares de capacitação sobre técnicas de manejo do estresse, principalmente nos setores com moderado risco emocional."));
-    children.push(bulletItem("Adequação da Carga de Trabalho: Realizar ajustes na carga de trabalho dos setores com alto risco quantitativo."));
-    children.push(heading("Ações de Monitoramento Contínuo", HeadingLevel.HEADING_3));
-    children.push(bulletItem("Avaliações Periódicas: Recomenda-se a realização de novas avaliações semestrais para monitorar as mudanças nos níveis de risco e a efetividade das ações corretivas implementadas."));
-    children.push(bulletItem("Feedback dos Colaboradores: Criar canais contínuos de feedback para que os colaboradores possam relatar qualquer alteração nas condições de trabalho."));
-
-    children.push(heading("5. Conclusão", HeadingLevel.HEADING_2));
-    children.push(body("A análise dos dados do COPSOQ II revelou o perfil de riscos psicossociais da empresa. A implementação das ações recomendadas pode contribuir significativamente para a redução desses riscos, promovendo um ambiente de trabalho mais saudável e produtivo."));
+    children.push(bulletItem("Treinamentos de Gestão de Estresse: capacitação sobre técnicas de manejo do estresse."));
+    children.push(bulletItem("Adequação da Carga de Trabalho: ajustes na carga nos setores com alto risco."));
+    children.push(bulletItem("Avaliações Periódicas semestrais para monitorar mudanças nos níveis de risco."));
     children.push(pageBreak());
   }
 
-  // ===== ANEXO: PLANO DE AÇÃO =====
-  children.push(heading("PLANO DE AÇÃO – MELHORIAS ERGONÔMICAS"));
+  // Action plan annex
+  children.push(heading("PLANO DE AÇÃO — MELHORIAS ERGONÔMICAS"));
   if (actions.length > 0) {
-    const actionTable = new Table({
+    children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
-        new TableRow({ children: [headerCell("MELHORIAS / PROPOSTAS", 30), headerCell("DETALHAMENTO DA AÇÃO", 40), headerCell("PRAZO", 15), headerCell("PRIORIDADE", 15)] }),
-        ...actions.map(ap => {
-          const priority = ap.status === "completed" ? "Concluída" : ap.deadline ? "Alta" : "Média";
-          return new TableRow({
-            children: [
-              textCell(ap.description, true, 30),
-              textCell(ap.description, false, 40),
-              textCell(ap.deadline, false, 15),
-              textCell(priority, true, 15),
-            ],
-          });
-        }),
+        new TableRow({ children: [headerCell("MELHORIA", 30), headerCell("DETALHAMENTO", 40), headerCell("PRAZO", 15), headerCell("PRIORIDADE", 15)] }),
+        ...actions.map(ap => new TableRow({
+          children: [textCell(ap.description, true, 30), textCell(ap.description, false, 40), textCell(ap.deadline, false, 15), textCell(ap.status === "completed" ? "Concluída" : "Alta", true, 15)],
+        })),
       ],
-    });
-    children.push(actionTable);
+    }));
   } else {
-    // Default action plan items
-    const defaultActions = [
-      ["Implantação formal de micropausas ergonômicas", "Realizar uma pausa de 10 minutos por período de trabalho para mudança postural, alongamentos leves e descanso visual.", "Imediato", "Altíssima"],
-      ["Treinamento ergonômico específico (NR-17)", "Orientar sobre postura, ajuste do posto, uso correto de suportes e prevenção de LER/DORT.", "60 dias", "Média"],
-      ["Adequação de mobiliário e equipamentos", "Verificar e ajustar alturas de bancadas, cadeiras e monitores conforme NR-17.", "60 dias", "Alta"],
+    const defActions = [
+      ["Micropausas ergonômicas", "Pausa de 10 min para mudança postural e alongamentos.", "Imediato", "Altíssima"],
+      ["Treinamento NR-17", "Orientar sobre postura e prevenção de LER/DORT.", "60 dias", "Média"],
+      ["Adequação de mobiliário", "Verificar e ajustar alturas conforme NR-17.", "60 dias", "Alta"],
     ];
-    const defTable = new Table({
+    children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
-        new TableRow({ children: [headerCell("MELHORIAS / PROPOSTAS", 25), headerCell("DETALHAMENTO DA AÇÃO", 40), headerCell("PRAZO", 15), headerCell("PRIORIDADE", 20)] }),
-        ...defaultActions.map(([title, detail, prazo, prio]) =>
-          new TableRow({ children: [textCell(title, true, 25), textCell(detail, false, 40), textCell(prazo, false, 15), textCell(prio, true, 20)] })
-        ),
+        new TableRow({ children: [headerCell("MELHORIA", 25), headerCell("DETALHAMENTO", 40), headerCell("PRAZO", 15), headerCell("PRIORIDADE", 20)] }),
+        ...defActions.map(([t, d, p, pr]) => new TableRow({ children: [textCell(t, true, 25), textCell(d, false, 40), textCell(p, false, 15), textCell(pr, true, 20)] })),
       ],
-    });
-    children.push(defTable);
+    }));
   }
 
-  // Psychosocial action plan
-  children.push(new Paragraph({ spacing: { after: 300 } }));
-  children.push(heading("PLANO DE AÇÃO – FATORES DE RISCOS PSICOSSOCIAIS", HeadingLevel.HEADING_2));
-  const psyActionTable = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: [
-      new TableRow({ children: [headerCell("AÇÃO", 30), headerCell("DETALHAMENTO", 40), headerCell("PRAZO", 15), headerCell("PRIORIDADE", 15)] }),
-      new TableRow({ children: [
-        textCell("Treinamentos de Gestão de Estresse", true, 30),
-        textCell("Implementar programas de capacitação regulares sobre técnicas de manejo do estresse, meditação e relaxamento.", false, 40),
-        textCell("60 dias", false, 15),
-        textCell("Média", true, 15),
-      ] }),
-      new TableRow({ children: [
-        textCell("Adequação da Carga de Trabalho", true, 30),
-        textCell("Reorganizar as tarefas e ajustar prazos, com foco na redução do volume excessivo de trabalho e na melhoria da qualidade do ambiente laboral.", false, 40),
-        textCell("45 dias", false, 15),
-        textCell("Alta", true, 15),
-      ] }),
-    ],
-  });
-  children.push(psyActionTable);
+  children.push(...signatureBlock(consultant));
 
-  children.push(new Paragraph({ spacing: { before: 600 } }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: "Documento gerado pelo sistema Spartan — MG Consultoria", size: 18, font: "Calibri", color: COLORS.light, italics: true })],
-    alignment: AlignmentType.CENTER,
-  }));
-
-  return new Document({
-    creator: "Spartan - MG Consultoria",
-    title: `AET - ${company.name}`,
-    description: "Análise Ergonômica do Trabalho",
-    sections: [{
-      properties: {
-        page: {
-          margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(0.8), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) },
-        },
-      },
-      headers: { default: createProfessionalHeader("AET", company.name) },
-      footers: { default: createProfessionalFooter() },
-      children,
-    }],
-  });
+  return createDocumentShell("Análise Ergonômica do Trabalho", company.name, "AET", children);
 }
 
 // ========== PGR REPORT ==========
@@ -1658,15 +1293,14 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
 
   // Sumário
   children.push(heading("SUMÁRIO"));
-  const sumarioItems = [
+  [
     "Definições e Abreviaturas", "Referências", "Identificação da Empresa",
     "Responsabilidade Técnica", "Aprovação, Distribuição e Implementação", "Introdução",
     "Objetivos", "Campo de Aplicação", "Metodologia Utilizada", "Inventário de Risco",
     "Implementação das Medidas de Prevenção", "EPC — Equipamento de Proteção Coletiva",
     "EPI — Equipamento de Proteção Individual", "Responsabilidades", "Meta e Objetivos",
     "Referências Bibliográficas",
-  ];
-  sumarioItems.forEach((item, i) => children.push(body(`${i + 1}. ${item}`)));
+  ].forEach((item, i) => children.push(body(`${i + 1}. ${item}`)));
   children.push(pageBreak());
 
   // Controle de Revisões
@@ -1699,7 +1333,7 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
       new TableRow({ children: [headerCell("Termo", 30), headerCell("Definição", 70)] }),
-      ...defs.map(([term, def]) => new TableRow({ children: [textCell(term, true, 30), textCell(def, false, 70)] })),
+      ...defs.map(([term, def], i) => new TableRow({ children: [altCell(term, i % 2 === 0, true, 30), altCell(def, i % 2 === 0, false, 70)] })),
     ],
   }));
 
@@ -1713,52 +1347,50 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
     "NR 23 — Proteção contra Incêndios", "NR 26 — Sinalização de Segurança",
   ].forEach(ref => children.push(bulletItem(ref)));
 
-  // 3. Identificação da Empresa
+  // 3. Identificação
   children.push(heading("3. IDENTIFICAÇÃO DA EMPRESA"));
   children.push(createInfoTable(company, sectors.map(s => s.name).join(", "), workstations.map(w => w.name).join(", ")));
 
-  // 4. Responsabilidade Técnica
+  // 4. Responsabilidade
   children.push(heading("4. RESPONSABILIDADE TÉCNICA"));
   children.push(body("Profissional legalmente habilitado e responsável pela elaboração deste programa."));
   children.push(new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
-      new TableRow({ children: [headerCell("Campo", 35), headerCell("Informação", 65)] }),
-      new TableRow({ children: [textCell("Responsável Técnico", true, 35), textCell(consultant, false, 65)] }),
-      new TableRow({ children: [textCell("Título Profissional", true, 35), textCell("Engenheiro de Segurança do Trabalho", false, 65)] }),
-      new TableRow({ children: [textCell("Registro", true, 35), textCell("CREA/CONFEA: XXXXX", false, 65)] }),
-      new TableRow({ children: [textCell("Período de Avaliação", true, 35), textCell(today, false, 65)] }),
+      new TableRow({ children: [headerCell2("Campo", 35), headerCell2("Informação", 65)] }),
+      new TableRow({ children: [labelCell("Responsável Técnico", 35), textCell(consultant, false, 65)] }),
+      new TableRow({ children: [labelCell("Título", 35), textCell("Engenheiro de Segurança do Trabalho", false, 65)] }),
+      new TableRow({ children: [labelCell("Registro", 35), textCell("CREA/CONFEA: XXXXX", false, 65)] }),
+      new TableRow({ children: [labelCell("Período", 35), textCell(today, false, 65)] }),
     ],
   }));
 
-  // 5. Aprovação
+  // 5-8 
   children.push(heading("5. APROVAÇÃO, DISTRIBUIÇÃO E IMPLEMENTAÇÃO"));
-  children.push(body("Ao aprovar o Programa de Gerenciamento de Riscos, a empresa compromete-se a cumprir rigorosamente o que nele consta, sua efetiva implementação, bem como zelar pela sua eficácia."));
+  children.push(body("Ao aprovar o Programa de Gerenciamento de Riscos, a empresa compromete-se a cumprir rigorosamente o que nele consta."));
 
-  // 6. Introdução
   children.push(heading("6. INTRODUÇÃO"));
-  children.push(body("A elaboração deste Programa de Gerenciamento de Riscos tem como propósito um estudo das condições ambientais atuais existentes nesta empresa, a fim de identificar os agentes de riscos e caracterizar as atividades e operações desenvolvidas. Tal programa está direcionado no reconhecimento e avaliação dos fatores ambientais ou de locais de trabalho que possam causar prejuízos à saúde e ao bem-estar dos colaboradores."));
+  children.push(accentCallout("O PGR tem como objetivo a identificação, avaliação e controle de riscos ocupacionais de forma sistemática e contínua.", "info"));
+  children.push(body("A elaboração deste Programa de Gerenciamento de Riscos tem como propósito um estudo das condições ambientais atuais existentes nesta empresa, a fim de identificar os agentes de riscos e caracterizar as atividades e operações desenvolvidas."));
 
-  // 7. Objetivos
   children.push(heading("7. OBJETIVOS"));
   children.push(heading("7.1 Objetivo Geral", HeadingLevel.HEADING_3));
-  children.push(body("Preservar a saúde e a integridade dos trabalhadores através da antecipação, reconhecimento, avaliação e consequente controle da ocorrência de riscos ambientais existentes ou que venham a existir nos locais de trabalho."));
+  children.push(body("Preservar a saúde e a integridade dos trabalhadores através da antecipação, reconhecimento, avaliação e consequente controle dos riscos ambientais."));
   children.push(heading("7.2 Objetivos Específicos", HeadingLevel.HEADING_3));
-  ["Seguir a política da empresa relacionada à saúde e segurança dos colaboradores",
+  ["Seguir a política da empresa relacionada à saúde e segurança",
    "Proteção do meio ambiente e dos recursos naturais",
-   "Tratar os riscos ambientais existentes ou que venham a existir",
-   "Planejar ações para preservar a saúde e a segurança dos trabalhadores",
+   "Tratar os riscos ambientais existentes",
+   "Planejar ações para preservar a saúde dos trabalhadores",
   ].forEach(item => children.push(bulletItem(item)));
   children.push(heading("7.3 Antecipação", HeadingLevel.HEADING_3));
-  children.push(body("Consiste na análise dos setores de trabalho, funções e horários de trabalho, formação dos GHEs, visando identificar riscos potenciais e introduzir medidas de proteção."));
+  children.push(body("Análise dos setores, funções e horários para identificar riscos potenciais e introduzir medidas de proteção."));
   children.push(heading("7.4 Reconhecimento", HeadingLevel.HEADING_3));
   children.push(body("Trabalho de campo para identificar atividades, tarefas, fontes e tipos de riscos ambientais."));
   children.push(heading("7.5 Controle", HeadingLevel.HEADING_3));
-  children.push(body("Adotar medidas de controle administrativas, de engenharia, EPCs e EPIs para eliminar, neutralizar ou reduzir a exposição."));
+  children.push(body("Adotar medidas de controle administrativas, de engenharia, EPCs e EPIs."));
   children.push(heading("7.6 Monitoramento", HeadingLevel.HEADING_3));
   children.push(body("Mensurar a exposição ou inexistência dos riscos e acompanhar eficácia das medidas de controle."));
 
-  // 8. Campo de Aplicação
   children.push(heading("8. CAMPO DE APLICAÇÃO"));
   children.push(body("Este programa é aplicado a toda organização. A avaliação de riscos deve ser revista a cada dois anos ou quando da ocorrência de mudanças significativas."));
 
@@ -1767,46 +1399,47 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
   children.push(heading("9.1 Análise Qualitativa", HeadingLevel.HEADING_3));
   children.push(body("Análise preliminar dos riscos ambientais envolvendo instalações, métodos e processos de trabalho."));
   children.push(heading("9.2 Análise Quantitativa", HeadingLevel.HEADING_3));
-  children.push(body("Monitoramento ambiental que mensura a exposição dos trabalhadores utilizando dosimetria de ruído (NHO 01), medição de luminosidade (NHO 11) e medição de calor/IBUTG (NHO 06)."));
+  children.push(body("Monitoramento ambiental que mensura a exposição dos trabalhadores utilizando dosimetria de ruído, medição de luminosidade e calor/IBUTG."));
+
   children.push(heading("9.3 Probabilidade (P)", HeadingLevel.HEADING_3));
   children.push(new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
       new TableRow({ children: [headerCell("Índice", 15), headerCell("Exposição", 45), headerCell("Fator de Proteção", 40)] }),
-      new TableRow({ children: [textCell("1 — Baixo", true, 15), textCell("Contato baixo ou eventual", false, 45), textCell("Medidas adequadas e com manutenção", false, 40)] }),
-      new TableRow({ children: [textCell("2 — Moderado", true, 15), textCell("Contato moderado ou intermitente", false, 45), textCell("Medidas adequadas mas sem garantia de manutenção", false, 40)] }),
-      new TableRow({ children: [textCell("3 — Alto", true, 15), textCell("Contato alto ou permanente", false, 45), textCell("Medidas com desvios significativos", false, 40)] }),
-      new TableRow({ children: [textCell("4 — Excessivo", true, 15), textCell("Exposição excessiva ou permanente a intensidade elevada", false, 45), textCell("Medidas inexistentes ou inadequadas", false, 40)] }),
+      new TableRow({ children: [shadedCell("1 — Baixo", COLORS.greenBg, true, 15), textCell("Contato baixo ou eventual", false, 45), textCell("Medidas adequadas e com manutenção", false, 40)] }),
+      new TableRow({ children: [shadedCell("2 — Moderado", COLORS.yellowBg, true, 15), textCell("Contato moderado ou intermitente", false, 45), textCell("Medidas sem garantia de manutenção", false, 40)] }),
+      new TableRow({ children: [shadedCell("3 — Alto", COLORS.orangeBg, true, 15), textCell("Contato alto ou permanente", false, 45), textCell("Desvios significativos", false, 40)] }),
+      new TableRow({ children: [shadedCell("4 — Excessivo", COLORS.redBg, true, 15), textCell("Exposição excessiva ou permanente", false, 45), textCell("Medidas inexistentes", false, 40)] }),
     ],
   }));
+
   children.push(heading("9.4 Gravidade (G)", HeadingLevel.HEADING_3));
   children.push(new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
       new TableRow({ children: [headerCell("Índice", 15), headerCell("Critério", 40), headerCell("Pessoas Expostas", 20)] }),
-      new TableRow({ children: [textCell("1 — Baixo", true, 15), textCell("Lesão leve, efeitos reversíveis", false, 40), textCell("Até 10%", false, 20)] }),
-      new TableRow({ children: [textCell("2 — Moderado", true, 15), textCell("Lesão séria, efeitos reversíveis severos", false, 40), textCell("10% a 30%", false, 20)] }),
-      new TableRow({ children: [textCell("3 — Alto", true, 15), textCell("Lesão crítica, efeitos irreversíveis", false, 40), textCell("30% a 60%", false, 20)] }),
-      new TableRow({ children: [textCell("4 — Excessivo", true, 15), textCell("Lesão incapacitante ou fatal", false, 40), textCell("Acima de 60%", false, 20)] }),
+      new TableRow({ children: [shadedCell("1 — Baixo", COLORS.greenBg, true, 15), textCell("Lesão leve, efeitos reversíveis", false, 40), textCell("Até 10%", false, 20)] }),
+      new TableRow({ children: [shadedCell("2 — Moderado", COLORS.yellowBg, true, 15), textCell("Lesão séria, efeitos reversíveis severos", false, 40), textCell("10% a 30%", false, 20)] }),
+      new TableRow({ children: [shadedCell("3 — Alto", COLORS.orangeBg, true, 15), textCell("Lesão crítica, efeitos irreversíveis", false, 40), textCell("30% a 60%", false, 20)] }),
+      new TableRow({ children: [shadedCell("4 — Excessivo", COLORS.redBg, true, 15), textCell("Lesão incapacitante ou fatal", false, 40), textCell("Acima de 60%", false, 20)] }),
     ],
   }));
+
   children.push(heading("9.5 Nível de Risco e Priorização", HeadingLevel.HEADING_3));
   children.push(new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
       new TableRow({ children: [headerCell("Nível", 20), headerCell("Ação Requerida", 50), headerCell("Prazo", 30)] }),
-      new TableRow({ children: [textCell("Crítico", true, 20), textCell("Ações corretivas imediatas", false, 50), textCell("Implementação imediata", false, 30)] }),
-      new TableRow({ children: [textCell("Alto", true, 20), textCell("Planejamento a curto prazo", false, 50), textCell("Máximo 3 meses", false, 30)] }),
-      new TableRow({ children: [textCell("Médio", true, 20), textCell("Planejamento a médio/longo prazo", false, 50), textCell("Máximo 6 meses", false, 30)] }),
-      new TableRow({ children: [textCell("Baixo", true, 20), textCell("Manter controle existente", false, 50), textCell("Máximo 1 ano", false, 30)] }),
+      new TableRow({ children: [statusCell("Crítico", "red", 20), textCell("Ações corretivas imediatas", false, 50), textCell("Implementação imediata", false, 30)] }),
+      new TableRow({ children: [statusCell("Alto", "orange", 20), textCell("Planejamento a curto prazo", false, 50), textCell("Máximo 3 meses", false, 30)] }),
+      new TableRow({ children: [statusCell("Médio", "yellow", 20), textCell("Planejamento a médio/longo prazo", false, 50), textCell("Máximo 6 meses", false, 30)] }),
+      new TableRow({ children: [statusCell("Baixo", "green", 20), textCell("Manter controle existente", false, 50), textCell("Máximo 1 ano", false, 30)] }),
     ],
   }));
   children.push(pageBreak());
 
   // 10. Inventário de Risco por GHE/Setor
   children.push(heading("10. INVENTÁRIO DE RISCO"));
-
-  // Group by sector
   const sectorMap = new Map<string, { sectorName: string; sectorWs: typeof workstations }>();
   workstations.forEach(ws => {
     const sId = (ws as any).sector_id || "unknown";
@@ -1818,35 +1451,27 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
   let gheIndex = 0;
   sectorMap.forEach(({ sectorName, sectorWs }) => {
     gheIndex++;
-    children.push(heading(`GHE ${String(gheIndex).padStart(2, '0')} / SETOR — ${sectorName.toUpperCase()}`, HeadingLevel.HEADING_2));
-    children.push(body(`Caracterização dos processos: ${sectorWs.map(w => w.activity_description || w.description).join(". ")}.`));
+    children.push(sectionBanner(`GHE ${String(gheIndex).padStart(2, '0')} — ${sectorName.toUpperCase()}`, COLORS.headerBg2));
+    children.push(body(`Caracterização: ${sectorWs.map(w => w.activity_description || w.description).join(". ")}.`));
 
-    // Activities table
-    children.push(heading("Descrição das Atividades Exercidas", HeadingLevel.HEADING_3));
-    const actRows = sectorWs.map(ws => {
-      const wsTasks = allTasks.filter(t => t.workstation_id === ws.id);
-      return new TableRow({
-        children: [
-          textCell(ws.name, true, 30),
-          textCell(wsTasks.map(t => t.description).join("; ") || ws.tasks_performed, false, 70),
-        ],
-      });
-    });
+    children.push(heading("Descrição das Atividades", HeadingLevel.HEADING_3));
     children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
-        new TableRow({ children: [headerCell("Posto/Função", 30), headerCell("Descrição das Atividades", 70)] }),
-        ...actRows,
+        new TableRow({ children: [headerCell3("Posto/Função", 30), headerCell3("Atividades", 70)] }),
+        ...sectorWs.map(ws => {
+          const wsTasks = allTasks.filter(t => t.workstation_id === ws.id);
+          return new TableRow({ children: [textCell(ws.name, true, 30), textCell(wsTasks.map(t => t.description).join("; ") || ws.tasks_performed, false, 70)] });
+        }),
       ],
     }));
 
-    // Risk inventory for this sector
     const sectorRisks = risks.filter(r => {
       const a = analyses.find(an => an.id === r.analysis_id);
       return a && sectorWs.some(w => w.id === a.workstation_id);
     });
 
-    children.push(heading("Inventário de Riscos Ocupacionais", HeadingLevel.HEADING_3));
+    children.push(heading("Inventário de Riscos", HeadingLevel.HEADING_3));
     if (sectorRisks.length > 0) {
       children.push(new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
@@ -1859,113 +1484,438 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
             const gL = r.consequence <= 1 ? "B" : r.consequence <= 2 ? "M" : r.consequence <= 3 ? "A" : "E";
             const ctrl = mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I.";
             return new TableRow({
-              children: [
-                textCell(r.description, false, 25), textCell(ws?.name || "—", false, 20),
-                textCell(ws?.activity_description || "—", false, 20),
-                textCell(pL, false, 8), textCell(gL, false, 8),
-                textCell(riskLevelLabel(r.risk_level).charAt(0), false, 8), textCell(ctrl, false, 16),
-              ],
+              children: [textCell(r.description, false, 25), textCell(ws?.name || "—", false, 20), textCell(ws?.activity_description || "—", false, 20), textCell(pL, false, 8), textCell(gL, false, 8), textCell(riskLevelLabel(r.risk_level).charAt(0), false, 8), textCell(ctrl, false, 16)],
             });
           }),
         ],
       }));
     } else {
-      children.push(body("Nenhum risco identificado para este setor."));
+      children.push(accentCallout("Nenhum risco identificado para este setor.", "success"));
     }
-    children.push(body("Recomendação: Realizar Análise Ergonômica do Trabalho (AET).", { bold: true }));
+    children.push(accentCallout("Recomendação: Realizar Análise Ergonômica do Trabalho (AET).", "warning"));
   });
-
   children.push(pageBreak());
 
-  // 11. Implementação
+  // 11-16
   children.push(heading("11. IMPLEMENTAÇÃO DAS MEDIDAS DE PREVENÇÃO"));
-  children.push(body("A implementação das medidas de prevenção e respectivos ajustes são registrados no PLANO DE AÇÃO, com a indicação clara do que deve ser realizado, responsabilidades e prazos."));
+  children.push(body("A implementação das medidas de prevenção e respectivos ajustes são registrados no PLANO DE AÇÃO."));
   children.push(heading("11.1 Plano de Ação", HeadingLevel.HEADING_3));
   children.push(body("O Ciclo PDCA (Plan, Do, Check, Act) é utilizado para acompanhamento das ações."));
-
   if (actions.length > 0) {
     children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
         new TableRow({ children: [headerCell("Ação", 30), headerCell("Estratégia", 25), headerCell("Responsável", 15), headerCell("Prazo", 15), headerCell("Status", 15)] }),
         ...actions.map(ap => new TableRow({
-          children: [
-            textCell(ap.description, false, 30), textCell("Implementar medidas conforme PGR", false, 25),
-            textCell(ap.responsible, false, 15), textCell(ap.deadline, false, 15), textCell(statusLabel(ap.status), false, 15),
-          ],
+          children: [textCell(ap.description, false, 30), textCell("Implementar conforme PGR", false, 25), textCell(ap.responsible, false, 15), textCell(ap.deadline, false, 15), textCell(statusLabel(ap.status), false, 15)],
         })),
       ],
     }));
   }
 
-  // 12. EPC
   children.push(heading("12. EPC — EQUIPAMENTO DE PROTEÇÃO COLETIVA"));
-  children.push(body("O estudo, desenvolvimento e implantação de medidas de proteção coletiva deverá obedecer à hierarquia: eliminação na fonte, prevenção de disseminação, redução de níveis."));
+  children.push(body("O estudo e implantação de medidas de proteção coletiva deverá obedecer à hierarquia: eliminação na fonte, prevenção de disseminação, redução de níveis."));
 
-  // 13. EPI
   children.push(heading("13. EPI — EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL"));
   children.push(body("O EPI é todo dispositivo de uso individual destinado à proteção de riscos suscetíveis de ameaçar a segurança e a saúde no trabalho."));
-  ["Adquirir o EPI adequado ao risco", "Exigir seu uso", "Orientar e treinar sobre uso, guarda e conservação",
-   "Substituir imediatamente quando danificado", "Registrar o fornecimento ao trabalhador"
-  ].forEach(item => children.push(bulletItem(`Cabe ao empregador: ${item}`)));
+  ["Adquirir o EPI adequado ao risco", "Exigir seu uso", "Orientar e treinar sobre uso, guarda e conservação", "Substituir imediatamente quando danificado", "Registrar o fornecimento ao trabalhador"].forEach(item => children.push(bulletItem(`Cabe ao empregador: ${item}`)));
 
-  // 14. Responsabilidades
   children.push(heading("14. RESPONSABILIDADES"));
-  children.push(heading("Responsabilidades do Empregador", HeadingLevel.HEADING_3));
-  ["Estabelecer e assegurar o cumprimento do PGR", "Informar trabalhadores sobre riscos ambientais",
-   "Garantir interrupção de atividades em risco grave", "Incentivar participação dos trabalhadores no PGR"
-  ].forEach(item => children.push(bulletItem(item)));
-  children.push(heading("Responsabilidades do SESMT", HeadingLevel.HEADING_3));
-  ["Executar, coordenar e monitorar as etapas do programa", "Programar e aplicar treinamentos",
-   "Manter arquivado por 20 anos os relatórios"
-  ].forEach(item => children.push(bulletItem(item)));
+  children.push(heading("Do Empregador", HeadingLevel.HEADING_3));
+  ["Estabelecer e assegurar o cumprimento do PGR", "Informar trabalhadores sobre riscos", "Garantir interrupção de atividades em risco grave"].forEach(item => children.push(bulletItem(item)));
+  children.push(heading("Do SESMT", HeadingLevel.HEADING_3));
+  ["Executar, coordenar e monitorar as etapas", "Programar e aplicar treinamentos", "Manter arquivado por 20 anos os relatórios"].forEach(item => children.push(bulletItem(item)));
 
-  // 15. Meta e Objetivos
   children.push(heading("15. META E OBJETIVOS"));
-  ["Reduzir em 20% os riscos Alto/Crítico", "Garantir treinamento a 100% dos trabalhadores expostos",
-   "Implementar ações do Plano dentro dos prazos"
-  ].forEach(item => children.push(bulletItem(item)));
+  ["Reduzir em 20% os riscos Alto/Crítico", "Garantir treinamento a 100% dos trabalhadores expostos", "Implementar ações do Plano dentro dos prazos"].forEach(item => children.push(bulletItem(item)));
 
-  // 16. Referências
   children.push(heading("16. REFERÊNCIAS BIBLIOGRÁFICAS"));
-  ["Normas Regulamentadoras — Ministério do Trabalho e Emprego",
-   "ABNT NBR ISO 31000:2009 — Gestão de Riscos", "BS 8800:1996 — Guide to OHS Management Systems",
-   "MULHAUSEN & DAMIANO (1998) — Strategy for Assessing Occupational Exposures",
-   "FUNDACENTRO — NHO 01, NHO 06, NHO 11",
+  ["Normas Regulamentadoras — Ministério do Trabalho", "ABNT NBR ISO 31000:2009 — Gestão de Riscos", "BS 8800:1996 — OHS Management Systems", "FUNDACENTRO — NHO 01, NHO 06, NHO 11"].forEach(item => children.push(bulletItem(item)));
+
+  children.push(...signatureBlock(consultant));
+
+  return createDocumentShell("Programa de Gerenciamento de Riscos", company.name, "PGR", children);
+}
+
+// ========== APR REPORT — Avaliação Preliminar de Riscos Psicossociais ==========
+function generateAPRDocx(ctx: DocxReportContext): Document {
+  const { company, workstations, sectors, analyses } = ctx;
+  const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
+  const psychosocial = mockPsychosocialAnalyses.filter(p => p.company_id === company.id);
+
+  const children: any[] = [];
+
+  // Cover
+  children.push(...createCoverPage("AVALIAÇÃO PRELIMINAR DE RISCOS PSICOSSOCIAIS", "APR — FRPRT", company, consultant));
+
+  // Sumário
+  children.push(heading("SUMÁRIO"));
+  ["Objetivo", "Metodologia", "Amostra", "Práticas Preventivas da Organização", "Resultado da Avaliação", "Recomendações", "Considerações Finais"].forEach((item, i) => children.push(body(`${i + 1}. ${item}`)));
+  children.push(pageBreak());
+
+  // Revision
+  children.push(...createRevisionTable());
+  children.push(pageBreak());
+
+  // 1. Objetivo
+  children.push(heading("1. OBJETIVO"));
+  children.push(accentCallout("A avaliação dos fatores de risco psicossociais é fundamental para a promoção da saúde mental no trabalho e cumprimento da NR-01.", "info"));
+  children.push(body("O presente relatório tem por objetivo apresentar os resultados da Avaliação Preliminar de Fatores de Risco Psicossociais Relacionados ao Trabalho (FRPRT), conforme estabelecido pela Norma Regulamentadora NR-01, que determina que as organizações devem identificar e gerenciar os riscos ocupacionais, incluindo os fatores psicossociais."));
+  children.push(body("A avaliação busca identificar, de forma sistematizada, os principais fatores psicossociais que podem impactar a saúde mental e o bem-estar dos trabalhadores, subsidiando a elaboração de planos de ação preventivos e corretivos."));
+
+  // Company ID
+  children.push(heading("IDENTIFICAÇÃO DA EMPRESA", HeadingLevel.HEADING_2));
+  children.push(createInfoTable(company, sectors.map(s => s.name).join(", "), workstations.map(w => w.name).join(", ")));
+  children.push(pageBreak());
+
+  // 2. Metodologia
+  children.push(heading("2. METODOLOGIA"));
+  children.push(body("A metodologia utilizada para a avaliação preliminar dos riscos psicossociais é baseada no instrumento COPSOQ II (Copenhagen Psychosocial Questionnaire), reconhecido internacionalmente como ferramenta de referência para avaliação de fatores psicossociais no trabalho."));
+  children.push(body("O questionário contempla dimensões como demandas quantitativas, cognitivas e emocionais, influência no trabalho, possibilidades de desenvolvimento, significado do trabalho, compromisso, previsibilidade e suporte social."));
+
+  children.push(heading("Critérios de Classificação", HeadingLevel.HEADING_3));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Faixa de Score", 30), headerCell("Classificação", 35), headerCell("Ação Requerida", 35)] }),
+      new TableRow({ children: [statusCell("0 a 49", "red", 30), statusCell("ALTO RISCO", "red", 35), textCell("Intervenção imediata, ações corretivas urgentes", false, 35)] }),
+      new TableRow({ children: [statusCell("50 a 74", "yellow", 30), statusCell("RISCO MODERADO", "yellow", 35), textCell("Monitoramento e ações preventivas", false, 35)] }),
+      new TableRow({ children: [statusCell("75 a 100", "green", 30), statusCell("BAIXO RISCO", "green", 35), textCell("Manter práticas existentes", false, 35)] }),
+    ],
+  }));
+
+  // 3. Amostra
+  children.push(heading("3. AMOSTRA"));
+  children.push(body(`A avaliação abrangeu ${workstations.length} postos de trabalho distribuídos em ${sectors.length} setores da empresa ${company.name}.`));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell2("Dados da Amostra", 40), headerCell2("Quantidade", 60)] }),
+      new TableRow({ children: [labelCell("Setores avaliados", 40), textCell(String(sectors.length), false, 60)] }),
+      new TableRow({ children: [labelCell("Postos de trabalho", 40), textCell(String(workstations.length), false, 60)] }),
+      new TableRow({ children: [labelCell("Avaliações psicossociais", 40), textCell(String(psychosocial.length), false, 60)] }),
+      new TableRow({ children: [labelCell("Período de avaliação", 40), textCell(getTodayFull(), false, 60)] }),
+    ],
+  }));
+
+  // 4. Práticas preventivas
+  children.push(heading("4. PRÁTICAS PREVENTIVAS DA ORGANIZAÇÃO"));
+  children.push(body("Foram identificadas as seguintes práticas preventivas já adotadas pela organização:"));
+  ["Pausas para descanso durante a jornada de trabalho", "Comunicação interna sobre saúde e segurança", "Treinamentos periódicos sobre segurança do trabalho", "Disponibilidade de EPIs adequados", "Acompanhamento médico ocupacional (PCMSO)"].forEach(p => children.push(bulletItem(p)));
+  children.push(pageBreak());
+
+  // 5. Resultados
+  children.push(heading("5. RESULTADO DA AVALIAÇÃO"));
+  if (psychosocial.length > 0) {
+    psychosocial.forEach(psa => {
+      if (psa.copenhagen_details) {
+        const cd = psa.copenhagen_details;
+        const classifyPsyRisk = (v: number) => v >= 75 ? "Baixo risco" : v >= 50 ? "Moderado" : "Alto risco";
+        const riskColor = (v: number): "green" | "yellow" | "red" => v >= 75 ? "green" : v >= 50 ? "yellow" : "red";
+
+        children.push(sectionBanner("RESULTADO POR DOMÍNIO — COPSOQ II", COLORS.accent));
+        children.push(new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({ children: [headerCell("Domínio", 35), headerCell("Score", 15), headerCell("Classificação", 25), headerCell("Prioridade", 25)] }),
+            ...([
+              ["Demandas Quantitativas", cd.quantitative_demands],
+              ["Ritmo de Trabalho", cd.work_pace],
+              ["Demandas Cognitivas", cd.cognitive_demands],
+              ["Demandas Emocionais", cd.emotional_demands],
+              ["Influência no Trabalho", cd.influence],
+              ["Possibilidades de Desenvolvimento", cd.possibilities_development],
+              ["Significado do Trabalho", cd.meaning_work],
+              ["Compromisso", cd.commitment],
+              ["Previsibilidade", cd.predictability],
+              ["Suporte Social", cd.social_support],
+            ] as [string, number][]).map(([dim, val]) => {
+              const priority = val < 50 ? "Urgente" : val < 75 ? "Média" : "Baixa";
+              return new TableRow({
+                children: [textCell(dim, false, 35), textCell(String(val), true, 15), statusCell(classifyPsyRisk(val), riskColor(val), 25), textCell(priority, true, 25)],
+              });
+            }),
+          ],
+        }));
+
+        // Score geral
+        children.push(spacer(200));
+        const overallScore = psa.copenhagen_score || Math.round(
+          (cd.quantitative_demands + cd.work_pace + cd.cognitive_demands + cd.emotional_demands +
+          cd.influence + cd.possibilities_development + cd.meaning_work + cd.commitment +
+          cd.predictability + cd.social_support) / 10
+        );
+        const overallLevel = overallScore >= 75 ? "green" : overallScore >= 50 ? "yellow" : "red";
+        children.push(new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              children: [
+                mergedCell("SCORE GERAL DA AVALIAÇÃO", 1, true, COLORS.headerBg),
+                statusCell(String(overallScore), overallLevel, undefined),
+              ],
+            }),
+          ],
+        }));
+      }
+
+      if (psa.nasa_tlx_details) {
+        children.push(sectionBanner("NASA-TLX — CARGA DE TRABALHO", COLORS.headerBg2));
+        children.push(new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({ children: [headerCell2("Dimensão", 50), headerCell2("Score (0-100)", 50)] }),
+            ...([
+              ["Demanda Mental", psa.nasa_tlx_details.mental_demand],
+              ["Demanda Física", psa.nasa_tlx_details.physical_demand],
+              ["Demanda Temporal", psa.nasa_tlx_details.temporal_demand],
+              ["Performance", psa.nasa_tlx_details.performance],
+              ["Esforço", psa.nasa_tlx_details.effort],
+              ["Frustração", psa.nasa_tlx_details.frustration],
+            ] as [string, number][]).map(([dim, val], i) =>
+              new TableRow({ children: [altCell(dim, i % 2 === 0, false, 50), altCell(String(val), i % 2 === 0, true, 50)] })
+            ),
+            new TableRow({ children: [mergedCell("Score Geral", 1, true, COLORS.cellLabel), textCell(String(psa.nasa_tlx_score), true)] }),
+          ],
+        }));
+      }
+
+      children.push(body(`Observações: ${psa.observations}`));
+    });
+  } else {
+    children.push(accentCallout("Nenhuma avaliação psicossocial encontrada. Recomenda-se aplicação urgente dos questionários COPSOQ II e NASA-TLX.", "danger"));
+  }
+  children.push(pageBreak());
+
+  // 6. Recomendações
+  children.push(heading("6. RECOMENDAÇÕES"));
+  children.push(sectionBanner("PLANO DE AÇÃO PARA RISCOS PSICOSSOCIAIS", COLORS.accent));
+  const recTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell3("Ação", 30), headerCell3("Detalhamento", 40), headerCell3("Prazo", 15), headerCell3("Prioridade", 15)] }),
+      new TableRow({ children: [textCell("Gestão de Estresse", true, 30), textCell("Programas de capacitação sobre técnicas de manejo do estresse, meditação e relaxamento.", false, 40), textCell("60 dias", false, 15), statusCell("Média", "yellow", 15)] }),
+      new TableRow({ children: [textCell("Adequação da Carga", true, 30), textCell("Reorganizar tarefas e ajustar prazos nos setores com alto risco quantitativo.", false, 40), textCell("45 dias", false, 15), statusCell("Alta", "orange", 15)] }),
+      new TableRow({ children: [textCell("Canal de Feedback", true, 30), textCell("Criar canais contínuos para relato de alterações nas condições de trabalho.", false, 40), textCell("30 dias", false, 15), statusCell("Alta", "orange", 15)] }),
+      new TableRow({ children: [textCell("Avaliações Periódicas", true, 30), textCell("Realizar novas avaliações semestrais para monitorar mudanças nos níveis de risco.", false, 40), textCell("6 meses", false, 15), statusCell("Média", "yellow", 15)] }),
+      new TableRow({ children: [textCell("Programa de Qualidade de Vida", true, 30), textCell("Implementar atividades de promoção da saúde: ginástica laboral, rodas de conversa.", false, 40), textCell("90 dias", false, 15), statusCell("Média", "yellow", 15)] }),
+    ],
+  });
+  children.push(recTable);
+
+  // 7. Considerações finais
+  children.push(heading("7. CONSIDERAÇÕES FINAIS"));
+  children.push(body("A análise dos dados revelou o perfil de riscos psicossociais da empresa. A implementação das ações recomendadas pode contribuir significativamente para a redução desses riscos, promovendo um ambiente de trabalho mais saudável e produtivo."));
+  children.push(accentCallout("A avaliação dos fatores de risco psicossociais deve ser revisada periodicamente, conforme determina a NR-01, sendo recomendável a realização semestral.", "info"));
+  children.push(body(`${company.city}, ${getTodayFull()}.`));
+
+  children.push(...signatureBlock(consultant));
+
+  return createDocumentShell("Avaliação Preliminar de Riscos Psicossociais", company.name, "APR", children);
+}
+
+// ========== PCMSO REPORT ==========
+function generatePCMSODocx(ctx: DocxReportContext): Document {
+  const { company, workstations, sectors, analyses } = ctx;
+  const consultant = ctx.consultantName || "Médico do Trabalho";
+  const analysisIds = analyses.map(a => a.id);
+  const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
+
+  const children: any[] = [];
+
+  // Cover
+  children.push(...createCoverPage("PROGRAMA DE CONTROLE MÉDICO DE SAÚDE OCUPACIONAL", "PCMSO", company, consultant));
+
+  // Sumário
+  children.push(heading("SUMÁRIO"));
+  [
+    "Definições e Abreviaturas", "Referências", "Identificação da Empresa", "Introdução",
+    "Objetivos", "Aplicação", "Aprovação, Distribuição e Implementação",
+    "Médico Responsável", "Responsabilidades", "Exames Médicos Ocupacionais",
+    "Condutas com Base nos Exames", "Diretrizes do PCMSO", "Desenvolvimento do PCMSO",
+    "Avaliação dos Riscos e Exames Recomendados", "Registro e Manutenção dos Dados",
+    "Relatórios Estatísticos e Gerenciais", "Ações Médicas Preventivas",
+    "Cronograma Anual de Ações", "Primeiros Socorros", "Procedimentos em Acidentes",
+    "Conclusão",
+  ].forEach((item, i) => children.push(body(`${i + 1}. ${item}`)));
+  children.push(pageBreak());
+
+  // Revision
+  children.push(...createRevisionTable());
+  children.push(pageBreak());
+
+  // 1. Definições
+  children.push(heading("1. DEFINIÇÕES E ABREVIATURAS"));
+  const defs: [string, string][] = [
+    ["ASO", "Atestado de Saúde Ocupacional"],
+    ["CA", "Certificado de Aprovação"],
+    ["CBO", "Classificação Brasileira de Ocupações"],
+    ["CLT", "Consolidação das Leis do Trabalho"],
+    ["EPI", "Equipamento de Proteção Individual"],
+    ["GHE", "Grupos Homogêneos de Exposição"],
+    ["NR", "Norma Regulamentadora"],
+    ["PCMSO", "Programa de Controle Médico de Saúde Ocupacional"],
+    ["PGR", "Programa de Gerenciamento de Riscos"],
+    ["SESMT", "Serviços Especializados em Eng. de Segurança e Medicina do Trabalho"],
+  ];
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Termo", 25), headerCell("Definição", 75)] }),
+      ...defs.map(([term, def], i) => new TableRow({ children: [altCell(term, i % 2 === 0, true, 25), altCell(def, i % 2 === 0, false, 75)] })),
+    ],
+  }));
+
+  // 2. Referências
+  children.push(heading("2. REFERÊNCIAS"));
+  ["NR 7 — PCMSO", "NR 1 — Disposições Gerais e GRO", "NR 9 — Agentes Físicos, Químicos e Biológicos",
+   "NR 15 — Atividades e Operações Insalubres", "NR 17 — Ergonomia",
+   "Portaria 6.734/2020 — Nova NR-7", "CLT — Art. 168 e 169",
+  ].forEach(ref => children.push(bulletItem(ref)));
+
+  // 3. Identificação
+  children.push(heading("3. IDENTIFICAÇÃO DA EMPRESA"));
+  children.push(createInfoTable(company, sectors.map(s => s.name).join(", "), workstations.map(w => w.name).join(", ")));
+
+  // 4. Introdução
+  children.push(heading("4. INTRODUÇÃO"));
+  children.push(accentCallout("O PCMSO é um programa de caráter preventivo, rastreamento e diagnóstico precoce dos agravos à saúde relacionados ao trabalho.", "info"));
+  children.push(body("O Programa de Controle Médico de Saúde Ocupacional (PCMSO) tem como finalidade a promoção e preservação da saúde do conjunto dos trabalhadores da empresa. Deve ser planejado e implantado com base nos riscos à saúde dos trabalhadores, especialmente os identificados nas avaliações previstas na NR-1 (PGR)."));
+  children.push(body("O PCMSO deve considerar as questões incidentes sobre o indivíduo e a coletividade de trabalhadores, privilegiando o instrumental clínico-epidemiológico na abordagem da relação entre sua saúde e o trabalho."));
+
+  // 5. Objetivos
+  children.push(heading("5. OBJETIVOS"));
+  children.push(heading("5.1 Objetivo Geral", HeadingLevel.HEADING_3));
+  children.push(body("A promoção e preservação da saúde do conjunto dos trabalhadores, através da prevenção, rastreamento e diagnóstico precoce dos agravos à saúde relacionados ao trabalho, inclusive de natureza subclínica, além de constatação de casos de doenças profissionais ou danos irreversíveis à saúde dos trabalhadores."));
+  children.push(heading("5.2 Objetivos Específicos", HeadingLevel.HEADING_3));
+  ["Definir exames médicos ocupacionais obrigatórios", "Estabelecer critérios para exames complementares conforme riscos",
+   "Monitorar a saúde dos trabalhadores expostos a riscos ocupacionais", "Subsidiar ações de prevenção e promoção da saúde",
+   "Registrar e analisar dados estatísticos de saúde ocupacional",
   ].forEach(item => children.push(bulletItem(item)));
 
-  // Signature
-  children.push(new Paragraph({ spacing: { before: 600 } }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: "_____________________________________________", size: 22, font: "Calibri", color: COLORS.primary })],
-    alignment: AlignmentType.CENTER,
-  }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: consultant, size: 22, font: "Calibri", bold: true, color: COLORS.primary })],
-    alignment: AlignmentType.CENTER,
-  }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: "Engenheiro de Segurança do Trabalho — CREA/CONFEA: XXXXX", size: 20, font: "Calibri", color: COLORS.secondary })],
-    alignment: AlignmentType.CENTER,
-  }));
-  children.push(new Paragraph({ spacing: { before: 200 } }));
-  children.push(new Paragraph({
-    children: [new TextRun({ text: "Documento gerado pelo sistema Spartan — MG Consultoria", size: 18, font: "Calibri", color: COLORS.light, italics: true })],
-    alignment: AlignmentType.CENTER,
+  // 6. Aplicação
+  children.push(heading("6. APLICAÇÃO"));
+  children.push(body(`Este programa aplica-se a todos os trabalhadores da ${company.name}, incluindo empregados, terceiros e estagiários que atuem nas dependências da empresa.`));
+
+  // 7. Aprovação
+  children.push(heading("7. APROVAÇÃO, DISTRIBUIÇÃO E IMPLEMENTAÇÃO"));
+  children.push(body("O PCMSO entra em vigor na data de sua aprovação pelo representante legal da empresa e pelo médico coordenador. Sua distribuição deve contemplar as áreas de Segurança do Trabalho, Recursos Humanos e Gerências operacionais."));
+
+  // 8. Médico responsável
+  children.push(heading("8. MÉDICO RESPONSÁVEL"));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell2("Campo", 35), headerCell2("Informação", 65)] }),
+      new TableRow({ children: [labelCell("Médico Coordenador", 35), textCell(consultant, false, 65)] }),
+      new TableRow({ children: [labelCell("Especialidade", 35), textCell("Medicina do Trabalho", false, 65)] }),
+      new TableRow({ children: [labelCell("CRM", 35), textCell("XXXXX", false, 65)] }),
+      new TableRow({ children: [labelCell("Vigência", 35), textCell(`${getToday()} a ${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString("pt-BR")}`, false, 65)] }),
+    ],
   }));
 
-  return new Document({
-    creator: "Spartan - MG Consultoria",
-    title: `PGR - ${company.name}`,
-    sections: [{
-      properties: {
-        page: { margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(0.8), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) } },
-      },
-      headers: { default: createProfessionalHeader("PGR", company.name) },
-      footers: { default: createProfessionalFooter() },
-      children,
-    }],
-  });
+  // 9. Responsabilidades
+  children.push(heading("9. RESPONSABILIDADES"));
+  children.push(heading("9.1 Do Empregador", HeadingLevel.HEADING_3));
+  ["Garantir a elaboração e efetiva implementação do PCMSO", "Custear todos os procedimentos relacionados ao PCMSO",
+   "Indicar médico do trabalho responsável pelo programa",
+  ].forEach(item => children.push(bulletItem(item)));
+  children.push(heading("9.2 Do SESMT/Administração", HeadingLevel.HEADING_3));
+  ["Coordenar e executar as ações previstas no PCMSO", "Controlar a periodicidade dos exames",
+   "Encaminhar trabalhadores para avaliações médicas",
+  ].forEach(item => children.push(bulletItem(item)));
+  children.push(heading("9.3 Dos Empregados", HeadingLevel.HEADING_3));
+  ["Submeter-se aos exames médicos previstos", "Informar ao médico sobre condições de saúde relevantes",
+   "Cumprir as recomendações médicas",
+  ].forEach(item => children.push(bulletItem(item)));
+  children.push(pageBreak());
+
+  // 10. Exames médicos ocupacionais
+  children.push(heading("10. EXAMES MÉDICOS OCUPACIONAIS"));
+  children.push(sectionBanner("TIPOS DE EXAMES OBRIGATÓRIOS", COLORS.headerBg2));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Tipo de Exame", 30), headerCell("Momento", 35), headerCell("Prazo", 35)] }),
+      new TableRow({ children: [textCell("Admissional", true, 30), textCell("Antes do início das atividades", false, 35), textCell("Antes da admissão", false, 35)] }),
+      new TableRow({ children: [textCell("Periódico", true, 30), textCell("Durante a vigência do contrato", false, 35), textCell("Anual ou semestral conforme risco", false, 35)] }),
+      new TableRow({ children: [textCell("Retorno ao Trabalho", true, 30), textCell("Após afastamento ≥30 dias", false, 35), textCell("No 1º dia de retorno", false, 35)] }),
+      new TableRow({ children: [textCell("Mudança de Risco", true, 30), textCell("Ao mudar de função/setor", false, 35), textCell("Antes da mudança", false, 35)] }),
+      new TableRow({ children: [textCell("Demissional", true, 30), textCell("No desligamento", false, 35), textCell("Até 10 dias antes da data", false, 35)] }),
+    ],
+  }));
+
+  // 14. Avaliação dos riscos e exames
+  children.push(heading("14. AVALIAÇÃO DOS RISCOS E EXAMES RECOMENDADOS"));
+  children.push(body("Com base no inventário de riscos do PGR, os seguintes exames complementares são recomendados por GHE:"));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Risco Ocupacional", 25), headerCell("Exames Complementares", 50), headerCell("Periodicidade", 25)] }),
+      new TableRow({ children: [textCell("Ruído", true, 25), textCell("Audiometria tonal e vocal", false, 50), textCell("Semestral", false, 25)] }),
+      new TableRow({ children: [textCell("Ergonômico", true, 25), textCell("Avaliação clínica osteomuscular", false, 50), textCell("Anual", false, 25)] }),
+      new TableRow({ children: [textCell("Químico", true, 25), textCell("Hemograma, função hepática e renal", false, 50), textCell("Semestral", false, 25)] }),
+      new TableRow({ children: [textCell("Biológico", true, 25), textCell("Hemograma completo, sorologia", false, 50), textCell("Anual", false, 25)] }),
+      new TableRow({ children: [textCell("Calor", true, 25), textCell("Avaliação clínica, eletrólitos séricos", false, 50), textCell("Anual", false, 25)] }),
+    ],
+  }));
+
+  // 17. Ações médicas preventivas
+  children.push(heading("17. AÇÕES MÉDICAS PREVENTIVAS"));
+  children.push(heading("17.1 Vacinação", HeadingLevel.HEADING_3));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell3("Vacina", 30), headerCell3("Esquema", 35), headerCell3("Indicação", 35)] }),
+      new TableRow({ children: [textCell("Hepatite B", true, 30), textCell("3 doses (0, 1 e 6 meses)", false, 35), textCell("Todos os trabalhadores", false, 35)] }),
+      new TableRow({ children: [textCell("Tétano/Difteria (dT)", true, 30), textCell("3 doses + reforço a cada 10 anos", false, 35), textCell("Todos os trabalhadores", false, 35)] }),
+      new TableRow({ children: [textCell("Influenza", true, 30), textCell("Dose anual", false, 35), textCell("Todos os trabalhadores", false, 35)] }),
+      new TableRow({ children: [textCell("COVID-19", true, 30), textCell("Conforme orientação vigente", false, 35), textCell("Todos os trabalhadores", false, 35)] }),
+    ],
+  }));
+
+  // 18. Cronograma
+  children.push(heading("18. CRONOGRAMA ANUAL DE AÇÕES"));
+  const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  children.push(accentCallout("O cronograma deve ser revisado anualmente e ajustado conforme demandas identificadas.", "info"));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Ação", 25), ...months.slice(0, 6).map(m => headerCell(m))] }),
+      new TableRow({ children: [textCell("Exames Periódicos", true, 25), ...["X", "X", "X", "X", "X", "X"].map(v => textCell(v, false))] }),
+      new TableRow({ children: [textCell("Campanha Vacinação", true, 25), ...["", "", "X", "", "", ""].map(v => textCell(v, false))] }),
+      new TableRow({ children: [textCell("SIPAT/Treinamentos", true, 25), ...["", "", "", "", "X", ""].map(v => textCell(v, false))] }),
+      new TableRow({ children: [textCell("Relatório Analítico", true, 25), ...["", "", "", "", "", "X"].map(v => textCell(v, false))] }),
+    ],
+  }));
+
+  // 19. Primeiros socorros
+  children.push(heading("19. CONTEÚDO DA CAIXA DE PRIMEIROS SOCORROS"));
+  ["Compressas de gaze estéril", "Ataduras de crepe", "Esparadrapo", "Luvas descartáveis",
+   "Solução antisséptica (PVPI ou clorexidina)", "Tesoura de ponta romba", "Pinça",
+   "Algodão hidrófilo", "Soro fisiológico", "Termômetro clínico",
+  ].forEach(item => children.push(bulletItem(item)));
+
+  // 20. Procedimentos em acidentes
+  children.push(heading("20. PROCEDIMENTOS EM CASOS DE ACIDENTE"));
+  children.push(heading("20.1 Acidentes Típicos ou de Trajeto", HeadingLevel.HEADING_3));
+  ["Prestar primeiros socorros", "Comunicar imediatamente à chefia e ao SESMT",
+   "Emitir CAT em até 24 horas", "Encaminhar ao atendimento médico",
+  ].forEach(item => children.push(bulletItem(item)));
+  children.push(heading("20.2 Acidentes com Produtos Químicos", HeadingLevel.HEADING_3));
+  ["Remover o trabalhador da área contaminada", "Lavar abundantemente com água corrente",
+   "Consultar a FISPQ do produto", "Encaminhar ao pronto-socorro de referência",
+  ].forEach(item => children.push(bulletItem(item)));
+
+  // 21. Conclusão
+  children.push(heading("21. CONCLUSÃO"));
+  children.push(body("O presente PCMSO foi elaborado com base nos riscos ocupacionais identificados no PGR, contemplando todos os trabalhadores da empresa. Sua efetiva implementação contribuirá para a promoção e preservação da saúde dos colaboradores."));
+  children.push(accentCallout("O PCMSO deve ser revisado anualmente ou sempre que houver alteração nos riscos ocupacionais identificados no PGR.", "info"));
+  children.push(body(`${company.city}, ${getTodayFull()}.`));
+
+  children.push(...signatureBlock(consultant, "Médico do Trabalho"));
+
+  return createDocumentShell("Programa de Controle Médico de Saúde Ocupacional", company.name, "PCMSO", children);
 }
 
 // ========== GENERIC REPORT ==========
@@ -1996,16 +1946,18 @@ function generateGenericDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("3. RISCOS IDENTIFICADOS"));
   if (risks.length > 0) {
-    const riskTable = new Table({
+    children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
         new TableRow({ children: [headerCell("Descrição", 50), headerCell("Score", 25), headerCell("Nível", 25)] }),
-        ...risks.map(r => new TableRow({
-          children: [textCell(r.description, false, 50), textCell(String(r.risk_score), true, 25), textCell(riskLevelLabel(r.risk_level), true, 25)],
-        })),
+        ...risks.map(r => {
+          const levelColor = r.risk_level === "critical" ? "red" : r.risk_level === "high" ? "orange" : r.risk_level === "medium" ? "yellow" : "green";
+          return new TableRow({
+            children: [textCell(r.description, false, 50), textCell(String(r.risk_score), true, 25), statusCell(riskLevelLabel(r.risk_level), levelColor as any, 25)],
+          });
+        }),
       ],
-    });
-    children.push(riskTable);
+    }));
   } else {
     children.push(body("Nenhum risco."));
   }
@@ -2017,18 +1969,9 @@ function generateGenericDocx(ctx: DocxReportContext): Document {
     children.push(body("Sem recomendações."));
   }
 
-  return new Document({
-    creator: "Spartan - MG Consultoria",
-    title,
-    sections: [{
-      properties: {
-        page: { margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(0.8), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) } },
-      },
-      headers: { default: createProfessionalHeader(reportType, company.name) },
-      footers: { default: createProfessionalFooter() },
-      children,
-    }],
-  });
+  children.push(...signatureBlock(consultant));
+
+  return createDocumentShell(reportType, company.name, reportType, children);
 }
 
 // ========== MAIN EXPORT ==========
@@ -2041,6 +1984,12 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
       break;
     case "PGR":
       doc = generatePGRDocx(ctx);
+      break;
+    case "APR":
+      doc = generateAPRDocx(ctx);
+      break;
+    case "PCMSO":
+      doc = generatePCMSODocx(ctx);
       break;
     default:
       doc = generateGenericDocx(ctx);

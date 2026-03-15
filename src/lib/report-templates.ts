@@ -21,7 +21,42 @@ export function generateReportHTML(ctx: ReportContext): string {
   const { reportType } = ctx;
   if (reportType === "AET") return generateAETReport(ctx);
   if (reportType === "PGR") return generatePGRReport(ctx);
+  if (reportType === "APR") return generateAPRReport(ctx);
+  if (reportType === "PCMSO") return generatePCMSOReport(ctx);
   return generateGenericReport(ctx);
+}
+
+function vividStyles() {
+  return `
+    <style>
+      .rpt-cover { text-align:center; padding:60px 40px; background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%); color:white; border-radius:8px; margin-bottom:30px; }
+      .rpt-cover h1 { font-size:32px; margin-bottom:8px; color:white; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+      .rpt-cover h2 { font-size:22px; color:#B2EBF2; margin-bottom:30px; }
+      .rpt-cover .company { font-size:26px; font-weight:bold; color:white; }
+      .rpt-cover .meta { font-size:14px; color:#B2EBF2; }
+      .rpt-section { background: linear-gradient(90deg, #0A1F44, #1565C0); color:white; padding:12px 20px; margin:30px 0 15px 0; border-radius:6px; font-size:18px; font-weight:bold; }
+      .rpt-section2 { background: linear-gradient(90deg, #1565C0, #00838F); color:white; padding:10px 18px; margin:24px 0 12px 0; border-radius:5px; font-size:16px; font-weight:bold; }
+      .rpt-section3 { border-left:5px solid #00BCD4; padding:8px 14px; margin:20px 0 10px 0; font-size:15px; font-weight:bold; color:#0A1F44; background:#E1F5FE; border-radius:0 5px 5px 0; }
+      .rpt-callout { border-left:5px solid #1565C0; background:#E3F2FD; padding:12px 16px; margin:12px 0; border-radius:0 6px 6px 0; font-style:italic; color:#0A1F44; }
+      .rpt-callout.warning { border-left-color:#FF6F00; background:#FFF3E0; }
+      .rpt-callout.success { border-left-color:#43A047; background:#C8E6C9; }
+      .rpt-callout.danger { border-left-color:#D32F2F; background:#FFCDD2; }
+      .rpt-table { width:100%; border-collapse:collapse; margin:12px 0; border-radius:6px; overflow:hidden; }
+      .rpt-table th { background:#0A1F44; color:white; padding:10px 12px; font-size:13px; text-align:left; border:1px solid #0A1F44; }
+      .rpt-table th.alt { background:#1565C0; border-color:#1565C0; }
+      .rpt-table th.teal { background:#00838F; border-color:#00838F; }
+      .rpt-table td { padding:9px 12px; font-size:13px; border:1px solid #B0BEC5; }
+      .rpt-table tr:nth-child(even) td { background:#E3F2FD; }
+      .rpt-table td.label { background:#E1F5FE; font-weight:bold; color:#1565C0; }
+      .rpt-badge { display:inline-block; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:bold; }
+      .rpt-badge.green { background:#C8E6C9; color:#1B5E20; }
+      .rpt-badge.yellow { background:#FFF9C4; color:#F57F17; }
+      .rpt-badge.orange { background:#FFE0B2; color:#E65100; }
+      .rpt-badge.red { background:#FFCDD2; color:#B71C1C; }
+      .rpt-divider { height:4px; background: linear-gradient(90deg, #00BCD4, #1565C0, #0A1F44); margin:20px 0; border-radius:2px; }
+      .rpt-sig { text-align:center; margin-top:50px; padding-top:20px; border-top:2px solid #B0BEC5; }
+    </style>
+  `;
 }
 
 function generateAETReport(ctx: ReportContext): string {
@@ -796,4 +831,194 @@ ${actions.length > 0 ? actions.map(ap => `<p>• ${ap.description} (${ap.respons
 <hr>
 <p style="text-align:center"><em>Documento gerado pelo sistema Spartan — MG Consultoria</em></p>
 `;
+}
+
+function generateAPRReport(ctx: ReportContext): string {
+  const { company, workstations, analyses } = ctx;
+  const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
+  const psychosocial = mockPsychosocialAnalyses.filter(p => p.company_id === company.id);
+  const sectors = [...new Set(workstations.map(w => w.sector?.name || "Geral"))];
+
+  const classifyRisk = (v: number) => v >= 75 ? `<span class="rpt-badge green">Baixo risco</span>` : v >= 50 ? `<span class="rpt-badge yellow">Moderado</span>` : `<span class="rpt-badge red">Alto risco</span>`;
+
+  return `${vividStyles()}
+<div class="rpt-cover">
+  <h1>AVALIAÇÃO PRELIMINAR DE RISCOS PSICOSSOCIAIS</h1>
+  <h2>APR — FRPRT</h2>
+  <p class="company">${company.name}</p>
+  <p class="meta">CNPJ: ${company.cnpj}</p>
+  <p class="meta">${company.address} — ${company.city}/${company.state}</p>
+  <p class="meta" style="margin-top:30px;">Emissão: ${getToday()} | Responsável: ${consultant}</p>
+  <p class="meta" style="font-size:12px; margin-top:15px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
+</div>
+
+<div class="rpt-section">1. OBJETIVO</div>
+<div class="rpt-callout">A avaliação dos fatores de risco psicossociais é fundamental para a promoção da saúde mental no trabalho e cumprimento da NR-01.</div>
+<p>O presente relatório apresenta os resultados da Avaliação Preliminar de Fatores de Risco Psicossociais Relacionados ao Trabalho (FRPRT), conforme NR-01.</p>
+
+<div class="rpt-section">2. METODOLOGIA</div>
+<p>Metodologia baseada no <strong>COPSOQ II</strong> (Copenhagen Psychosocial Questionnaire).</p>
+<table class="rpt-table">
+  <tr><th>Faixa</th><th>Classificação</th><th>Ação</th></tr>
+  <tr><td><span class="rpt-badge red">0 a 49</span></td><td>Alto Risco</td><td>Intervenção imediata</td></tr>
+  <tr><td><span class="rpt-badge yellow">50 a 74</span></td><td>Moderado</td><td>Monitoramento e ações preventivas</td></tr>
+  <tr><td><span class="rpt-badge green">75 a 100</span></td><td>Baixo Risco</td><td>Manter práticas existentes</td></tr>
+</table>
+
+<div class="rpt-section">3. AMOSTRA</div>
+<table class="rpt-table">
+  <tr><td class="label">Setores</td><td>${sectors.join(", ")}</td></tr>
+  <tr><td class="label">Postos de trabalho</td><td>${workstations.length}</td></tr>
+  <tr><td class="label">Avaliações psicossociais</td><td>${psychosocial.length}</td></tr>
+  <tr><td class="label">Período</td><td>${getToday()}</td></tr>
+</table>
+
+<div class="rpt-section">5. RESULTADO DA AVALIAÇÃO</div>
+${psychosocial.length > 0 ? psychosocial.map(psa => {
+  if (!psa.copenhagen_details) return "";
+  const cd = psa.copenhagen_details;
+  return `
+<div class="rpt-section2">COPSOQ II — Resultados por Domínio</div>
+<table class="rpt-table">
+  <tr><th class="teal">Domínio</th><th class="teal">Score</th><th class="teal">Classificação</th></tr>
+  ${([
+    ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace],
+    ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands],
+    ["Influência no Trabalho", cd.influence], ["Desenvolvimento", cd.possibilities_development],
+    ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment],
+    ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support],
+  ] as [string, number][]).map(([dim, val]) => `<tr><td>${dim}</td><td><strong>${val}</strong></td><td>${classifyRisk(val)}</td></tr>`).join("")}
+</table>
+${psa.nasa_tlx_details ? `
+<div class="rpt-section2">NASA-TLX — Carga de Trabalho</div>
+<table class="rpt-table">
+  <tr><th class="alt">Dimensão</th><th class="alt">Score (0-100)</th></tr>
+  <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
+  <tr><td>Demanda Física</td><td>${psa.nasa_tlx_details.physical_demand}</td></tr>
+  <tr><td>Demanda Temporal</td><td>${psa.nasa_tlx_details.temporal_demand}</td></tr>
+  <tr><td>Performance</td><td>${psa.nasa_tlx_details.performance}</td></tr>
+  <tr><td>Esforço</td><td>${psa.nasa_tlx_details.effort}</td></tr>
+  <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
+  <tr><td class="label"><strong>Score Geral</strong></td><td><strong>${psa.nasa_tlx_score}</strong></td></tr>
+</table>` : ""}
+<p><strong>Observações:</strong> ${psa.observations}</p>`;
+}).join("") : `<div class="rpt-callout danger">Nenhuma avaliação psicossocial encontrada. Recomenda-se aplicação urgente dos questionários.</div>`}
+
+<div class="rpt-section">6. RECOMENDAÇÕES</div>
+<table class="rpt-table">
+  <tr><th class="teal">Ação</th><th class="teal">Detalhamento</th><th class="teal">Prazo</th><th class="teal">Prioridade</th></tr>
+  <tr><td><strong>Gestão de Estresse</strong></td><td>Capacitação sobre técnicas de manejo do estresse</td><td>60 dias</td><td><span class="rpt-badge yellow">Média</span></td></tr>
+  <tr><td><strong>Adequação da Carga</strong></td><td>Reorganizar tarefas nos setores com alto risco</td><td>45 dias</td><td><span class="rpt-badge orange">Alta</span></td></tr>
+  <tr><td><strong>Canal de Feedback</strong></td><td>Canais contínuos de relato de condições</td><td>30 dias</td><td><span class="rpt-badge orange">Alta</span></td></tr>
+  <tr><td><strong>Avaliações Periódicas</strong></td><td>Novas avaliações semestrais</td><td>6 meses</td><td><span class="rpt-badge yellow">Média</span></td></tr>
+</table>
+
+<div class="rpt-section">7. CONSIDERAÇÕES FINAIS</div>
+<p>A implementação das ações recomendadas pode contribuir significativamente para a redução dos riscos psicossociais.</p>
+<div class="rpt-callout">A avaliação deve ser revisada periodicamente conforme NR-01.</div>
+<div class="rpt-divider"></div>
+<div class="rpt-sig">
+  <p>_____________________________________________</p>
+  <p><strong>${consultant}</strong></p>
+  <p>Engenheiro de Segurança do Trabalho — CREA/CONFEA: XXXXX</p>
+  <p style="font-size:11px; color:#90A4AE; margin-top:15px;"><em>Documento gerado pelo sistema Spartan — MG Consultoria</em></p>
+</div>`;
+}
+
+function generatePCMSOReport(ctx: ReportContext): string {
+  const { company, workstations } = ctx;
+  const consultant = ctx.consultantName || "Médico do Trabalho";
+  const sectors = [...new Set(workstations.map(w => w.sector?.name || "Geral"))];
+
+  return `${vividStyles()}
+<div class="rpt-cover">
+  <h1>PROGRAMA DE CONTROLE MÉDICO DE SAÚDE OCUPACIONAL</h1>
+  <h2>PCMSO</h2>
+  <p class="company">${company.name}</p>
+  <p class="meta">CNPJ: ${company.cnpj}</p>
+  <p class="meta">${company.address} — ${company.city}/${company.state}</p>
+  <p class="meta" style="margin-top:30px;">Emissão: ${getToday()} | Médico Responsável: ${consultant}</p>
+  <p class="meta" style="font-size:12px; margin-top:15px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
+</div>
+
+<div class="rpt-section">1. DEFINIÇÕES E ABREVIATURAS</div>
+<table class="rpt-table">
+  <tr><th>Termo</th><th>Definição</th></tr>
+  <tr><td class="label">ASO</td><td>Atestado de Saúde Ocupacional</td></tr>
+  <tr><td class="label">PCMSO</td><td>Programa de Controle Médico de Saúde Ocupacional</td></tr>
+  <tr><td class="label">PGR</td><td>Programa de Gerenciamento de Riscos</td></tr>
+  <tr><td class="label">GHE</td><td>Grupos Homogêneos de Exposição</td></tr>
+  <tr><td class="label">NR</td><td>Norma Regulamentadora</td></tr>
+</table>
+
+<div class="rpt-section">3. IDENTIFICAÇÃO DA EMPRESA</div>
+<table class="rpt-table">
+  <tr><td class="label">Razão Social</td><td>${company.name}</td></tr>
+  <tr><td class="label">CNPJ</td><td>${company.cnpj}</td></tr>
+  <tr><td class="label">Endereço</td><td>${company.address}</td></tr>
+  <tr><td class="label">Cidade/UF</td><td>${company.city}/${company.state}</td></tr>
+  <tr><td class="label">Setores</td><td>${sectors.join(", ")}</td></tr>
+</table>
+
+<div class="rpt-section">4. INTRODUÇÃO</div>
+<div class="rpt-callout">O PCMSO é um programa de caráter preventivo, rastreamento e diagnóstico precoce dos agravos à saúde relacionados ao trabalho.</div>
+<p>O Programa tem como finalidade a promoção e preservação da saúde do conjunto dos trabalhadores da empresa, planejado com base nos riscos identificados no PGR.</p>
+
+<div class="rpt-section">5. OBJETIVOS</div>
+<div class="rpt-section3">5.1 Objetivo Geral</div>
+<p>Promoção e preservação da saúde dos trabalhadores, através da prevenção, rastreamento e diagnóstico precoce dos agravos à saúde relacionados ao trabalho.</p>
+<div class="rpt-section3">5.2 Objetivos Específicos</div>
+<ul>
+  <li>Definir exames médicos ocupacionais obrigatórios</li>
+  <li>Estabelecer critérios para exames complementares conforme riscos</li>
+  <li>Monitorar a saúde dos trabalhadores expostos</li>
+  <li>Subsidiar ações de prevenção e promoção da saúde</li>
+</ul>
+
+<div class="rpt-section">8. MÉDICO RESPONSÁVEL</div>
+<table class="rpt-table">
+  <tr><td class="label">Médico Coordenador</td><td>${consultant}</td></tr>
+  <tr><td class="label">Especialidade</td><td>Medicina do Trabalho</td></tr>
+  <tr><td class="label">CRM</td><td>XXXXX</td></tr>
+  <tr><td class="label">Vigência</td><td>${getToday()} a ${new Date(Date.now() + 365*24*60*60*1000).toLocaleDateString("pt-BR")}</td></tr>
+</table>
+
+<div class="rpt-section">10. EXAMES MÉDICOS OCUPACIONAIS</div>
+<table class="rpt-table">
+  <tr><th class="alt">Tipo de Exame</th><th class="alt">Momento</th><th class="alt">Prazo</th></tr>
+  <tr><td><strong>Admissional</strong></td><td>Antes do início das atividades</td><td>Antes da admissão</td></tr>
+  <tr><td><strong>Periódico</strong></td><td>Durante a vigência do contrato</td><td>Anual ou semestral</td></tr>
+  <tr><td><strong>Retorno ao Trabalho</strong></td><td>Após afastamento ≥30 dias</td><td>No 1º dia de retorno</td></tr>
+  <tr><td><strong>Mudança de Risco</strong></td><td>Ao mudar de função/setor</td><td>Antes da mudança</td></tr>
+  <tr><td><strong>Demissional</strong></td><td>No desligamento</td><td>Até 10 dias antes</td></tr>
+</table>
+
+<div class="rpt-section">14. AVALIAÇÃO DOS RISCOS E EXAMES RECOMENDADOS</div>
+<table class="rpt-table">
+  <tr><th class="teal">Risco</th><th class="teal">Exames Complementares</th><th class="teal">Periodicidade</th></tr>
+  <tr><td><strong>Ruído</strong></td><td>Audiometria tonal e vocal</td><td>Semestral</td></tr>
+  <tr><td><strong>Ergonômico</strong></td><td>Avaliação clínica osteomuscular</td><td>Anual</td></tr>
+  <tr><td><strong>Químico</strong></td><td>Hemograma, função hepática e renal</td><td>Semestral</td></tr>
+  <tr><td><strong>Biológico</strong></td><td>Hemograma completo, sorologia</td><td>Anual</td></tr>
+</table>
+
+<div class="rpt-section">17. AÇÕES MÉDICAS PREVENTIVAS — VACINAÇÃO</div>
+<table class="rpt-table">
+  <tr><th>Vacina</th><th>Esquema</th><th>Indicação</th></tr>
+  <tr><td><strong>Hepatite B</strong></td><td>3 doses (0, 1 e 6 meses)</td><td>Todos</td></tr>
+  <tr><td><strong>Tétano/Difteria</strong></td><td>3 doses + reforço 10 anos</td><td>Todos</td></tr>
+  <tr><td><strong>Influenza</strong></td><td>Dose anual</td><td>Todos</td></tr>
+  <tr><td><strong>COVID-19</strong></td><td>Conforme orientação</td><td>Todos</td></tr>
+</table>
+
+<div class="rpt-section">21. CONCLUSÃO</div>
+<p>O presente PCMSO foi elaborado com base nos riscos ocupacionais identificados no PGR. Sua implementação contribuirá para a promoção e preservação da saúde dos colaboradores.</p>
+<div class="rpt-callout">O PCMSO deve ser revisado anualmente ou sempre que houver alteração nos riscos ocupacionais.</div>
+<div class="rpt-divider"></div>
+<div class="rpt-sig">
+  <p>_____________________________________________</p>
+  <p><strong>${consultant}</strong></p>
+  <p>Médico do Trabalho — CRM: XXXXX</p>
+  <p style="font-size:11px; color:#90A4AE; margin-top:15px;"><em>Documento gerado pelo sistema Spartan — MG Consultoria</em></p>
+</div>`;
 }
