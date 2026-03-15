@@ -768,7 +768,7 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
 
   switch (ctx.reportType) {
     case "AET":
-      doc = generateAETDocx(ctx);
+      doc = await generateAETDocx(ctx);
       break;
     case "PGR":
       doc = generatePGRDocx(ctx);
