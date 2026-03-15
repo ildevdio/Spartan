@@ -1006,6 +1006,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
 
   // 8. Métodos
   children.push(heading("8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS"));
+  children.push(...expandSection("metodos_ergonomicos"));
   children.push(new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     rows: [
