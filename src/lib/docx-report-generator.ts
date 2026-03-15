@@ -2,7 +2,7 @@ import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, AlignmentType, HeadingLevel, BorderStyle, PageBreak,
   Header, Footer, TabStopPosition, TabStopType,
-  ShadingType, convertInchesToTwip,
+  ShadingType, convertInchesToTwip, ImageRun,
 } from "docx";
 import { saveAs } from "file-saver";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
