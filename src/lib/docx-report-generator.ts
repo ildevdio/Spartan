@@ -1894,6 +1894,7 @@ function generatePCMSODocx(ctx: DocxReportContext): Document {
   children.push(accentCallout("O PCMSO é um programa de caráter preventivo, rastreamento e diagnóstico precoce dos agravos à saúde relacionados ao trabalho.", "info"));
   children.push(body("O Programa de Controle Médico de Saúde Ocupacional (PCMSO) tem como finalidade a promoção e preservação da saúde do conjunto dos trabalhadores da empresa. Deve ser planejado e implantado com base nos riscos à saúde dos trabalhadores, especialmente os identificados nas avaliações previstas na NR-1 (PGR)."));
   children.push(body("O PCMSO deve considerar as questões incidentes sobre o indivíduo e a coletividade de trabalhadores, privilegiando o instrumental clínico-epidemiológico na abordagem da relação entre sua saúde e o trabalho."));
+  children.push(...expandSection("pcmso_detalhado"));
 
   // 5. Objetivos
   children.push(heading("5. OBJETIVOS"));
