@@ -1632,32 +1632,14 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
     sections: [{
       properties: {
         page: {
-          margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(1), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) },
+          margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(0.8), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) },
         },
       },
-      headers: {
-        default: new Header({
-          children: [new Paragraph({
-            children: [
-              new TextRun({ text: `${company.name}`, size: 16, font: "Calibri", color: COLORS.muted }),
-              new TextRun({ text: `     ANÁLISE ERGONÔMICA DO TRABALHO     `, size: 16, font: "Calibri", color: COLORS.muted, bold: true }),
-              new TextRun({ text: `Emissão: ${getToday()}`, size: 16, font: "Calibri", color: COLORS.muted }),
-            ],
-            alignment: AlignmentType.CENTER,
-          })],
-        }),
-      },
-      footers: {
-        default: new Footer({
-          children: [new Paragraph({
-            children: [
-              new TextRun({ text: "MG Consultoria — Ergonomia & Segurança do Trabalho", size: 14, font: "Calibri", color: COLORS.light, italics: true }),
-            ],
-            alignment: AlignmentType.CENTER,
-          })],
-        }),
-      },
+      headers: { default: createProfessionalHeader("AET", company.name) },
+      footers: { default: createProfessionalFooter() },
       children,
+    }],
+  });
     }],
   });
 }
