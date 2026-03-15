@@ -85,14 +85,13 @@ export default function PsicossocialPage() {
 
   
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!evaluator.trim()) { toast.error("Informe o avaliador."); return; }
     const nasaScore = Math.round((mentalDemand + physicalDemand + temporalDemand + performance + effort + frustration) / 6);
     const hseScore = Math.round(((demands + control + support + relationships + role + change) / 6) * 10) / 10;
     const copenhagenScore = Math.round((quantDemands + workPace + cogDemands + emoDemands + influence + possDev + meaningWork + commitment + predictability + socialSupport) / 10);
 
-    const newAnalysis: PsychosocialAnalysis = {
-      id: `psa${Date.now()}`,
+    await addPsychosocialAnalysis({
       company_id: selectedCompanyId,
       workstation_id: wsId || undefined,
       evaluator_name: evaluator,
@@ -103,9 +102,7 @@ export default function PsicossocialPage() {
       copenhagen_score: copenhagenScore,
       copenhagen_details: { quantitative_demands: quantDemands, work_pace: workPace, cognitive_demands: cogDemands, emotional_demands: emoDemands, influence, possibilities_development: possDev, meaning_work: meaningWork, commitment, predictability, social_support: socialSupport },
       observations,
-      created_at: new Date().toISOString().split("T")[0],
-    };
-    setAnalyses([...analyses, newAnalysis]);
+    });
     toast.success("Avaliação psicossocial registrada!");
     setOpen(false);
   };
