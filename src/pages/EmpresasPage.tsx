@@ -5,11 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCompany } from "@/lib/company-context";
+import { mockRiskAssessments, mockActionPlans, mockPostureAnalyses } from "@/lib/mock-data";
 import type { Company } from "@/lib/types";
-import { Plus, Building2, Pencil, Trash2 } from "lucide-react";
+import { MIN_PHOTOS_REQUIRED } from "@/lib/types";
+import { Plus, Building2, Pencil, Trash2, Monitor, Layers, Camera, ClipboardCheck, AlertTriangle, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 export default function EmpresasPage() {
-  const { companies, setCompanies, sectors } = useCompany();
+  const { companies, setCompanies, sectors, workstations, analyses, posturePhotos } = useCompany();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Company | null>(null);
   const [name, setName] = useState("");
@@ -46,7 +50,7 @@ export default function EmpresasPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Empresas</h1>
-          <p className="text-xs sm:text-sm text-muted-foreground">Cadastre e gerencie as empresas</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">Cadastre e gerencie as empresas — {companies.length} cadastrada(s)</p>
         </div>
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
           <DialogTrigger asChild>
@@ -73,9 +77,19 @@ export default function EmpresasPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {companies.map((company) => {
-          const sectorCount = sectors.filter((s) => s.company_id === company.id).length;
+          const companySectors = sectors.filter((s) => s.company_id === company.id);
+          const sectorIds = companySectors.map((s) => s.id);
+          const companyWs = workstations.filter((w) => sectorIds.includes(w.sector_id));
+          const wsIds = companyWs.map((w) => w.id);
+          const companyAnalyses = analyses.filter((a) => wsIds.includes(a.workstation_id));
+          const companyPhotos = posturePhotos.filter((p) => wsIds.includes(p.workstation_id));
+          const wsReady = companyWs.filter((w) => companyPhotos.filter((p) => p.workstation_id === w.id).length >= MIN_PHOTOS_REQUIRED).length;
+          const companyRisks = mockRiskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
+          const criticalRisks = companyRisks.filter((r) => r.risk_level === "critical" || r.risk_level === "high").length;
+          const completedAnalyses = companyAnalyses.filter((a) => a.analysis_status === "completed").length;
+
           return (
-            <Card key={company.id}>
+            <Card key={company.id} className="overflow-hidden">
               <CardHeader className="pb-2 flex-row items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <Building2 className="h-4 w-4 text-accent shrink-0" />
@@ -86,11 +100,57 @@ export default function EmpresasPage() {
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(company.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                 </div>
               </CardHeader>
-              <CardContent>
-                {company.cnpj && <p className="text-xs text-muted-foreground mb-1">CNPJ: {company.cnpj}</p>}
-                {company.address && <p className="text-xs text-muted-foreground mb-1 truncate">{company.address} — {company.city}/{company.state}</p>}
-                <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{company.description}</p>
-                <p className="text-xs text-muted-foreground">{sectorCount} setor(es)</p>
+              <CardContent className="space-y-3">
+                {company.cnpj && <p className="text-xs text-muted-foreground">CNPJ: {company.cnpj}</p>}
+                {company.address && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <MapPin className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{company.address} — {company.city}/{company.state}</span>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground line-clamp-2">{company.description}</p>
+
+                {/* Stats grid */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  <div className="text-center p-1.5 rounded bg-accent/10">
+                    <Layers className="h-3 w-3 text-accent mx-auto mb-0.5" />
+                    <p className="text-xs font-bold">{companySectors.length}</p>
+                    <p className="text-[8px] text-muted-foreground">Setores</p>
+                  </div>
+                  <div className="text-center p-1.5 rounded bg-accent/10">
+                    <Monitor className="h-3 w-3 text-accent mx-auto mb-0.5" />
+                    <p className="text-xs font-bold">{companyWs.length}</p>
+                    <p className="text-[8px] text-muted-foreground">Postos</p>
+                  </div>
+                  <div className="text-center p-1.5 rounded bg-accent/10">
+                    <Camera className="h-3 w-3 text-accent mx-auto mb-0.5" />
+                    <p className="text-xs font-bold">{companyPhotos.length}</p>
+                    <p className="text-[8px] text-muted-foreground">Fotos</p>
+                  </div>
+                  <div className="text-center p-1.5 rounded bg-accent/10">
+                    <ClipboardCheck className="h-3 w-3 text-accent mx-auto mb-0.5" />
+                    <p className="text-xs font-bold">{companyAnalyses.length}</p>
+                    <p className="text-[8px] text-muted-foreground">Análises</p>
+                  </div>
+                </div>
+
+                {/* Progress */}
+                <div>
+                  <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                    <span>Análises concluídas</span>
+                    <span>{completedAnalyses}/{companyAnalyses.length}</span>
+                  </div>
+                  <Progress value={companyAnalyses.length > 0 ? (completedAnalyses / companyAnalyses.length) * 100 : 0} className="h-1.5" />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline" className="text-[10px]">{wsReady} posto(s) pronto(s)</Badge>
+                  {criticalRisks > 0 && (
+                    <Badge variant="outline" className="bg-critical/10 text-critical border-critical/20 text-[10px]">
+                      <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />{criticalRisks} risco(s)
+                    </Badge>
+                  )}
+                </div>
               </CardContent>
             </Card>
           );
