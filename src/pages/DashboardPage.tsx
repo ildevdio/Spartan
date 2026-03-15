@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCompany } from "@/lib/company-context";
-import { mockRiskAssessments, mockActionPlans, mockPostureAnalyses, mockPsychosocialAnalyses } from "@/lib/mock-data";
 import { riskLevelLabel, MIN_PHOTOS_REQUIRED, type RiskLevel, statusLabel } from "@/lib/types";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from "recharts";
 import { Building2, ClipboardCheck, AlertTriangle, Monitor, Layers, FileText, Camera, TrendingUp, ShieldAlert, Activity, Users, Target } from "lucide-react";
