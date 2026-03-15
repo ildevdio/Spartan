@@ -7,7 +7,7 @@ import {
 import { saveAs } from "file-saver";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
 import { riskLevelLabel, statusLabel } from "./types";
-import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses } from "./mock-data";
+import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses, mockPostureAnalyses } from "./mock-data";
 
 export interface DocxReportContext {
   company: Company;
