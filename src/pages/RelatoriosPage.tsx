@@ -30,6 +30,7 @@ export default function RelatoriosPage() {
     companyWorkstations, companySectors,
     companyAnalyses, posturePhotos,
     selectedCompany, selectedCompanyId,
+    riskAssessments, actionPlans, psychosocialAnalyses,
   } = useCompany();
   const [generating, setGenerating] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
