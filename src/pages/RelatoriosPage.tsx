@@ -240,7 +240,7 @@ export default function RelatoriosPage() {
               const sector = companySectors.find((s) => s.id === ws.sector_id);
               const photoCount = posturePhotos.filter((p) => p.workstation_id === ws.id).length;
               const wsAnalyses = companyAnalyses.filter((a) => a.workstation_id === ws.id);
-              const wsRisks = mockRiskAssessments.filter((r) => wsAnalyses.some((a) => a.id === r.analysis_id));
+              const wsRisks = riskAssessments.filter((r) => wsAnalyses.some((a) => a.id === r.analysis_id));
               const worstRisk = wsRisks.sort((a, b) => b.risk_score - a.risk_score)[0];
               return (
                 <div key={ws.id} className="p-3 rounded-lg bg-success/5 border border-success/20">

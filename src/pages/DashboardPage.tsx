@@ -19,13 +19,14 @@ export default function DashboardPage() {
     companies, companySectors, companyWorkstations,
     companyAnalyses, companyPhotos, companyReports,
     posturePhotos, selectedCompany, selectedCompanyId,
+    riskAssessments, actionPlans, postureAnalyses, psychosocialAnalyses,
   } = useCompany();
 
   const companyAnalysisIds = companyAnalyses.map((a) => a.id);
-  const companyRisks = mockRiskAssessments.filter((r) => companyAnalysisIds.includes(r.analysis_id));
-  const companyActions = mockActionPlans.filter((ap) => companyRisks.some((r) => r.id === ap.risk_assessment_id));
-  const companyPostureAnalyses = mockPostureAnalyses.filter((pa) => companyWorkstations.some((w) => w.id === pa.workstation_id));
-  const companyPsychosocial = mockPsychosocialAnalyses.filter((p) => p.company_id === selectedCompanyId);
+  const companyRisks = riskAssessments.filter((r) => companyAnalysisIds.includes(r.analysis_id));
+  const companyActions = actionPlans.filter((ap) => companyRisks.some((r) => r.id === ap.risk_assessment_id));
+  const companyPostureAnalyses = postureAnalyses.filter((pa) => companyWorkstations.some((w) => w.id === pa.workstation_id));
+  const companyPsychosocial = psychosocialAnalyses.filter((p) => p.company_id === selectedCompanyId);
 
   const dist: Record<RiskLevel, number> = { low: 0, medium: 0, high: 0, critical: 0 };
   companyRisks.forEach((r) => dist[r.risk_level]++);
