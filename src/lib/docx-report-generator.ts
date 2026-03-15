@@ -1504,8 +1504,10 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
   children.push(heading("9. METODOLOGIA UTILIZADA"));
   children.push(heading("9.1 Análise Qualitativa", HeadingLevel.HEADING_3));
   children.push(body("Análise preliminar dos riscos ambientais envolvendo instalações, métodos e processos de trabalho."));
+  children.push(...expandSection("riscos_ambientais"));
   children.push(heading("9.2 Análise Quantitativa", HeadingLevel.HEADING_3));
   children.push(body("Monitoramento ambiental que mensura a exposição dos trabalhadores utilizando dosimetria de ruído, medição de luminosidade e calor/IBUTG."));
+  children.push(...expandSection("medições_ambientais"));
 
   children.push(heading("9.3 Probabilidade (P)", HeadingLevel.HEADING_3));
   children.push(new Table({
