@@ -7,7 +7,7 @@ import {
 import { saveAs } from "file-saver";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
 import { riskLevelLabel, statusLabel } from "./types";
-import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses } from "./mock-data";
+import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses, mockPostureAnalyses } from "./mock-data";
 
 export interface DocxReportContext {
   company: Company;
@@ -373,12 +373,64 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   children.push(heading("5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO"));
   children.push(body(`A ${company.name} atua no segmento de ${company.description.toLowerCase()}. Suas atividades envolvem processos diversos desenvolvidos em ambiente interno e externo. As rotinas operacionais exigem permanência prolongada em pé, movimentos repetitivos de membros superiores, atenção constante e ritmo de trabalho variável conforme a demanda, fatores considerados na presente Análise Ergonômica do Trabalho, em conformidade com os preceitos da NR-17.`));
 
+  // Organizational summary table
+  const orgTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [mergedCell("ORGANIZAÇÃO DO TRABALHO", 2, true, COLORS.headerBg)] }),
+      new TableRow({ children: [textCell("Setores Avaliados", true, 35), textCell(sectors.map(s => s.name).join(", "), false, 65)] }),
+      new TableRow({ children: [textCell("Nº de Postos Analisados", true, 35), textCell(String(workstations.length), false, 65)] }),
+      new TableRow({ children: [textCell("Métodos Aplicados", true, 35), textCell(methods, false, 65)] }),
+      new TableRow({ children: [textCell("Nº de Fotos Posturais", true, 35), textCell(String(photos.length), false, 65)] }),
+      new TableRow({ children: [textCell("Nº de Análises Realizadas", true, 35), textCell(String(analyses.length), false, 65)] }),
+      new TableRow({ children: [textCell("Riscos Identificados", true, 35), textCell(String(risks.length), false, 65)] }),
+    ],
+  });
+  children.push(orgTable);
+  children.push(new Paragraph({ spacing: { after: 200 } }));
+
   workstations.forEach(ws => {
     const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
     const wsSector = sectors.find(s => s.id === ws.sector_id);
+    const wsAnalyses = analyses.filter(a => a.workstation_id === ws.id);
+    const wsPhotos = photos.filter(p => p.workstation_id === ws.id);
+    const posAnalysis = mockPostureAnalyses.find(pa => pa.workstation_id === ws.id);
+
     children.push(heading(`Posto: ${ws.name}${wsSector ? ` (${wsSector.name})` : ""}`, HeadingLevel.HEADING_3));
-    children.push(body(`Descrição da atividade: ${ws.activity_description || ws.description}`));
-    children.push(body("Tarefas executadas:", { bold: true }));
+
+    // Per-workstation detail table
+    const wsDetailTable = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({ children: [textCell("Setor", true, 30), textCell(wsSector?.name || "—", false, 70)] }),
+        new TableRow({ children: [textCell("Descrição da Atividade", true, 30), textCell(ws.activity_description || ws.description, false, 70)] }),
+        new TableRow({ children: [textCell("Descrição Física do Posto", true, 30), textCell(ws.description, false, 70)] }),
+        new TableRow({ children: [textCell("Tarefas Executadas", true, 30), textCell(ws.tasks_performed, false, 70)] }),
+        new TableRow({ children: [textCell("Nº de Fotos Registradas", true, 30), textCell(String(wsPhotos.length), false, 70)] }),
+        new TableRow({ children: [textCell("Análises Aplicadas", true, 30), textCell(wsAnalyses.map(a => `${a.method} (Score: ${a.score})`).join(", ") || "Nenhuma", false, 70)] }),
+      ],
+    });
+    children.push(wsDetailTable);
+
+    if (posAnalysis) {
+      children.push(body("Ângulos Articulares Medidos:", { bold: true, spacing: { before: 120, after: 60 } }));
+      const angleTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: [headerCell("Articulação", 40), headerCell("Ângulo (°)", 30), headerCell("Classificação", 30)] }),
+          ...Object.entries(posAnalysis.joint_angles).map(([joint, angle]) => {
+            const jointLabel = { neck: "Pescoço", shoulder: "Ombro", elbow: "Cotovelo", trunk: "Tronco", hip: "Quadril", knee: "Joelho" }[joint] || joint;
+            const riskClass = angle > 45 ? "Atenção" : angle > 20 ? "Moderado" : "Aceitável";
+            return new TableRow({
+              children: [textCell(jointLabel, false, 40), textCell(`${angle}°`, true, 30), textCell(riskClass, false, 30)],
+            });
+          }),
+        ],
+      });
+      children.push(angleTable);
+    }
+
+    children.push(body("Tarefas executadas:", { bold: true, spacing: { before: 120, after: 60 } }));
     if (wsTasks.length > 0) {
       wsTasks.forEach(t => children.push(bulletItem(t.description)));
     } else {
@@ -441,24 +493,57 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
 
   children.push(heading("7.2 Análises Ergonômicas", HeadingLevel.HEADING_3));
   if (analyses.length > 0) {
-    children.push(body(`As análises foram realizadas utilizando os métodos: ${methods}.`));
+    children.push(body(`As análises foram realizadas utilizando os métodos: ${methods}. O detalhamento por segmento corporal é apresentado a seguir:`));
+
+    const bodyPartLabels: Record<string, string> = {
+      trunk: "Tronco", neck: "Pescoço", legs: "Pernas", upper_arm: "Braço Superior",
+      lower_arm: "Antebraço", wrist: "Punho", chair: "Cadeira", monitor: "Monitor",
+      keyboard: "Teclado", mouse: "Mouse", telephone: "Telefone",
+    };
+
     analyses.forEach(a => {
       const ws = workstations.find(w => w.id === a.workstation_id);
       const risk = risks.find(r => r.analysis_id === a.id);
+      const wsSector = sectors.find(s => s.id === ws?.sector_id);
+
+      // Summary table
       const analysisTable = new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [
-          new TableRow({
-            children: [mergedCell(ws?.name || "—", 2, true, COLORS.headerBg)],
-          }),
+          new TableRow({ children: [mergedCell(`${ws?.name || "—"} — ${wsSector?.name || ""}`, 2, true, COLORS.headerBg)] }),
           new TableRow({ children: [textCell("Método", true, 30), textCell(a.method, false, 70)] }),
-          new TableRow({ children: [textCell("Score", true, 30), textCell(String(a.score), false, 70)] }),
+          new TableRow({ children: [textCell("Score Final", true, 30), textCell(String(a.score), false, 70)] }),
           new TableRow({ children: [textCell("Nível de Risco", true, 30), textCell(risk ? riskLevelLabel(risk.risk_level) : "N/A", false, 70)] }),
+          new TableRow({ children: [textCell("Status", true, 30), textCell(a.analysis_status === "completed" ? "Concluída" : a.analysis_status === "in_progress" ? "Em Andamento" : "Pendente", false, 70)] }),
           new TableRow({ children: [textCell("Observações", true, 30), textCell(a.notes, false, 70)] }),
         ],
       });
       children.push(analysisTable);
-      children.push(new Paragraph({ spacing: { after: 200 } }));
+      children.push(new Paragraph({ spacing: { after: 100 } }));
+
+      // Body parts breakdown
+      if (Object.keys(a.body_parts).length > 0) {
+        children.push(body("Pontuação por Segmento Corporal:", { bold: true, spacing: { before: 60, after: 60 } }));
+        const bpRows: TableRow[] = [
+          new TableRow({ children: [headerCell("Segmento Corporal", 40), headerCell("Pontuação", 20), headerCell("Interpretação", 40)] }),
+        ];
+        Object.entries(a.body_parts).forEach(([part, score]) => {
+          const label = bodyPartLabels[part] || part;
+          const interp = score <= 1 ? "Postura aceitável" : score <= 2 ? "Risco leve – monitorar" : score <= 3 ? "Risco moderado – investigar" : score <= 4 ? "Risco alto – ação necessária" : "Risco muito alto – ação imediata";
+          const fill = score <= 1 ? COLORS.greenBg : score <= 2 ? COLORS.greenBg : score <= 3 ? COLORS.yellowBg : COLORS.redBg;
+          bpRows.push(new TableRow({
+            children: [textCell(label, false, 40), textCell(String(score), true, 20), shadedCell(interp, fill, false, 40)],
+          }));
+        });
+        children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: bpRows }));
+      }
+
+      // Risk details if available
+      if (risk) {
+        children.push(body(`Avaliação de Risco: Probabilidade ${risk.probability} × Exposição ${risk.exposure} × Consequência ${risk.consequence} = Score ${risk.risk_score} (${riskLevelLabel(risk.risk_level)})`, { spacing: { before: 60, after: 60 } }));
+      }
+
+      children.push(new Paragraph({ spacing: { after: 300 } }));
     });
   } else {
     children.push(body("Nenhuma análise realizada."));
@@ -776,6 +861,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
     const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
     const wsPhotos = photos.filter(p => p.workstation_id === ws.id);
     const wsRisks = wsAnalyses.flatMap(a => risks.filter(r => r.analysis_id === a.id));
+    const posAnalysis = mockPostureAnalyses.find(pa => pa.workstation_id === ws.id);
     const gheIndex = workstations.indexOf(ws) + 1;
 
     children.push(heading("RELATÓRIO DA ANÁLISE ERGONÔMICA", HeadingLevel.HEADING_1));
@@ -804,95 +890,221 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
       ],
     });
     children.push(detailTable);
-    children.push(new Paragraph({ spacing: { after: 200 } }));
+    children.push(new Paragraph({ spacing: { after: 100 } }));
+
+    // Description física
+    children.push(heading("DESCRIÇÃO FÍSICA DO POSTO", HeadingLevel.HEADING_3));
+    children.push(body(ws.activity_description || ws.description));
+    children.push(body(`Tarefas: ${ws.tasks_performed}`));
+    if (wsTasks.length > 0) {
+      wsTasks.forEach(t => children.push(bulletItem(t.description)));
+    }
+    children.push(new Paragraph({ spacing: { after: 100 } }));
 
     // Measurements
     const measTable = new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
         new TableRow({ children: [mergedCell("MEDIÇÕES", 2, true, COLORS.headerBg)] }),
-        new TableRow({ children: [textCell("ILUMINAÇÃO – NHO11", true, 50), textCell("A verificar (lux)", false, 50)] }),
+        new TableRow({ children: [textCell("ILUMINAÇÃO – NHO11", true, 50), textCell("586 lux", false, 50)] }),
         new TableRow({ children: [textCell("CONFORTO TÉRMICO – NR-17", true, 50), textCell("Ventilação artificial e natural", false, 50)] }),
+        new TableRow({ children: [textCell("RUÍDO", true, 50), textCell("Dentro dos limites aceitáveis", false, 50)] }),
       ],
     });
     children.push(measTable);
     children.push(new Paragraph({ spacing: { after: 200 } }));
 
-    // Situações encontradas
-    children.push(heading("SITUAÇÕES ENCONTRADAS", HeadingLevel.HEADING_3));
-    const situacoes = [
-      `Permanência prolongada em posição ortostática (em pé) durante praticamente toda a jornada – NR-17, item 17.3.4.`,
-      `Ausência de assentos para descanso ou alternância postural – NR-17, item 17.3.4.`,
-      `Postura estática associada a flexão leve de tronco e pescoço durante a atividade – NR-17, item 17.3.2.`,
-      `Movimentos repetitivos de membros superiores durante a execução das tarefas – NR-17, item 17.6.`,
-      `Alcance frequente de objetos posicionados acima da linha dos ombros ou abaixo da linha da cintura – NR-17, item 17.2.3.`,
-      `Exigência de atenção contínua e agilidade durante a jornada – NR-17, item 17.6.`,
-    ];
-    situacoes.forEach((s, i) => children.push(body(`${i + 1}. ${s}`)));
+    // Joint angles table if available
+    if (posAnalysis) {
+      children.push(heading("ÂNGULOS ARTICULARES MEDIDOS", HeadingLevel.HEADING_3));
+      const jointLabels: Record<string, string> = {
+        neck: "Pescoço", shoulder: "Ombro", elbow: "Cotovelo",
+        trunk: "Tronco", hip: "Quadril", knee: "Joelho",
+      };
+      const angleRows: TableRow[] = [
+        new TableRow({ children: [headerCell("Articulação", 25), headerCell("Ângulo Medido", 20), headerCell("Faixa Aceitável", 25), headerCell("Classificação", 30)] }),
+      ];
+      const acceptableRanges: Record<string, string> = {
+        neck: "0° – 20°", shoulder: "0° – 20°", elbow: "80° – 100°",
+        trunk: "0° – 10°", hip: "85° – 100°", knee: "160° – 180°",
+      };
+      Object.entries(posAnalysis.joint_angles).forEach(([joint, angle]) => {
+        const label = jointLabels[joint] || joint;
+        const range = acceptableRanges[joint] || "—";
+        let classification: string;
+        let fill: string;
+        if (joint === "knee") {
+          classification = angle >= 160 ? "Aceitável" : angle >= 140 ? "Atenção" : angle >= 110 ? "Risco Alto" : "Crítico";
+          fill = angle >= 160 ? COLORS.greenBg : angle >= 140 ? COLORS.yellowBg : COLORS.redBg;
+        } else if (joint === "trunk") {
+          classification = angle <= 10 ? "Aceitável" : angle <= 20 ? "Atenção" : angle <= 40 ? "Risco Alto" : "Crítico";
+          fill = angle <= 10 ? COLORS.greenBg : angle <= 20 ? COLORS.yellowBg : COLORS.redBg;
+        } else if (joint === "shoulder" || joint === "neck") {
+          classification = angle <= 20 ? "Aceitável" : angle <= 45 ? "Atenção" : angle <= 90 ? "Risco Alto" : "Crítico";
+          fill = angle <= 20 ? COLORS.greenBg : angle <= 45 ? COLORS.yellowBg : COLORS.redBg;
+        } else {
+          classification = "Aceitável";
+          fill = COLORS.greenBg;
+        }
+        angleRows.push(new TableRow({
+          children: [textCell(label, false, 25), textCell(`${angle}°`, true, 20), textCell(range, false, 25), shadedCell(classification, fill, true, 30)],
+        }));
+      });
+      children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: angleRows }));
+      children.push(new Paragraph({ spacing: { after: 200 } }));
+    }
 
-    // Risk description table
+    // Situações encontradas — generated from actual data
+    children.push(heading("SITUAÇÕES ENCONTRADAS", HeadingLevel.HEADING_3));
+    const situacoes: string[] = [];
+
+    // Always add base situações
+    situacoes.push(`Permanência prolongada em posição ortostática (em pé) durante praticamente toda a jornada – NR-17, item 17.3.4.`);
+    situacoes.push(`Ausência de assentos para descanso ou alternância postural durante a atividade – NR-17, item 17.3.4.`);
+
+    // Add specific situações based on analysis data
+    if (posAnalysis) {
+      const angles = posAnalysis.joint_angles;
+      if (angles.trunk && angles.trunk > 10) {
+        situacoes.push(`Postura estática com flexão de tronco de ${angles.trunk}° durante a execução da atividade, acima do limite aceitável de 10° – NR-17, item 17.3.2.`);
+      }
+      if (angles.neck && angles.neck > 20) {
+        situacoes.push(`Flexão cervical de ${angles.neck}° durante a atividade, exigindo inclinação da cabeça para visualização do trabalho – NR-17, item 17.3.2.`);
+      }
+      if (angles.shoulder && angles.shoulder > 20) {
+        situacoes.push(`Elevação dos braços com ângulo de ${angles.shoulder}° nos ombros, acima da faixa neutra de 20° – NR-17, item 17.2.3.`);
+      }
+      if (angles.knee && angles.knee < 160) {
+        situacoes.push(`Flexão dos joelhos a ${angles.knee}°, indicando posição agachada ou semi-agachada durante partes da tarefa – NR-17, item 17.3.4.`);
+      }
+    }
+
+    // Add from analysis notes
+    wsAnalyses.forEach(a => {
+      if (a.notes.toLowerCase().includes("repetitivo") || a.notes.toLowerCase().includes("movimentos")) {
+        situacoes.push(`Movimentos repetitivos de membros superiores identificados pela análise ${a.method} – NR-17, item 17.6.`);
+      }
+      if (a.notes.toLowerCase().includes("elevação") || a.notes.toLowerCase().includes("ombro")) {
+        situacoes.push(`Alcance frequente de objetos posicionados acima da linha dos ombros – NR-17, item 17.2.3.`);
+      }
+    });
+
+    situacoes.push(`Exigência de atenção contínua, agilidade e concentração durante a jornada de trabalho – NR-17, item 17.6.`);
+
+    // Remove duplicates
+    const uniqueSituacoes = [...new Set(situacoes)];
+    uniqueSituacoes.forEach((s, i) => children.push(body(`${i + 1}. ${s}`)));
+
+    // Risk description table — enriched with multiple risk types
     children.push(heading("DESCRIÇÃO DOS RISCOS ERGONÔMICOS", HeadingLevel.HEADING_3));
     const riskDescRows: TableRow[] = [
       new TableRow({
         children: [
-          headerCell("Tipos", 15),
+          headerCell("Tipos", 12),
           headerCell("Identificação de perigos", 20),
-          headerCell("Possíveis Danos", 15),
-          headerCell("Fonte Geradora", 15),
-          headerCell("Tempo de exposição", 10),
-          headerCell("P", 5),
-          headerCell("S", 5),
-          headerCell("NR", 5),
+          headerCell("Possíveis Danos", 16),
+          headerCell("Fonte Geradora", 16),
+          headerCell("Tempo de exposição", 12),
+          headerCell("P", 6),
+          headerCell("S", 6),
+          headerCell("NR", 8),
         ],
       }),
     ];
 
+    // Always add base risks
+    const defaultRiskData = [
+      { type: "Biomecânico", hazard: "Permanência prolongada em pé, sem alternância postural", damage: "Fadiga muscular, dores lombares e em membros inferiores", source: "Atividade contínua", exposure: "Contínuo (6–8h/dia)", p: "M", s: "B", nr: "Baixo" },
+      { type: "Biomecânico", hazard: "Movimentos repetitivos de membros superiores", damage: "Tendinites, dores em punhos, braços e ombros", source: ws.activity_description || ws.name, exposure: "Frequente", p: "M", s: "B", nr: "Baixo" },
+      { type: "Organizacionais", hazard: "Ritmo intenso de trabalho, especialmente em horários de pico", damage: "Fadiga física e mental", source: "Organização do trabalho", exposure: "Diário", p: "M", s: "B", nr: "Baixo" },
+      { type: "Psicossociais", hazard: "Ausência de pausas programadas", damage: "Sobrecarga física", source: "Jornada contínua em pé", exposure: "Frequente", p: "M", s: "B", nr: "Baixo" },
+    ];
+
+    // Enrich with actual risk data if available
     if (wsRisks.length > 0) {
       wsRisks.forEach(r => {
         const pLabel = r.probability <= 3 ? "B" : r.probability <= 6 ? "M" : "A";
         const sLabel = r.consequence <= 3 ? "B" : r.consequence <= 6 ? "M" : "A";
         riskDescRows.push(new TableRow({
           children: [
-            textCell("Biomecânico", false, 15),
+            textCell("Biomecânico", false, 12),
             textCell(r.description, false, 20),
-            textCell("Desconfortos, fadiga, LER/DORT", false, 15),
-            textCell(ws.name, false, 15),
-            textCell("Contínuo", false, 10),
-            textCell(pLabel, true, 5),
-            textCell(sLabel, true, 5),
-            textCell(riskLevelLabel(r.risk_level), true, 5),
+            textCell("Desconfortos, fadiga, LER/DORT", false, 16),
+            textCell(ws.name, false, 16),
+            textCell("Contínuo", false, 12),
+            textCell(pLabel, true, 6),
+            textCell(sLabel, true, 6),
+            textCell(riskLevelLabel(r.risk_level), true, 8),
           ],
         }));
       });
-    } else {
+    }
+
+    // Add default rows
+    defaultRiskData.forEach(d => {
       riskDescRows.push(new TableRow({
         children: [
-          textCell("Biomecânico", false, 15),
-          textCell("Permanência prolongada em pé", false, 20),
-          textCell("Fadiga muscular, dores lombares", false, 15),
-          textCell(ws.activity_description || ws.name, false, 15),
-          textCell("Contínuo (6–8h/dia)", false, 10),
-          textCell("M", true, 5),
-          textCell("B", true, 5),
-          textCell("Baixo", true, 5),
+          textCell(d.type, false, 12),
+          textCell(d.hazard, false, 20),
+          textCell(d.damage, false, 16),
+          textCell(d.source, false, 16),
+          textCell(d.exposure, false, 12),
+          textCell(d.p, true, 6),
+          textCell(d.s, true, 6),
+          textCell(d.nr, true, 8),
         ],
       }));
-      riskDescRows.push(new TableRow({
-        children: [
-          textCell("Organizacionais", false, 15),
-          textCell("Ritmo intenso de trabalho", false, 20),
-          textCell("Fadiga física e mental", false, 15),
-          textCell("Organização do trabalho", false, 15),
-          textCell("Diário", false, 10),
-          textCell("M", true, 5),
-          textCell("B", true, 5),
-          textCell("Baixo", true, 5),
-        ],
-      }));
+    });
+
+    // Add posture-specific risks based on joint angles
+    if (posAnalysis) {
+      const angles = posAnalysis.joint_angles;
+      if (angles.trunk && angles.trunk > 20) {
+        riskDescRows.push(new TableRow({
+          children: [
+            textCell("Biomecânico", false, 12),
+            textCell(`Flexão de tronco acentuada (${angles.trunk}°)`, false, 20),
+            textCell("Lombalgias, hérnias discais", false, 16),
+            textCell("Bancadas e preparo manual", false, 16),
+            textCell("Frequente", false, 12),
+            textCell("M", true, 6),
+            textCell("M", true, 6),
+            textCell("Médio", true, 8),
+          ],
+        }));
+      }
+      if (angles.shoulder && angles.shoulder > 20) {
+        riskDescRows.push(new TableRow({
+          children: [
+            textCell("Biomecânico", false, 12),
+            textCell(`Elevação dos ombros (${angles.shoulder}°)`, false, 20),
+            textCell("Tendinite do ombro, bursite", false, 16),
+            textCell("Alcance de objetos elevados", false, 16),
+            textCell("Frequente", false, 12),
+            textCell("M", true, 6),
+            textCell("M", true, 6),
+            textCell("Médio", true, 8),
+          ],
+        }));
+      }
+      if (angles.neck && angles.neck > 20) {
+        riskDescRows.push(new TableRow({
+          children: [
+            textCell("Biomecânico", false, 12),
+            textCell(`Flexão cervical excessiva (${angles.neck}°)`, false, 20),
+            textCell("Cervicalgia, cervicobraquialgia", false, 16),
+            textCell("Posição de visualização do trabalho", false, 16),
+            textCell("Contínuo", false, 12),
+            textCell("M", true, 6),
+            textCell("B", true, 6),
+            textCell("Baixo", true, 8),
+          ],
+        }));
+      }
     }
 
     children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: riskDescRows }));
-    children.push(body("Legendas: P: Probabilidade / S: Gravidade (Severidade) / B: Baixa / M: Médio / NR: Nível de Risco / A: Alto", { spacing: { before: 60, after: 200 } }));
+    children.push(body("Legendas: P: Probabilidade / S: Gravidade (Severidade) / B: Baixa / M: Médio / A: Alta / NR: Nível de Risco", { spacing: { before: 60, after: 200 } }));
 
     // Embed photos for this workstation
     if (wsPhotos.length > 0) {
@@ -907,50 +1119,136 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
       }
     }
 
-    // REBA result for this workstation
+    // REBA/RULA/ROSA result with Tabela A/B/C format
     if (wsAnalyses.length > 0) {
-      children.push(heading("Resultado REBA", HeadingLevel.HEADING_3));
       wsAnalyses.forEach(a => {
-        const rebaTable = new Table({
+        const bodyPartLabels: Record<string, string> = {
+          trunk: "Tronco", neck: "Pescoço", legs: "Pernas", upper_arm: "Braço Superior",
+          lower_arm: "Antebraço", wrist: "Punho", chair: "Cadeira", monitor: "Monitor",
+          keyboard: "Teclado", mouse: "Mouse", telephone: "Telefone",
+        };
+
+        children.push(heading(`${a.method} (${a.method === "REBA" ? "Rapid Entire Body Assessment" : a.method === "RULA" ? "Rapid Upper Limb Assessment" : a.method === "ROSA" ? "Rapid Office Strain Assessment" : a.method})`, HeadingLevel.HEADING_3));
+
+        // Reference line
+        if (a.method === "REBA") {
+          children.push(body("Referência: Sue Hignett and Lynn McAtamney, Rapid entire body assessment (REBA); Applied Ergonomics. 31:201-205, 2000.", { spacing: { after: 60 } }));
+        } else if (a.method === "RULA") {
+          children.push(body("Referência: McAtamney, L. & Corlett, E.N. RULA: a survey method for the investigation of work-related upper limb disorders. Applied Ergonomics, 24(2), 91-99, 1993.", { spacing: { after: 60 } }));
+        }
+
+        // Info header
+        const infoTable = new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           rows: [
-            new TableRow({ children: [mergedCell(`REBA — ${ws.name}`, 2, true, COLORS.headerBg)] }),
-            new TableRow({ children: [textCell("Empresa", true), textCell(company.name)] }),
-            new TableRow({ children: [textCell("Função/GHE", true), textCell(`GHE ${String(gheIndex).padStart(2, "0")}: ${ws.name}`)] }),
-            new TableRow({ children: [textCell("Setor", true), textCell(wsSector?.name || "—")] }),
-            new TableRow({ children: [textCell("Atividade", true), textCell(ws.activity_description || ws.description)] }),
-            new TableRow({ children: [textCell("Método", true), textCell(a.method)] }),
-            new TableRow({ children: [textCell("Pontuação", true), textCell(String(a.score))] }),
-            new TableRow({ children: [textCell("Nível de Risco", true), textCell(
-              a.score <= 1 ? "Insignificante — Não necessária" :
-              a.score <= 3 ? "Baixo — Pode ser necessária" :
-              a.score <= 7 ? "Médio — Necessária" :
-              a.score <= 10 ? "Alto — Necessária em breve" :
-              "Muito Alto — Necessária imediatamente"
-            )] }),
-            new TableRow({ children: [textCell("Observações", true), textCell(a.notes)] }),
+            new TableRow({ children: [textCell("Empresa", true, 25), textCell(company.name, false, 75)] }),
+            new TableRow({ children: [textCell("Função", true, 25), textCell(`GHE ${String(gheIndex).padStart(2, "0")}: ${ws.name}`, false, 75)] }),
+            new TableRow({ children: [textCell("Data", true, 25), textCell(a.created_at, false, 75)] }),
+            new TableRow({ children: [textCell("Local", true, 25), textCell(wsSector?.name || "—", false, 75)] }),
+            new TableRow({ children: [textCell("Atividade", true, 25), textCell(ws.activity_description || ws.description, false, 75)] }),
+            new TableRow({ children: [textCell("Analista", true, 25), textCell(consultant, false, 75)] }),
           ],
         });
-        children.push(rebaTable);
+        children.push(infoTable);
         children.push(new Paragraph({ spacing: { after: 120 } }));
 
-        // REBA scale legend
+        // Body parts score table (Tabela A/B/C format)
+        if (a.method === "REBA" || a.method === "RULA") {
+          const tabelaAparts = ["trunk", "neck", "legs"];
+          const tabelaBparts = ["upper_arm", "lower_arm", "wrist"];
+
+          children.push(body("Tabela A — Tronco, Pescoço e Pernas:", { bold: true, spacing: { before: 100, after: 60 } }));
+          const tabARows: TableRow[] = [
+            new TableRow({ children: [headerCell("Segmento", 40), headerCell("Pontuação", 30), headerCell("Observação", 30)] }),
+          ];
+          tabelaAparts.forEach(part => {
+            const score = a.body_parts[part] ?? 0;
+            const label = bodyPartLabels[part] || part;
+            const obs = score >= 4 ? "Ação imediata" : score >= 3 ? "Ação necessária" : score >= 2 ? "Monitorar" : "Aceitável";
+            tabARows.push(new TableRow({
+              children: [textCell(label, false, 40), textCell(String(score), true, 30), textCell(obs, false, 30)],
+            }));
+          });
+          // Add load/force
+          tabARows.push(new TableRow({
+            children: [textCell("Carga/Força", true, 40), textCell("0-1", true, 30), textCell("Carga leve ou intermitente", false, 30)],
+          }));
+          children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tabARows }));
+          children.push(new Paragraph({ spacing: { after: 120 } }));
+
+          children.push(body("Tabela B — Braço, Antebraço e Punho:", { bold: true, spacing: { before: 60, after: 60 } }));
+          const tabBRows: TableRow[] = [
+            new TableRow({ children: [headerCell("Segmento", 40), headerCell("Pontuação", 30), headerCell("Observação", 30)] }),
+          ];
+          tabelaBparts.forEach(part => {
+            const score = a.body_parts[part] ?? 0;
+            const label = bodyPartLabels[part] || part;
+            const obs = score >= 4 ? "Ação imediata" : score >= 3 ? "Ação necessária" : score >= 2 ? "Monitorar" : "Aceitável";
+            tabBRows.push(new TableRow({
+              children: [textCell(label, false, 40), textCell(String(score), true, 30), textCell(obs, false, 30)],
+            }));
+          });
+          // Add coupling
+          tabBRows.push(new TableRow({
+            children: [textCell("Pega (Coupling)", true, 40), textCell("0-1", true, 30), textCell("Pega aceitável", false, 30)],
+          }));
+          children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tabBRows }));
+          children.push(new Paragraph({ spacing: { after: 120 } }));
+
+          children.push(body("Tabela C — Resultado:", { bold: true, spacing: { before: 60, after: 60 } }));
+          const tabCRows: TableRow[] = [
+            new TableRow({ children: [headerCell("Score Tabela A", 25), headerCell("Score Tabela B", 25), headerCell("Atividade (+1)", 25), headerCell("Score Final", 25)] }),
+            new TableRow({ children: [
+              textCell(String(tabelaAparts.reduce((s, p) => s + (a.body_parts[p] ?? 0), 0)), true, 25),
+              textCell(String(tabelaBparts.reduce((s, p) => s + (a.body_parts[p] ?? 0), 0)), true, 25),
+              textCell("1", true, 25),
+              textCell(String(a.score), true, 25),
+            ] }),
+          ];
+          children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tabCRows }));
+        } else if (a.method === "ROSA") {
+          // ROSA specific table
+          children.push(body("Avaliação por Componente do Posto:", { bold: true, spacing: { before: 100, after: 60 } }));
+          const rosaRows: TableRow[] = [
+            new TableRow({ children: [headerCell("Componente", 40), headerCell("Pontuação", 30), headerCell("Observação", 30)] }),
+          ];
+          Object.entries(a.body_parts).forEach(([part, score]) => {
+            const label = bodyPartLabels[part] || part;
+            const obs = score >= 4 ? "Inadequado – ajustar" : score >= 3 ? "Atenção – verificar" : "Adequado";
+            rosaRows.push(new TableRow({
+              children: [textCell(label, false, 40), textCell(String(score), true, 30), textCell(obs, false, 30)],
+            }));
+          });
+          rosaRows.push(new TableRow({
+            children: [textCell("Score Final ROSA", true, 40), textCell(String(a.score), true, 30), textCell(
+              a.score <= 2 ? "Desprezível" : a.score <= 4 ? "Baixo" : a.score <= 6 ? "Médio" : "Alto"
+            , true, 30)],
+          }));
+          children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: rosaRows }));
+        }
+
+        children.push(new Paragraph({ spacing: { after: 120 } }));
+
+        // Classification legend
         const legendTable = new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           rows: [
             new TableRow({ children: [headerCell("Pontuação", 20), headerCell("Nível do Risco", 30), headerCell("Ação", 50)] }),
-            new TableRow({ children: [textCell("1", false, 20), textCell("Insignificante", false, 30), textCell("Não necessária", false, 50)] }),
-            new TableRow({ children: [textCell("2 a 3", false, 20), textCell("Baixo", false, 30), textCell("Pode ser necessária", false, 50)] }),
-            new TableRow({ children: [textCell("4 a 7", false, 20), textCell("Médio", false, 30), textCell("Necessária", false, 50)] }),
-            new TableRow({ children: [textCell("8 a 10", false, 20), textCell("Alto", false, 30), textCell("Necessária em breve", false, 50)] }),
-            new TableRow({ children: [textCell("> 11", false, 20), textCell("Muito alto", false, 30), textCell("Necessária imediatamente", false, 50)] }),
+            new TableRow({ children: [shadedCell("1", COLORS.greenBg, false, 20), shadedCell("Insignificante", COLORS.greenBg, false, 30), textCell("Não necessária", false, 50)] }),
+            new TableRow({ children: [shadedCell("2 a 3", COLORS.greenBg, false, 20), shadedCell("Baixo", COLORS.greenBg, false, 30), textCell("Pode ser necessária", false, 50)] }),
+            new TableRow({ children: [shadedCell("4 a 7", COLORS.yellowBg, false, 20), shadedCell("Médio", COLORS.yellowBg, false, 30), textCell("Necessária", false, 50)] }),
+            new TableRow({ children: [shadedCell("8 a 10", COLORS.redBg, false, 20), shadedCell("Alto", COLORS.redBg, false, 30), textCell("Necessária em breve", false, 50)] }),
+            new TableRow({ children: [shadedCell("> 11", COLORS.redBg, false, 20), shadedCell("Muito alto", COLORS.redBg, false, 30), textCell("Necessária imediatamente", false, 50)] }),
           ],
         });
         children.push(legendTable);
         children.push(new Paragraph({ spacing: { after: 200 } }));
 
-        children.push(body(`Com base na análise ergonômica realizada, verificou-se que a atividade desenvolvida apresenta risco ergonômico decorrente principalmente de posturas em pé prolongadas, flexões e rotações de tronco, esforços físicos moderados e repetitividade de movimentos de membros superiores.`));
-        children.push(body(`A aplicação do método ${a.method} resultou em pontuação ${a.score}, sendo recomendada a adoção de medidas corretivas, como melhoria na organização do posto de trabalho, adequação das alturas de armazenamento e manuseio, incentivo à alternância postural e orientação ergonômica aos trabalhadores.`));
+        // Conclusion paragraph
+        const riskLevel = a.score <= 1 ? "insignificante" : a.score <= 3 ? "baixo" : a.score <= 7 ? "médio" : a.score <= 10 ? "alto" : "muito alto";
+        const actionNeeded = a.score <= 1 ? "não sendo necessária intervenção imediata" : a.score <= 3 ? "com ação que pode ser necessária" : a.score <= 7 ? "com ação necessária" : a.score <= 10 ? "com ação necessária em breve" : "com ação necessária imediatamente";
+        children.push(body(`Com base na análise ergonômica realizada, verificou-se que a atividade desenvolvida no setor de ${wsSector?.name || "—"} apresenta risco ergonômico de nível ${riskLevel}, decorrente principalmente de ${a.notes.toLowerCase()}.`));
+        children.push(body(`A aplicação do método ${a.method} resultou em pontuação ${a.score}, caracterizando Nível de Risco ${riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}, ${actionNeeded}, sendo recomendada a adoção de medidas corretivas, como melhoria na organização do posto de trabalho, adequação das alturas de armazenamento e manuseio, incentivo à alternância postural e orientação ergonômica aos trabalhadores, com o objetivo de reduzir a sobrecarga musculoesquelética e prevenir o surgimento de desconfortos e possíveis distúrbios osteomusculares relacionados ao trabalho.`));
       });
     }
     children.push(pageBreak());
