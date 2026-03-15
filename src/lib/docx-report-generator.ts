@@ -1989,6 +1989,7 @@ function generatePCMSODocx(ctx: DocxReportContext): Document {
 
   // 18. Cronograma
   children.push(heading("18. CRONOGRAMA ANUAL DE AÇÕES"));
+  children.push(...expandSection("cronograma_acoes"));
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
   children.push(accentCallout("O cronograma deve ser revisado anualmente e ajustado conforme demandas identificadas.", "info"));
   children.push(new Table({
