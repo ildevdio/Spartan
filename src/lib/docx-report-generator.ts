@@ -356,43 +356,72 @@ function getTodayFull(): string {
 }
 
 function createCoverPage(title: string, subtitle: string, company: Company, consultant: string): Paragraph[] {
+  const year = new Date().getFullYear().toString();
   return [
-    new Paragraph({ spacing: { before: 3000 } }),
+    // Top decorative line
     new Paragraph({
-      children: [new TextRun({ text: title, bold: true, size: 56, font: "Calibri", color: COLORS.primary })],
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 120 },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: COLORS.accent, space: 1 } },
+      spacing: { before: 800, after: 200 },
     }),
+    new Paragraph({ spacing: { before: 1200 } }),
+    // Title
     new Paragraph({
-      children: [new TextRun({ text: subtitle, size: 36, font: "Calibri", color: COLORS.secondary })],
+      children: [new TextRun({ text: title, bold: true, size: 52, font: "Calibri", color: COLORS.primary })],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 200 },
+      spacing: { after: 80 },
     }),
+    // Accent line under title
     new Paragraph({
-      children: [new TextRun({ text: new Date().getFullYear().toString(), size: 32, font: "Calibri", color: COLORS.muted })],
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 600 },
+      border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: COLORS.accent, space: 1 } },
+      spacing: { after: 80 },
+      indent: { left: convertInchesToTwip(2), right: convertInchesToTwip(2) },
     }),
+    // Subtitle / year
     new Paragraph({
-      children: [new TextRun({ text: company.name, bold: true, size: 40, font: "Calibri", color: COLORS.primary })],
+      children: [
+        new TextRun({ text: subtitle, size: 36, font: "Calibri", color: COLORS.accent, bold: true }),
+        new TextRun({ text: `  —  ${year}`, size: 28, font: "Calibri", color: COLORS.muted }),
+      ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 120 },
+      spacing: { after: 800 },
     }),
+    // Company name
+    new Paragraph({
+      children: [new TextRun({ text: company.name.toUpperCase(), bold: true, size: 36, font: "Calibri", color: COLORS.primary })],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 80 },
+    }),
+    // CNPJ
     new Paragraph({
       children: [new TextRun({ text: `CNPJ: ${company.cnpj}`, size: 22, font: "Calibri", color: COLORS.muted })],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 600 },
+      spacing: { after: 40 },
     }),
+    // Address
+    new Paragraph({
+      children: [new TextRun({ text: `${company.address} — ${company.city}/${company.state}`, size: 20, font: "Calibri", color: COLORS.muted })],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 800 },
+    }),
+    // Consultant
     new Paragraph({
       children: [
-        new TextRun({ text: "Responsável pela implantação", size: 20, font: "Calibri", color: COLORS.secondary }),
+        new TextRun({ text: "Responsável Técnico: ", size: 20, font: "Calibri", color: COLORS.secondary }),
+        new TextRun({ text: consultant, size: 20, font: "Calibri", color: COLORS.primary, bold: true }),
       ],
+      alignment: AlignmentType.CENTER,
+      spacing: { after: 120 },
+    }),
+    // Firm name
+    new Paragraph({
+      children: [new TextRun({ text: "MG Consultoria — Ergonomia & Segurança do Trabalho", size: 18, font: "Calibri", color: COLORS.light, italics: true })],
       alignment: AlignmentType.CENTER,
       spacing: { after: 60 },
     }),
+    // Bottom decorative line
     new Paragraph({
-      children: [new TextRun({ text: "MG Consultoria — Ergonomia & Segurança do Trabalho", size: 20, font: "Calibri", color: COLORS.light, italics: true })],
-      alignment: AlignmentType.CENTER,
+      border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: COLORS.accent, space: 1 } },
+      spacing: { before: 400, after: 200 },
     }),
     pageBreak(),
   ];
@@ -404,20 +433,80 @@ function createRevisionTable(): (Paragraph | Table)[] {
     new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
-        new TableRow({ children: [headerCell("REVISÃO", 20), headerCell("DATA", 40), headerCell("DESCRIÇÃO", 40)] }),
-        new TableRow({ children: [textCell("00", false, 20), textCell(getTodayFull(), false, 40), textCell("Emissão Inicial", false, 40)] }),
+        new TableRow({
+          children: [headerCell("REVISÃO", 15), headerCell("DATA", 30), headerCell("PÁGINA", 20), headerCell("DESCRIÇÃO", 35)],
+          height: { value: convertInchesToTwip(0.35), rule: HeightRule.AT_LEAST },
+        }),
+        new TableRow({ children: [textCell("00", false, 15), textCell(getTodayFull(), false, 30), textCell("TODAS", false, 20), textCell("Emissão Inicial", false, 35)] }),
       ],
     }),
-    new Paragraph({ spacing: { after: 200 } }),
+    spacer(200),
   ];
 }
 
 function createInfoTable(company: Company, sectorName: string, wsName: string): Table {
-  const rows = [
+  const rows: [string, string][] = [
     ["Razão Social", company.name],
     ["Nome Fantasia", company.name],
     ["CNPJ", company.cnpj],
     ["Endereço", company.address],
+    ["Cidade/UF", `${company.city}/${company.state}`],
+    ["Descrição", company.description],
+    ["Setor(es) Avaliado(s)", sectorName],
+    ["Posto(s) de Trabalho", wsName],
+  ];
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({
+        children: [mergedCell("DADOS DA ORGANIZAÇÃO", 2, true, COLORS.headerBg)],
+        height: { value: convertInchesToTwip(0.35), rule: HeightRule.AT_LEAST },
+      }),
+      ...rows.map(([label, value], i) =>
+        new TableRow({
+          children: [
+            labelCell(label, 30),
+            altCell(value, i % 2 === 1, false, 70),
+          ],
+        })
+      ),
+    ],
+  });
+}
+
+function createProfessionalHeader(reportType: string, companyName: string): Header {
+  return new Header({
+    children: [
+      new Paragraph({
+        children: [
+          new TextRun({ text: `${reportType} — ${companyName}`, size: 16, font: "Calibri", color: COLORS.light, italics: true }),
+          new TextRun({ text: "    |    ", size: 16, font: "Calibri", color: COLORS.border }),
+          new TextRun({ text: "MG Consultoria", size: 16, font: "Calibri", color: COLORS.accent, bold: true }),
+        ],
+        alignment: AlignmentType.RIGHT,
+        border: { bottom: { style: BorderStyle.SINGLE, size: 2, color: COLORS.accent, space: 4 } },
+        spacing: { after: 200 },
+      }),
+    ],
+  });
+}
+
+function createProfessionalFooter(): Footer {
+  return new Footer({
+    children: [
+      new Paragraph({
+        children: [
+          new TextRun({ text: "Documento confidencial — ", size: 14, font: "Calibri", color: COLORS.light, italics: true }),
+          new TextRun({ text: "Spartan / MG Consultoria", size: 14, font: "Calibri", color: COLORS.accent, italics: true }),
+        ],
+        alignment: AlignmentType.CENTER,
+        border: { top: { style: BorderStyle.SINGLE, size: 2, color: COLORS.accent, space: 4 } },
+        spacing: { before: 200 },
+      }),
+    ],
+  });
+}
     ["Cidade/UF", `${company.city}/${company.state}`],
     ["Descrição", company.description],
     ["Setor(es) Avaliado(s)", sectorName],
