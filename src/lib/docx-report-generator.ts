@@ -2,7 +2,7 @@ import {
   Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
   WidthType, AlignmentType, HeadingLevel, BorderStyle, PageBreak,
   Header, Footer, TabStopPosition, TabStopType,
-  ShadingType, convertInchesToTwip,
+  ShadingType, convertInchesToTwip, ImageRun,
 } from "docx";
 import { saveAs } from "file-saver";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
@@ -83,6 +83,73 @@ function bulletItem(text: string): Paragraph {
 
 function pageBreak(): Paragraph {
   return new Paragraph({ children: [new PageBreak()] });
+}
+
+async function fetchImageAsBuffer(url: string): Promise<{ buffer: ArrayBuffer; width: number; height: number } | null> {
+  try {
+    if (url.startsWith("data:")) {
+      const base64 = url.split(",")[1];
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const buffer = bytes.buffer;
+      // Get dimensions from the image
+      const dims = await getImageDimensions(url);
+      return { buffer, ...dims };
+    }
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    const buffer = await blob.arrayBuffer();
+    const blobUrl = URL.createObjectURL(blob);
+    const dims = await getImageDimensions(blobUrl);
+    URL.revokeObjectURL(blobUrl);
+    return { buffer, ...dims };
+  } catch {
+    return null;
+  }
+}
+
+function getImageDimensions(src: string): Promise<{ width: number; height: number }> {
+  return new Promise((resolve) => {
+    const img = new window.Image();
+    img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+    img.onerror = () => resolve({ width: 640, height: 480 });
+    img.src = src;
+  });
+}
+
+function createImageParagraph(buffer: ArrayBuffer, width: number, height: number, caption?: string): Paragraph[] {
+  const maxWidth = 500;
+  const scale = Math.min(maxWidth / width, 1);
+  const finalW = Math.round(width * scale);
+  const finalH = Math.round(height * scale);
+
+  const paragraphs: Paragraph[] = [
+    new Paragraph({
+      children: [
+        new ImageRun({
+          data: buffer,
+          transformation: { width: finalW, height: finalH },
+          type: "png",
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 200, after: 60 },
+    }),
+  ];
+
+  if (caption) {
+    paragraphs.push(
+      new Paragraph({
+        children: [new TextRun({ text: caption, size: 18, font: "Calibri", italics: true, color: COLORS.muted })],
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 200 },
+      })
+    );
+  }
+
+  return paragraphs;
 }
 
 function getToday(): string {
@@ -168,7 +235,7 @@ function createInfoTable(company: Company, sectorName: string, wsName: string): 
 }
 
 // ========== AET REPORT ==========
-function generateAETDocx(ctx: DocxReportContext): Document {
+async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   const { company, sector, workstation, workstations, sectors, analyses, photos } = ctx;
   const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
   const wsIds = workstations.map(w => w.id);
@@ -274,6 +341,17 @@ function generateAETDocx(ctx: DocxReportContext): Document {
   children.push(heading("7.1 Registro Postural", HeadingLevel.HEADING_3));
   if (photos.length > 0) {
     children.push(body(`Foram registradas ${photos.length} posturas de trabalho para documentação e análise biomecânica:`));
+
+    // Embed actual images
+    for (const photo of photos) {
+      if (photo.image_url && photo.image_url !== "/placeholder.svg") {
+        const imgData = await fetchImageAsBuffer(photo.image_url);
+        if (imgData) {
+          children.push(...createImageParagraph(imgData.buffer, imgData.width, imgData.height, `${photo.posture_type} — ${photo.created_at}`));
+        }
+      }
+    }
+
     const photoTable = new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
@@ -690,7 +768,7 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
 
   switch (ctx.reportType) {
     case "AET":
-      doc = generateAETDocx(ctx);
+      doc = await generateAETDocx(ctx);
       break;
     case "PGR":
       doc = generatePGRDocx(ctx);
