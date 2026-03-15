@@ -293,7 +293,7 @@ export default function AnaliseCameraPage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!sectorId || !workstationId || !activity || !role || !selectedMethod) {
       toast.error("Preencha todos os campos obrigatórios.");
       return;

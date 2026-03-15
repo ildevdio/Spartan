@@ -32,7 +32,7 @@ export default function PostureCapturePage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!wsId || !postureType.trim()) {
       toast.error("Selecione o posto e o tipo de postura.");
       return;
