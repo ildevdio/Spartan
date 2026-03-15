@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCompany } from "@/lib/company-context";
-import { MIN_PHOTOS_REQUIRED, type ReportType } from "@/lib/types";
-import { FileText, CheckCircle2, AlertTriangle, Download, Loader2 } from "lucide-react";
+import { mockRiskAssessments, mockActionPlans, mockPsychosocialAnalyses } from "@/lib/mock-data";
+import { MIN_PHOTOS_REQUIRED, type ReportType, riskLevelLabel, type RiskLevel } from "@/lib/types";
+import { FileText, CheckCircle2, AlertTriangle, Download, Loader2, BarChart3, ShieldAlert, Users, Target, Layers } from "lucide-react";
 import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { generateAndDownloadDocx, type DocxReportContext } from "@/lib/docx-report-generator";
+import { Progress } from "@/components/ui/progress";
 
 const REPORT_TYPES: { type: ReportType; label: string; description: string }[] = [
   { type: "AEP", label: "AEP", description: "Avaliação Ergonômica Preliminar" },
@@ -25,7 +27,7 @@ export default function RelatoriosPage() {
   const {
     companyWorkstations, companySectors,
     companyAnalyses, posturePhotos,
-    selectedCompany,
+    selectedCompany, selectedCompanyId,
   } = useCompany();
   const [generating, setGenerating] = useState<string | null>(null);
 
@@ -38,6 +40,15 @@ export default function RelatoriosPage() {
     const photoCount = posturePhotos.filter((p) => p.workstation_id === ws.id).length;
     return photoCount < MIN_PHOTOS_REQUIRED;
   });
+
+  // Summary stats
+  const companyRisks = mockRiskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
+  const companyActions = mockActionPlans.filter((ap) => companyRisks.some((r) => r.id === ap.risk_assessment_id));
+  const companyPsychosocial = mockPsychosocialAnalyses.filter((p) => p.company_id === selectedCompanyId);
+  const completedAnalyses = companyAnalyses.filter((a) => a.analysis_status === "completed").length;
+  const totalPhotos = posturePhotos.filter((p) => companyWorkstations.some((w) => w.id === p.workstation_id)).length;
+  const riskDist: Record<RiskLevel, number> = { low: 0, medium: 0, high: 0, critical: 0 };
+  companyRisks.forEach((r) => riskDist[r.risk_level]++);
 
   const handleGenerateDocx = async (wsId: string, type: ReportType) => {
     const ws = companyWorkstations.find((w) => w.id === wsId);
@@ -112,6 +123,70 @@ export default function RelatoriosPage() {
         <CompanySelector />
       </div>
 
+      {/* Company data summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+        <Card>
+          <CardContent className="p-3 text-center">
+            <Layers className="h-4 w-4 text-accent mx-auto mb-1" />
+            <p className="text-lg font-bold">{companySectors.length}</p>
+            <p className="text-[9px] text-muted-foreground">Setores</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <BarChart3 className="h-4 w-4 text-accent mx-auto mb-1" />
+            <p className="text-lg font-bold">{companyWorkstations.length}</p>
+            <p className="text-[9px] text-muted-foreground">Postos</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <CheckCircle2 className="h-4 w-4 text-success mx-auto mb-1" />
+            <p className="text-lg font-bold">{wsReadyForReport.length}</p>
+            <p className="text-[9px] text-muted-foreground">Prontos</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <ShieldAlert className="h-4 w-4 text-high mx-auto mb-1" />
+            <p className="text-lg font-bold">{companyRisks.length}</p>
+            <p className="text-[9px] text-muted-foreground">Riscos</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <Target className="h-4 w-4 text-warning mx-auto mb-1" />
+            <p className="text-lg font-bold">{companyActions.length}</p>
+            <p className="text-[9px] text-muted-foreground">Ações</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <Users className="h-4 w-4 text-accent mx-auto mb-1" />
+            <p className="text-lg font-bold">{companyPsychosocial.length}</p>
+            <p className="text-[9px] text-muted-foreground">Psicossocial</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Readiness indicator */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-medium text-muted-foreground">Cobertura para Relatórios</span>
+            <span className="text-sm font-bold">
+              {companyWorkstations.length > 0 ? Math.round((wsReadyForReport.length / companyWorkstations.length) * 100) : 0}%
+            </span>
+          </div>
+          <Progress value={companyWorkstations.length > 0 ? (wsReadyForReport.length / companyWorkstations.length) * 100 : 0} className="h-2 mb-2" />
+          <div className="flex justify-between text-[10px] text-muted-foreground">
+            <span>{wsReadyForReport.length} postos prontos</span>
+            <span>{totalPhotos} fotos totais</span>
+            <span>{completedAnalyses} análises concluídas</span>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Quick generate for entire company */}
       <Card>
         <CardHeader>
@@ -122,7 +197,7 @@ export default function RelatoriosPage() {
         </CardHeader>
         <CardContent>
           <p className="text-xs text-muted-foreground mb-3">
-            Gera um documento .docx contendo todos os postos e análises da empresa.
+            Gera um documento .docx contendo todos os {companyWorkstations.length} postos, {companyAnalyses.length} análises e {companyRisks.length} avaliações de risco.
           </p>
           <div className="flex gap-2 flex-wrap">
             {["AEP", "AET", "PGR"].map((type) => {
@@ -141,6 +216,19 @@ export default function RelatoriosPage() {
               );
             })}
           </div>
+          {/* Risk summary */}
+          <div className="flex gap-2 mt-3">
+            {(["low", "medium", "high", "critical"] as RiskLevel[]).map((level) => riskDist[level] > 0 && (
+              <Badge key={level} variant="outline" className={`text-[10px] ${
+                level === "critical" ? "bg-critical/10 text-critical" :
+                level === "high" ? "bg-high/10 text-high" :
+                level === "medium" ? "bg-warning/10 text-warning" :
+                "bg-success/10 text-success"
+              }`}>
+                {riskDist[level]} {riskLevelLabel(level)}
+              </Badge>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
@@ -150,20 +238,35 @@ export default function RelatoriosPage() {
           <CardHeader>
             <CardTitle className="text-sm sm:text-base flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-success" />
-              Postos Prontos para Relatório
+              Postos Prontos para Relatório ({wsReadyForReport.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             {wsReadyForReport.map((ws) => {
               const sector = companySectors.find((s) => s.id === ws.sector_id);
               const photoCount = posturePhotos.filter((p) => p.workstation_id === ws.id).length;
+              const wsAnalyses = companyAnalyses.filter((a) => a.workstation_id === ws.id);
+              const wsRisks = mockRiskAssessments.filter((r) => wsAnalyses.some((a) => a.id === r.analysis_id));
+              const worstRisk = wsRisks.sort((a, b) => b.risk_score - a.risk_score)[0];
               return (
                 <div key={ws.id} className="p-3 rounded-lg bg-success/5 border border-success/20">
                   <div className="flex items-center justify-between mb-2">
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{ws.name}</p>
-                      <p className="text-xs text-muted-foreground">{sector?.name} — {photoCount} fotos</p>
+                      <p className="text-xs text-muted-foreground">
+                        {sector?.name} — {photoCount} fotos — {wsAnalyses.length} análise(s)
+                        {wsAnalyses.length > 0 && ` — ${wsAnalyses.map((a) => a.method).join(", ")}`}
+                      </p>
                     </div>
+                    {worstRisk && (
+                      <Badge variant="outline" className={`text-[10px] shrink-0 ${
+                        worstRisk.risk_level === "critical" ? "bg-critical/10 text-critical" :
+                        worstRisk.risk_level === "high" ? "bg-high/10 text-high" :
+                        "bg-warning/10 text-warning"
+                      }`}>
+                        {riskLevelLabel(worstRisk.risk_level)}
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     {(["AEP", "AET", "PGR"] as ReportType[]).map((type) => {
@@ -197,15 +300,19 @@ export default function RelatoriosPage() {
           <CardHeader>
             <CardTitle className="text-sm sm:text-base flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-warning" />
-              Fotos Insuficientes
+              Fotos Insuficientes ({wsNotReady.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {wsNotReady.map((ws) => {
               const photoCount = posturePhotos.filter((p) => p.workstation_id === ws.id).length;
+              const sector = companySectors.find((s) => s.id === ws.sector_id);
               return (
                 <div key={ws.id} className="flex items-center justify-between p-2 rounded bg-secondary/50 text-sm">
-                  <span className="truncate mr-2">{ws.name}</span>
+                  <div className="min-w-0">
+                    <span className="truncate mr-2 text-sm">{ws.name}</span>
+                    <span className="text-[10px] text-muted-foreground"> — {sector?.name}</span>
+                  </div>
                   <Badge variant="outline" className="bg-warning/10 text-warning shrink-0 text-xs">
                     {photoCount}/{MIN_PHOTOS_REQUIRED}
                   </Badge>
