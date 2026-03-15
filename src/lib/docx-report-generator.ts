@@ -341,6 +341,17 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   children.push(heading("7.1 Registro Postural", HeadingLevel.HEADING_3));
   if (photos.length > 0) {
     children.push(body(`Foram registradas ${photos.length} posturas de trabalho para documentação e análise biomecânica:`));
+
+    // Embed actual images
+    for (const photo of photos) {
+      if (photo.image_url && photo.image_url !== "/placeholder.svg") {
+        const imgData = await fetchImageAsBuffer(photo.image_url);
+        if (imgData) {
+          children.push(...createImageParagraph(imgData.buffer, imgData.width, imgData.height, `${photo.posture_type} — ${photo.created_at}`));
+        }
+      }
+    }
+
     const photoTable = new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
