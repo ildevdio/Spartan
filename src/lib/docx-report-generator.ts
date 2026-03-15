@@ -1641,6 +1641,7 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("16. REFERÊNCIAS BIBLIOGRÁFICAS"));
   ["Normas Regulamentadoras — Ministério do Trabalho", "ABNT NBR ISO 31000:2009 — Gestão de Riscos", "BS 8800:1996 — OHS Management Systems", "FUNDACENTRO — NHO 01, NHO 06, NHO 11"].forEach(item => children.push(bulletItem(item)));
+  children.push(...expandSection("legislacao_sst"));
 
   children.push(...signatureBlock(consultant));
 
