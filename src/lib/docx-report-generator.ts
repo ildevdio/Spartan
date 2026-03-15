@@ -2022,9 +2022,15 @@ function generateGenericDocx(ctx: DocxReportContext): Document {
     creator: "Spartan - MG Consultoria",
     title,
     sections: [{
+  return new Document({
+    creator: "Spartan - MG Consultoria",
+    title,
+    sections: [{
       properties: {
-        page: { margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(1), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) } },
+        page: { margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(0.8), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) } },
       },
+      headers: { default: createProfessionalHeader(reportType, company.name) },
+      footers: { default: createProfessionalFooter() },
       children,
     }],
   });
