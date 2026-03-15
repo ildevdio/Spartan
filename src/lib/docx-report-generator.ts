@@ -373,12 +373,64 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   children.push(heading("5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO"));
   children.push(body(`A ${company.name} atua no segmento de ${company.description.toLowerCase()}. Suas atividades envolvem processos diversos desenvolvidos em ambiente interno e externo. As rotinas operacionais exigem permanência prolongada em pé, movimentos repetitivos de membros superiores, atenção constante e ritmo de trabalho variável conforme a demanda, fatores considerados na presente Análise Ergonômica do Trabalho, em conformidade com os preceitos da NR-17.`));
 
+  // Organizational summary table
+  const orgTable = new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [mergedCell("ORGANIZAÇÃO DO TRABALHO", 2, true, COLORS.headerBg)] }),
+      new TableRow({ children: [textCell("Setores Avaliados", true, 35), textCell(sectors.map(s => s.name).join(", "), false, 65)] }),
+      new TableRow({ children: [textCell("Nº de Postos Analisados", true, 35), textCell(String(workstations.length), false, 65)] }),
+      new TableRow({ children: [textCell("Métodos Aplicados", true, 35), textCell(methods, false, 65)] }),
+      new TableRow({ children: [textCell("Nº de Fotos Posturais", true, 35), textCell(String(photos.length), false, 65)] }),
+      new TableRow({ children: [textCell("Nº de Análises Realizadas", true, 35), textCell(String(analyses.length), false, 65)] }),
+      new TableRow({ children: [textCell("Riscos Identificados", true, 35), textCell(String(risks.length), false, 65)] }),
+    ],
+  });
+  children.push(orgTable);
+  children.push(new Paragraph({ spacing: { after: 200 } }));
+
   workstations.forEach(ws => {
     const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
     const wsSector = sectors.find(s => s.id === ws.sector_id);
+    const wsAnalyses = analyses.filter(a => a.workstation_id === ws.id);
+    const wsPhotos = photos.filter(p => p.workstation_id === ws.id);
+    const posAnalysis = mockPostureAnalyses.find(pa => pa.workstation_id === ws.id);
+
     children.push(heading(`Posto: ${ws.name}${wsSector ? ` (${wsSector.name})` : ""}`, HeadingLevel.HEADING_3));
-    children.push(body(`Descrição da atividade: ${ws.activity_description || ws.description}`));
-    children.push(body("Tarefas executadas:", { bold: true }));
+
+    // Per-workstation detail table
+    const wsDetailTable = new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({ children: [textCell("Setor", true, 30), textCell(wsSector?.name || "—", false, 70)] }),
+        new TableRow({ children: [textCell("Descrição da Atividade", true, 30), textCell(ws.activity_description || ws.description, false, 70)] }),
+        new TableRow({ children: [textCell("Descrição Física do Posto", true, 30), textCell(ws.description, false, 70)] }),
+        new TableRow({ children: [textCell("Tarefas Executadas", true, 30), textCell(ws.tasks_performed, false, 70)] }),
+        new TableRow({ children: [textCell("Nº de Fotos Registradas", true, 30), textCell(String(wsPhotos.length), false, 70)] }),
+        new TableRow({ children: [textCell("Análises Aplicadas", true, 30), textCell(wsAnalyses.map(a => `${a.method} (Score: ${a.score})`).join(", ") || "Nenhuma", false, 70)] }),
+      ],
+    });
+    children.push(wsDetailTable);
+
+    if (posAnalysis) {
+      children.push(body("Ângulos Articulares Medidos:", { bold: true, spacing: { before: 120, after: 60 } }));
+      const angleTable = new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: [headerCell("Articulação", 40), headerCell("Ângulo (°)", 30), headerCell("Classificação", 30)] }),
+          ...Object.entries(posAnalysis.joint_angles).map(([joint, angle]) => {
+            const jointLabel = { neck: "Pescoço", shoulder: "Ombro", elbow: "Cotovelo", trunk: "Tronco", hip: "Quadril", knee: "Joelho" }[joint] || joint;
+            const riskClass = angle > 45 ? "Atenção" : angle > 20 ? "Moderado" : "Aceitável";
+            return new TableRow({
+              children: [textCell(jointLabel, false, 40), textCell(`${angle}°`, true, 30), textCell(riskClass, false, 30)],
+            });
+          }),
+        ],
+      });
+      children.push(angleTable);
+    }
+
+    children.push(body("Tarefas executadas:", { bold: true, spacing: { before: 120, after: 60 } }));
     if (wsTasks.length > 0) {
       wsTasks.forEach(t => children.push(bulletItem(t.description)));
     } else {
