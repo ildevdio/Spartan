@@ -435,7 +435,7 @@ function createRevisionTable(): (Paragraph | Table)[] {
       rows: [
         new TableRow({
           children: [headerCell("REVISÃO", 15), headerCell("DATA", 30), headerCell("PÁGINA", 20), headerCell("DESCRIÇÃO", 35)],
-          height: { value: convertInchesToTwip(0.35), rule: HeightRule.AT_LEAST },
+          height: { value: convertInchesToTwip(0.35), rule: HeightRule.ATLEAST },
         }),
         new TableRow({ children: [textCell("00", false, 15), textCell(getTodayFull(), false, 30), textCell("TODAS", false, 20), textCell("Emissão Inicial", false, 35)] }),
       ],
