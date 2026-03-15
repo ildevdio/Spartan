@@ -1623,9 +1623,11 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("12. EPC — EQUIPAMENTO DE PROTEÇÃO COLETIVA"));
   children.push(body("O estudo e implantação de medidas de proteção coletiva deverá obedecer à hierarquia: eliminação na fonte, prevenção de disseminação, redução de níveis."));
+  children.push(...expandSection("epc_detalhado"));
 
   children.push(heading("13. EPI — EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL"));
   children.push(body("O EPI é todo dispositivo de uso individual destinado à proteção de riscos suscetíveis de ameaçar a segurança e a saúde no trabalho."));
+  children.push(...expandSection("epi_detalhado"));
   ["Adquirir o EPI adequado ao risco", "Exigir seu uso", "Orientar e treinar sobre uso, guarda e conservação", "Substituir imediatamente quando danificado", "Registrar o fornecimento ao trabalhador"].forEach(item => children.push(bulletItem(`Cabe ao empregador: ${item}`)));
 
   children.push(heading("14. RESPONSABILIDADES"));
