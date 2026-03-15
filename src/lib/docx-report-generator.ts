@@ -1683,6 +1683,7 @@ function generateAPRDocx(ctx: DocxReportContext): Document {
   children.push(heading("2. METODOLOGIA"));
   children.push(body("A metodologia utilizada para a avaliação preliminar dos riscos psicossociais é baseada no instrumento COPSOQ II (Copenhagen Psychosocial Questionnaire), reconhecido internacionalmente como ferramenta de referência para avaliação de fatores psicossociais no trabalho."));
   children.push(body("O questionário contempla dimensões como demandas quantitativas, cognitivas e emocionais, influência no trabalho, possibilidades de desenvolvimento, significado do trabalho, compromisso, previsibilidade e suporte social."));
+  children.push(...expandSection("psicossocial_detalhado"));
 
   children.push(heading("Critérios de Classificação", HeadingLevel.HEADING_3));
   children.push(new Table({
