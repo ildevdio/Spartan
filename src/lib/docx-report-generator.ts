@@ -3,8 +3,7 @@ import {
   WidthType, AlignmentType, HeadingLevel, BorderStyle, PageBreak,
   Header, Footer, TabStopPosition, TabStopType,
   ShadingType, convertInchesToTwip, ImageRun,
-  TableLayoutType, HeightRule, VerticalAlign, PageNumber, NumberFormat,
-  UnderlineType,
+  HeightRule, VerticalAlign,
 } from "docx";
 import { saveAs } from "file-saver";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
