@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCompany } from "@/lib/company-context";
-import { mockRiskAssessments, mockActionPlans, mockPsychosocialAnalyses } from "@/lib/mock-data";
 import { MIN_PHOTOS_REQUIRED, type ReportType, riskLevelLabel, type RiskLevel } from "@/lib/types";
 import { FileText, CheckCircle2, AlertTriangle, Download, Loader2, BarChart3, ShieldAlert, Users, Target, Layers, Eye } from "lucide-react";
 import { CompanySelector } from "@/components/CompanySelector";
@@ -31,6 +30,7 @@ export default function RelatoriosPage() {
     companyWorkstations, companySectors,
     companyAnalyses, posturePhotos,
     selectedCompany, selectedCompanyId,
+    riskAssessments, actionPlans, psychosocialAnalyses,
   } = useCompany();
   const [generating, setGenerating] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
@@ -47,9 +47,9 @@ export default function RelatoriosPage() {
     return photoCount < MIN_PHOTOS_REQUIRED;
   });
 
-  const companyRisks = mockRiskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
-  const companyActions = mockActionPlans.filter((ap) => companyRisks.some((r) => r.id === ap.risk_assessment_id));
-  const companyPsychosocial = mockPsychosocialAnalyses.filter((p) => p.company_id === selectedCompanyId);
+  const companyRisks = riskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
+  const companyActions = actionPlans.filter((ap) => companyRisks.some((r) => r.id === ap.risk_assessment_id));
+  const companyPsychosocial = psychosocialAnalyses.filter((p) => p.company_id === selectedCompanyId);
   const completedAnalyses = companyAnalyses.filter((a) => a.analysis_status === "completed").length;
   const totalPhotos = posturePhotos.filter((p) => companyWorkstations.some((w) => w.id === p.workstation_id)).length;
   const riskDist: Record<RiskLevel, number> = { low: 0, medium: 0, high: 0, critical: 0 };
@@ -240,7 +240,7 @@ export default function RelatoriosPage() {
               const sector = companySectors.find((s) => s.id === ws.sector_id);
               const photoCount = posturePhotos.filter((p) => p.workstation_id === ws.id).length;
               const wsAnalyses = companyAnalyses.filter((a) => a.workstation_id === ws.id);
-              const wsRisks = mockRiskAssessments.filter((r) => wsAnalyses.some((a) => a.id === r.analysis_id));
+              const wsRisks = riskAssessments.filter((r) => wsAnalyses.some((a) => a.id === r.analysis_id));
               const worstRisk = wsRisks.sort((a, b) => b.risk_score - a.risk_score)[0];
               return (
                 <div key={ws.id} className="p-3 rounded-lg bg-success/5 border border-success/20">

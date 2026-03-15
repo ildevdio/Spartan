@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { mockRiskAssessments, mockAnalyses, mockWorkstations } from "@/lib/mock-data";
-import { calculateRiskScore, classifyRisk, riskLevelLabel, type RiskAssessment, type RiskLevel } from "@/lib/types";
+import { useCompany } from "@/lib/company-context";
+import { calculateRiskScore, classifyRisk, riskLevelLabel, type RiskLevel } from "@/lib/types";
 import { Plus, AlertTriangle } from "lucide-react";
 import { CompanySelector } from "@/components/CompanySelector";
 import { RiskBadge } from "./DashboardPage";
 
 export default function RiscosPage() {
-  const [risks, setRisks] = useState<RiskAssessment[]>(mockRiskAssessments);
+  const { companyAnalyses, companyWorkstations, riskAssessments, addRiskAssessment } = useCompany();
   const [open, setOpen] = useState(false);
   const [analysisId, setAnalysisId] = useState("");
   const [probability, setProbability] = useState(1);
@@ -23,10 +23,11 @@ export default function RiscosPage() {
   const score = calculateRiskScore(probability, exposure, consequence);
   const level = classifyRisk(score);
 
-  const handleSave = () => {
+  const companyRisks = riskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
+
+  const handleSave = async () => {
     if (!analysisId) return;
-    setRisks([...risks, {
-      id: `r${Date.now()}`,
+    await addRiskAssessment({
       analysis_id: analysisId,
       probability,
       exposure,
@@ -34,9 +35,9 @@ export default function RiscosPage() {
       risk_score: score,
       risk_level: level,
       description,
-      created_at: new Date().toISOString().split("T")[0],
-    }]);
-    setOpen(false);
+    });
+    setOpen(false); setDescription(""); setAnalysisId("");
+    setProbability(1); setExposure(1); setConsequence(1);
   };
 
   const matrixColors: Record<RiskLevel, string> = {
@@ -65,8 +66,8 @@ export default function RiscosPage() {
                 <Select value={analysisId} onValueChange={setAnalysisId}>
                   <SelectTrigger><SelectValue placeholder="Selecionar análise" /></SelectTrigger>
                   <SelectContent>
-                    {mockAnalyses.map((a) => {
-                      const ws = mockWorkstations.find((w) => w.id === a.workstation_id);
+                    {companyAnalyses.map((a) => {
+                      const ws = companyWorkstations.find((w) => w.id === a.workstation_id);
                       return <SelectItem key={a.id} value={a.id}>{ws?.name} — {a.method}</SelectItem>;
                     })}
                   </SelectContent>
@@ -111,7 +112,6 @@ export default function RiscosPage() {
 
       <Card>
         <CardContent className="p-0">
-          {/* Desktop */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -126,9 +126,9 @@ export default function RiscosPage() {
                 </tr>
               </thead>
               <tbody>
-                {risks.map((r) => {
-                  const analysis = mockAnalyses.find((a) => a.id === r.analysis_id);
-                  const ws = analysis ? mockWorkstations.find((w) => w.id === analysis.workstation_id) : null;
+                {companyRisks.map((r) => {
+                  const analysis = companyAnalyses.find((a) => a.id === r.analysis_id);
+                  const ws = analysis ? companyWorkstations.find((w) => w.id === analysis.workstation_id) : null;
                   return (
                     <tr key={r.id} className="border-b border-border last:border-0">
                       <td className="p-3 font-medium">{ws?.name} — {analysis?.method}</td>
@@ -144,11 +144,10 @@ export default function RiscosPage() {
               </tbody>
             </table>
           </div>
-          {/* Mobile */}
           <div className="sm:hidden divide-y divide-border">
-            {risks.map((r) => {
-              const analysis = mockAnalyses.find((a) => a.id === r.analysis_id);
-              const ws = analysis ? mockWorkstations.find((w) => w.id === analysis.workstation_id) : null;
+            {companyRisks.map((r) => {
+              const analysis = companyAnalyses.find((a) => a.id === r.analysis_id);
+              const ws = analysis ? companyWorkstations.find((w) => w.id === analysis.workstation_id) : null;
               return (
                 <div key={r.id} className="p-3 space-y-1">
                   <div className="flex items-center justify-between">

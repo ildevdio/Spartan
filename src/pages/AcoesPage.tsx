@@ -5,8 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { mockActionPlans, mockRiskAssessments, mockAnalyses, mockWorkstations } from "@/lib/mock-data";
-import { statusLabel, type ActionPlan, type ActionStatus } from "@/lib/types";
+import { useCompany } from "@/lib/company-context";
+import { statusLabel, type ActionStatus } from "@/lib/types";
 import { Plus, CheckCircle2, Clock, CircleDot, Hourglass } from "lucide-react";
 import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
@@ -28,29 +28,30 @@ const statusIcons: Record<ActionStatus, any> = {
 };
 
 export default function AcoesPage() {
-  const [actions, setActions] = useState<ActionPlan[]>(mockActionPlans);
+  const { companyAnalyses, companyWorkstations, riskAssessments, actionPlans, addActionPlan, updateActionPlan } = useCompany();
   const [open, setOpen] = useState(false);
   const [riskId, setRiskId] = useState("");
   const [description, setDescription] = useState("");
   const [responsible, setResponsible] = useState("");
   const [deadline, setDeadline] = useState("");
 
-  const handleSave = () => {
+  const companyRisks = riskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
+  const companyActions = actionPlans.filter((ap) => companyRisks.some((r) => r.id === ap.risk_assessment_id));
+
+  const handleSave = async () => {
     if (!riskId || !description.trim()) return;
-    setActions([...actions, {
-      id: `ap${Date.now()}`,
+    await addActionPlan({
       risk_assessment_id: riskId,
       description,
       responsible,
       deadline,
       status: "pending",
-      created_at: new Date().toISOString().split("T")[0],
-    }]);
+    });
     setOpen(false); setDescription(""); setResponsible(""); setDeadline(""); setRiskId("");
   };
 
-  const updateStatus = (id: string, status: ActionStatus) => {
-    setActions(actions.map((a) => a.id === id ? { ...a, status } : a));
+  const handleUpdateStatus = async (id: string, status: ActionStatus) => {
+    await updateActionPlan(id, { status });
   };
 
   return (
@@ -72,9 +73,9 @@ export default function AcoesPage() {
                 <Select value={riskId} onValueChange={setRiskId}>
                   <SelectTrigger><SelectValue placeholder="Avaliação de risco" /></SelectTrigger>
                   <SelectContent>
-                    {mockRiskAssessments.map((r) => {
-                      const a = mockAnalyses.find((x) => x.id === r.analysis_id);
-                      const ws = a ? mockWorkstations.find((w) => w.id === a.workstation_id) : null;
+                    {companyRisks.map((r) => {
+                      const a = companyAnalyses.find((x) => x.id === r.analysis_id);
+                      const ws = a ? companyWorkstations.find((w) => w.id === a.workstation_id) : null;
                       return <SelectItem key={r.id} value={r.id}>{ws?.name} — Score {r.risk_score}</SelectItem>;
                     })}
                   </SelectContent>
@@ -92,7 +93,7 @@ export default function AcoesPage() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {STATUS_OPTIONS.map((s) => {
           const Icon = statusIcons[s];
-          const count = actions.filter((a) => a.status === s).length;
+          const count = companyActions.filter((a) => a.status === s).length;
           return (
             <Card key={s}>
               <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
@@ -109,7 +110,6 @@ export default function AcoesPage() {
 
       <Card>
         <CardContent className="p-0">
-          {/* Desktop */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -122,7 +122,7 @@ export default function AcoesPage() {
                 </tr>
               </thead>
               <tbody>
-                {actions.map((action) => (
+                {companyActions.map((action) => (
                   <tr key={action.id} className="border-b border-border last:border-0">
                     <td className="p-3 max-w-xs">
                       <p className="text-sm font-medium truncate">{action.description}</p>
@@ -135,7 +135,7 @@ export default function AcoesPage() {
                       </Badge>
                     </td>
                     <td className="p-3">
-                      <Select value={action.status} onValueChange={(v) => updateStatus(action.id, v as ActionStatus)}>
+                      <Select value={action.status} onValueChange={(v) => handleUpdateStatus(action.id, v as ActionStatus)}>
                         <SelectTrigger className="w-28 h-7 text-xs">
                           <SelectValue />
                         </SelectTrigger>
@@ -149,9 +149,8 @@ export default function AcoesPage() {
               </tbody>
             </table>
           </div>
-          {/* Mobile */}
           <div className="sm:hidden divide-y divide-border">
-            {actions.map((action) => (
+            {companyActions.map((action) => (
               <div key={action.id} className="p-3 space-y-2">
                 <p className="text-sm font-medium">{action.description}</p>
                 <div className="flex items-center justify-between">
@@ -162,7 +161,7 @@ export default function AcoesPage() {
                   <Badge variant="outline" className={`${statusStyles[action.status]} text-[10px]`}>
                     {statusLabel(action.status)}
                   </Badge>
-                  <Select value={action.status} onValueChange={(v) => updateStatus(action.id, v as ActionStatus)}>
+                  <Select value={action.status} onValueChange={(v) => handleUpdateStatus(action.id, v as ActionStatus)}>
                     <SelectTrigger className="w-28 h-7 text-xs">
                       <SelectValue />
                     </SelectTrigger>

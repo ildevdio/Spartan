@@ -25,7 +25,7 @@ import { toast } from "sonner";
 type AnalysisStep = "upload" | "detecting" | "results" | "details" | "saved";
 
 export default function AnaliseCameraPage() {
-  const { companySectors, companyWorkstations, selectedCompanyId, posturePhotos, setPosturePhotos } = useCompany();
+  const { companySectors, companyWorkstations, selectedCompanyId, posturePhotos, addPosturePhoto } = useCompany();
   const [step, setStep] = useState<AnalysisStep>("upload");
 
   // Reset sector/workstation when company changes
@@ -293,7 +293,7 @@ export default function AnaliseCameraPage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!sectorId || !workstationId || !activity || !role || !selectedMethod) {
       toast.error("Preencha todos os campos obrigatórios.");
       return;
@@ -301,16 +301,13 @@ export default function AnaliseCameraPage() {
 
     // Also register a PosturePhoto so it appears in the Posture Capture page
     const imageUrl = canvasRef.current?.toDataURL("image/png") || "/placeholder.svg";
-    const newPhoto: PosturePhoto = {
-      id: `pp${Date.now()}`,
+    await addPosturePhoto({
       workstation_id: workstationId,
       image_url: imageUrl,
       posture_type: `${selectedMethod} - ${activity}`,
       notes,
       timestamp: new Date().toISOString(),
-      created_at: new Date().toISOString().split("T")[0],
-    };
-    setPosturePhotos([...posturePhotos, newPhoto]);
+    });
 
     toast.success("Análise salva com sucesso!");
     setStep("saved");

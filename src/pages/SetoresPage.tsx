@@ -6,7 +6,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
-import { mockRiskAssessments } from "@/lib/mock-data";
 import type { Sector } from "@/lib/types";
 import { MIN_PHOTOS_REQUIRED } from "@/lib/types";
 import { Plus, Building2, Pencil, Trash2, Monitor, Camera, ClipboardCheck, AlertTriangle } from "lucide-react";
@@ -14,24 +13,18 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
 export default function SetoresPage() {
-  const { companySectors, sectors, setSectors, selectedCompanyId, workstations, analyses, posturePhotos } = useCompany();
+  const { companySectors, selectedCompanyId, workstations, analyses, posturePhotos, riskAssessments, addSector, updateSector, deleteSector } = useCompany();
   const [open, setOpen] = useState(false);
   const [editingSector, setEditingSector] = useState<Sector | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) return;
     if (editingSector) {
-      setSectors(sectors.map((s) => (s.id === editingSector.id ? { ...s, name, description } : s)));
+      await updateSector(editingSector.id, { name, description });
     } else {
-      setSectors([...sectors, {
-        id: `s${Date.now()}`,
-        company_id: selectedCompanyId,
-        name,
-        description,
-        created_at: new Date().toISOString().split("T")[0],
-      }]);
+      await addSector({ company_id: selectedCompanyId, name, description });
     }
     resetForm();
   };
@@ -42,9 +35,6 @@ export default function SetoresPage() {
     setEditingSector(sector); setName(sector.name); setDescription(sector.description); setOpen(true);
   };
 
-  const handleDelete = (id: string) => { setSectors(sectors.filter((s) => s.id !== id)); };
-
-  // Summary stats
   const totalWs = workstations.filter((w) => companySectors.some((s) => s.id === w.sector_id)).length;
   const totalAnalyses = analyses.filter((a) => workstations.filter((w) => companySectors.some((s) => s.id === w.sector_id)).some((w) => w.id === a.workstation_id)).length;
 
@@ -83,7 +73,7 @@ export default function SetoresPage() {
           const sectorPhotos = posturePhotos.filter((p) => wsIds.includes(p.workstation_id));
           const wsReady = sectorWs.filter((w) => sectorPhotos.filter((p) => p.workstation_id === w.id).length >= MIN_PHOTOS_REQUIRED).length;
           const completedAnalyses = sectorAnalyses.filter((a) => a.analysis_status === "completed").length;
-          const sectorRisks = mockRiskAssessments.filter((r) => sectorAnalyses.some((a) => a.id === r.analysis_id));
+          const sectorRisks = riskAssessments.filter((r) => sectorAnalyses.some((a) => a.id === r.analysis_id));
           const criticalCount = sectorRisks.filter((r) => r.risk_level === "high" || r.risk_level === "critical").length;
 
           return (
@@ -95,12 +85,11 @@ export default function SetoresPage() {
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(sector)}><Pencil className="h-3 w-3" /></Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(sector.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteSector(sector.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-xs text-muted-foreground line-clamp-2">{sector.description}</p>
-
                 <div className="grid grid-cols-3 gap-1.5">
                   <div className="text-center p-1.5 rounded bg-accent/10">
                     <Monitor className="h-3 w-3 text-accent mx-auto mb-0.5" />
@@ -118,7 +107,6 @@ export default function SetoresPage() {
                     <p className="text-[8px] text-muted-foreground">Análises</p>
                   </div>
                 </div>
-
                 {sectorAnalyses.length > 0 && (
                   <div>
                     <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
@@ -128,7 +116,6 @@ export default function SetoresPage() {
                     <Progress value={(completedAnalyses / sectorAnalyses.length) * 100} className="h-1.5" />
                   </div>
                 )}
-
                 <div className="flex items-center justify-between">
                   <Badge variant="outline" className="text-[10px]">{wsReady}/{sectorWs.length} prontos</Badge>
                   {criticalCount > 0 && (
@@ -137,8 +124,6 @@ export default function SetoresPage() {
                     </Badge>
                   )}
                 </div>
-
-                {/* Workstation list */}
                 {sectorWs.length > 0 && (
                   <div className="space-y-1 pt-1 border-t border-border">
                     {sectorWs.map((w) => {

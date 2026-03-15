@@ -7,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
-import { mockRiskAssessments, mockPostureAnalyses } from "@/lib/mock-data";
 import type { Workstation } from "@/lib/types";
 import { MIN_PHOTOS_REQUIRED } from "@/lib/types";
 import { Plus, Monitor, Pencil, Trash2, Camera, ClipboardCheck, AlertTriangle, CheckCircle2, FileText } from "lucide-react";
@@ -18,7 +17,8 @@ import { RiskBadge } from "./DashboardPage";
 export default function PostosPage() {
   const {
     companySectors, companyWorkstations, companyAnalyses,
-    workstations, setWorkstations, posturePhotos,
+    addWorkstation, updateWorkstation, deleteWorkstation, posturePhotos,
+    riskAssessments, postureAnalyses,
   } = useCompany();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -27,12 +27,12 @@ export default function PostosPage() {
   const [tasks, setTasks] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim() || !sectorId) return;
     if (editingId) {
-      setWorkstations(workstations.map((w) => w.id === editingId ? { ...w, name, sector_id: sectorId, description, activity_description: description, tasks_performed: tasks } : w));
+      await updateWorkstation(editingId, { name, sector_id: sectorId, description, activity_description: description, tasks_performed: tasks });
     } else {
-      setWorkstations([...workstations, { id: `w${Date.now()}`, sector_id: sectorId, name, description, activity_description: description, tasks_performed: tasks, created_at: new Date().toISOString().split("T")[0] }]);
+      await addWorkstation({ sector_id: sectorId, name, description, activity_description: description, tasks_performed: tasks });
     }
     resetForm();
   };
@@ -84,9 +84,9 @@ export default function PostosPage() {
           const photoCount = posturePhotos.filter((p) => p.workstation_id === w.id).length;
           const photoProgress = Math.min((photoCount / MIN_PHOTOS_REQUIRED) * 100, 100);
           const isReady = photoCount >= MIN_PHOTOS_REQUIRED;
-          const wsRisks = mockRiskAssessments.filter((r) => wsAnalyses.some((a) => a.id === r.analysis_id));
+          const wsRisks = riskAssessments.filter((r) => wsAnalyses.some((a) => a.id === r.analysis_id));
           const worstRisk = wsRisks.sort((a, b) => b.risk_score - a.risk_score)[0];
-          const postureAnalysis = mockPostureAnalyses.find((pa) => pa.workstation_id === w.id);
+          const postureAnalysis = postureAnalyses.find((pa) => pa.workstation_id === w.id);
 
           return (
             <Card key={w.id} className={isReady ? "border-success/20" : ""}>
@@ -98,14 +98,12 @@ export default function PostosPage() {
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(w)}><Pencil className="h-3 w-3" /></Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setWorkstations(workstations.filter((x) => x.id !== w.id))}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteWorkstation(w.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <Badge variant="secondary" className="text-[10px]">{sector?.name}</Badge>
                 <p className="text-xs text-muted-foreground line-clamp-2">{w.description}</p>
-                
-                {/* Activity and tasks */}
                 {w.activity_description && (
                   <div className="p-2 rounded bg-secondary/50">
                     <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Atividade:</p>
@@ -113,8 +111,6 @@ export default function PostosPage() {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground"><strong>Tarefas:</strong> {w.tasks_performed}</p>
-
-                {/* Stats row */}
                 <div className="grid grid-cols-3 gap-1.5">
                   <div className="text-center p-1.5 rounded bg-accent/10">
                     <Camera className="h-3 w-3 text-accent mx-auto mb-0.5" />
@@ -132,8 +128,6 @@ export default function PostosPage() {
                     <p className="text-[8px] text-muted-foreground">Riscos</p>
                   </div>
                 </div>
-
-                {/* Ergonomic scores */}
                 {postureAnalysis && (
                   <div className="flex flex-wrap gap-1.5">
                     {Object.entries(postureAnalysis.ergonomic_scores).map(([method, score]) => (
@@ -144,8 +138,6 @@ export default function PostosPage() {
                     {worstRisk && <RiskBadge level={worstRisk.risk_level} />}
                   </div>
                 )}
-
-                {/* Analyses list */}
                 {wsAnalyses.length > 0 && (
                   <div className="space-y-1 pt-1 border-t border-border">
                     {wsAnalyses.map((a) => {
@@ -159,8 +151,6 @@ export default function PostosPage() {
                     })}
                   </div>
                 )}
-
-                {/* Photo progress */}
                 <div>
                   <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
                     <span>Fotos: {photoCount}/{MIN_PHOTOS_REQUIRED}</span>

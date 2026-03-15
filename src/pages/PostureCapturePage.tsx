@@ -15,7 +15,7 @@ import { toast } from "sonner";
 export default function PostureCapturePage() {
   const {
     companyWorkstations, companySectors,
-    posturePhotos, setPosturePhotos,
+    posturePhotos, addPosturePhoto,
     workstations,
   } = useCompany();
   const [open, setOpen] = useState(false);
@@ -32,21 +32,18 @@ export default function PostureCapturePage() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!wsId || !postureType.trim()) {
       toast.error("Selecione o posto e o tipo de postura.");
       return;
     }
-    const newPhoto: PosturePhoto = {
-      id: `pp${Date.now()}`,
+    await addPosturePhoto({
       workstation_id: wsId,
       image_url: previewUrl || "/placeholder.svg",
       posture_type: postureType,
       notes,
       timestamp: new Date().toISOString(),
-      created_at: new Date().toISOString().split("T")[0],
-    };
-    setPosturePhotos([...posturePhotos, newPhoto]);
+    });
     toast.success("Foto de postura registrada!");
     setOpen(false);
     setWsId("");

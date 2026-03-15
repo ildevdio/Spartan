@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCompany } from "@/lib/company-context";
-import { mockRiskAssessments, mockActionPlans, mockPostureAnalyses } from "@/lib/mock-data";
 import type { Company } from "@/lib/types";
 import { MIN_PHOTOS_REQUIRED } from "@/lib/types";
 import { Plus, Building2, Pencil, Trash2, Monitor, Layers, Camera, ClipboardCheck, AlertTriangle, MapPin } from "lucide-react";
@@ -13,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 
 export default function EmpresasPage() {
-  const { companies, setCompanies, sectors, workstations, analyses, posturePhotos } = useCompany();
+  const { companies, addCompany, updateCompany, deleteCompany, sectors, workstations, analyses, posturePhotos, riskAssessments } = useCompany();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Company | null>(null);
   const [name, setName] = useState("");
@@ -23,12 +22,12 @@ export default function EmpresasPage() {
   const [state, setState] = useState("");
   const [description, setDescription] = useState("");
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) return;
     if (editing) {
-      setCompanies(companies.map((c) => c.id === editing.id ? { ...c, name, cnpj, address, city, state, description } : c));
+      await updateCompany(editing.id, { name, cnpj, address, city, state, description });
     } else {
-      setCompanies([...companies, { id: `comp${Date.now()}`, name, cnpj, address, city, state, description, created_at: new Date().toISOString().split("T")[0] }]);
+      await addCompany({ name, cnpj, address, city, state, description });
     }
     resetForm();
   };
@@ -39,10 +38,6 @@ export default function EmpresasPage() {
 
   const handleEdit = (c: Company) => {
     setEditing(c); setName(c.name); setCnpj(c.cnpj); setAddress(c.address); setCity(c.city); setState(c.state); setDescription(c.description); setOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    setCompanies(companies.filter((c) => c.id !== id));
   };
 
   return (
@@ -84,7 +79,7 @@ export default function EmpresasPage() {
           const companyAnalyses = analyses.filter((a) => wsIds.includes(a.workstation_id));
           const companyPhotos = posturePhotos.filter((p) => wsIds.includes(p.workstation_id));
           const wsReady = companyWs.filter((w) => companyPhotos.filter((p) => p.workstation_id === w.id).length >= MIN_PHOTOS_REQUIRED).length;
-          const companyRisks = mockRiskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
+          const companyRisks = riskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
           const criticalRisks = companyRisks.filter((r) => r.risk_level === "critical" || r.risk_level === "high").length;
           const completedAnalyses = companyAnalyses.filter((a) => a.analysis_status === "completed").length;
 
@@ -97,7 +92,7 @@ export default function EmpresasPage() {
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(company)}><Pencil className="h-3 w-3" /></Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleDelete(company.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => deleteCompany(company.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -109,8 +104,6 @@ export default function EmpresasPage() {
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground line-clamp-2">{company.description}</p>
-
-                {/* Stats grid */}
                 <div className="grid grid-cols-4 gap-1.5">
                   <div className="text-center p-1.5 rounded bg-accent/10">
                     <Layers className="h-3 w-3 text-accent mx-auto mb-0.5" />
@@ -133,8 +126,6 @@ export default function EmpresasPage() {
                     <p className="text-[8px] text-muted-foreground">Análises</p>
                   </div>
                 </div>
-
-                {/* Progress */}
                 <div>
                   <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
                     <span>Análises concluídas</span>
@@ -142,7 +133,6 @@ export default function EmpresasPage() {
                   </div>
                   <Progress value={companyAnalyses.length > 0 ? (completedAnalyses / companyAnalyses.length) * 100 : 0} className="h-1.5" />
                 </div>
-
                 <div className="flex items-center justify-between">
                   <Badge variant="outline" className="text-[10px]">{wsReady} posto(s) pronto(s)</Badge>
                   {criticalRisks > 0 && (
