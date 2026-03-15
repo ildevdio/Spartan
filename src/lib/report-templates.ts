@@ -660,7 +660,7 @@ ${actions.length > 0 ? `
       <td ${td}>${ap.description}</td>
       <td ${td}>Implementar medidas de controle conforme PGR</td>
       <td ${td}>${ap.responsible}</td>
-      <td ${td}>${ap.priority || "Média"}</td>
+      <td ${td}>Média</td>
       <td ${td}>${ap.deadline}</td>
       <td ${td}>${statusLabel(ap.status)}</td>
     </tr>`).join("")}
