@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCompany } from "@/lib/company-context";
-import { mockRiskAssessments, mockActionPlans, mockPsychosocialAnalyses } from "@/lib/mock-data";
 import { MIN_PHOTOS_REQUIRED, type ReportType, riskLevelLabel, type RiskLevel } from "@/lib/types";
 import { FileText, CheckCircle2, AlertTriangle, Download, Loader2, BarChart3, ShieldAlert, Users, Target, Layers, Eye } from "lucide-react";
 import { CompanySelector } from "@/components/CompanySelector";
