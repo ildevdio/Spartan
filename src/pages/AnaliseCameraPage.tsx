@@ -25,7 +25,7 @@ import { toast } from "sonner";
 type AnalysisStep = "upload" | "detecting" | "results" | "details" | "saved";
 
 export default function AnaliseCameraPage() {
-  const { companySectors, companyWorkstations, selectedCompanyId, posturePhotos, setPosturePhotos } = useCompany();
+  const { companySectors, companyWorkstations, selectedCompanyId, posturePhotos, addPosturePhoto } = useCompany();
   const [step, setStep] = useState<AnalysisStep>("upload");
 
   // Reset sector/workstation when company changes
