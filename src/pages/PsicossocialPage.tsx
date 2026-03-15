@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
 import type { PsychosocialAnalysis } from "@/lib/types";
-import { mockPsychosocialAnalyses } from "@/lib/mock-data";
+
 import { Plus, Brain, BarChart3, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
