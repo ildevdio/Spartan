@@ -3,6 +3,8 @@ import {
   WidthType, AlignmentType, HeadingLevel, BorderStyle, PageBreak,
   Header, Footer, TabStopPosition, TabStopType,
   ShadingType, convertInchesToTwip, ImageRun,
+  TableLayoutType, HeightRule, VerticalAlign, PageNumber, NumberFormat,
+  UnderlineType,
 } from "docx";
 import { saveAs } from "file-saver";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
@@ -21,19 +23,52 @@ export interface DocxReportContext {
   consultantName?: string;
 }
 
+// ============ PROFESSIONAL COLOR PALETTE ============
 const COLORS = {
-  primary: "1e293b",
-  secondary: "475569",
-  muted: "64748b",
-  light: "94a3b8",
-  accent: "2563eb",
-  headerBg: "f1f5f9",
+  // Main palette
+  primary: "1B2A4A",      // Deep navy blue
+  secondary: "3D5A80",    // Steel blue
+  muted: "6B7B8D",        // Warm gray
+  light: "98A2B3",        // Light gray
+  accent: "2E86AB",       // Professional teal-blue accent
+  accentDark: "1A6B8A",   // Darker accent
+
+  // Table colors
+  headerBg: "1B2A4A",     // Dark navy header
+  headerText: "FFFFFF",   // White text on headers
+  headerBg2: "3D5A80",    // Secondary header (sub-sections)
+  rowAlt: "F0F4F8",       // Alternating row (light blue-gray)
+  rowWhite: "FFFFFF",     // Normal row
+  cellLabel: "EDF2F7",    // Label cells in info tables
+
+  // Status colors
   white: "FFFFFF",
-  border: "D1D5DB",
-  greenBg: "d4edda",
-  yellowBg: "fff3cd",
-  redBg: "f8d7da",
+  border: "CBD5E1",       // Softer border
+  borderDark: "94A3B8",   // Stronger border for headers
+  greenBg: "D1FAE5",
+  greenText: "065F46",
+  yellowBg: "FEF3C7",
+  yellowText: "92400E",
+  redBg: "FEE2E2",
+  redText: "991B1B",
+  orangeBg: "FFEDD5",
+  orangeText: "9A3412",
+
+  // Cover & decorative
+  coverBorder: "1B2A4A",
+  coverAccent: "2E86AB",
+  footerBg: "F8FAFC",
 };
+
+// ============ BORDER STYLES ============
+function borderNone() {
+  return {
+    top: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+    bottom: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+    left: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+    right: { style: BorderStyle.NONE, size: 0, color: "FFFFFF" },
+  };
+}
 
 function borderStyle() {
   return {
@@ -44,53 +79,172 @@ function borderStyle() {
   };
 }
 
+function borderHeader() {
+  return {
+    top: { style: BorderStyle.SINGLE, size: 2, color: COLORS.headerBg },
+    bottom: { style: BorderStyle.SINGLE, size: 2, color: COLORS.headerBg },
+    left: { style: BorderStyle.SINGLE, size: 2, color: COLORS.headerBg },
+    right: { style: BorderStyle.SINGLE, size: 2, color: COLORS.headerBg },
+  };
+}
+
+// ============ CELL HELPERS ============
+const CELL_MARGINS = {
+  top: convertInchesToTwip(0.04),
+  bottom: convertInchesToTwip(0.04),
+  left: convertInchesToTwip(0.08),
+  right: convertInchesToTwip(0.08),
+};
+
 function headerCell(text: string, width?: number): TableCell {
   return new TableCell({
-    children: [new Paragraph({ children: [new TextRun({ text, bold: true, size: 20, font: "Calibri", color: COLORS.primary })] })],
+    children: [new Paragraph({
+      children: [new TextRun({ text, bold: true, size: 19, font: "Calibri", color: COLORS.headerText })],
+      alignment: AlignmentType.LEFT,
+      spacing: { before: 40, after: 40 },
+    })],
     shading: { type: ShadingType.SOLID, fill: COLORS.headerBg, color: COLORS.headerBg },
-    borders: borderStyle(),
+    borders: borderHeader(),
     width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
+    verticalAlign: VerticalAlign.CENTER,
+    margins: CELL_MARGINS,
+  });
+}
+
+function headerCell2(text: string, width?: number): TableCell {
+  return new TableCell({
+    children: [new Paragraph({
+      children: [new TextRun({ text, bold: true, size: 19, font: "Calibri", color: COLORS.white })],
+      alignment: AlignmentType.LEFT,
+      spacing: { before: 40, after: 40 },
+    })],
+    shading: { type: ShadingType.SOLID, fill: COLORS.headerBg2, color: COLORS.headerBg2 },
+    borders: borderHeader(),
+    width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
+    verticalAlign: VerticalAlign.CENTER,
+    margins: CELL_MARGINS,
   });
 }
 
 function textCell(text: string, bold = false, width?: number): TableCell {
   return new TableCell({
-    children: [new Paragraph({ children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: COLORS.primary })] })],
+    children: [new Paragraph({
+      children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: COLORS.primary })],
+      spacing: { before: 30, after: 30 },
+    })],
     borders: borderStyle(),
     width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
+    verticalAlign: VerticalAlign.CENTER,
+    margins: CELL_MARGINS,
+  });
+}
+
+function altCell(text: string, isAlt: boolean, bold = false, width?: number): TableCell {
+  return new TableCell({
+    children: [new Paragraph({
+      children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: COLORS.primary })],
+      spacing: { before: 30, after: 30 },
+    })],
+    borders: borderStyle(),
+    width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
+    verticalAlign: VerticalAlign.CENTER,
+    margins: CELL_MARGINS,
+    shading: isAlt ? { type: ShadingType.SOLID, fill: COLORS.rowAlt, color: COLORS.rowAlt } : undefined,
+  });
+}
+
+function labelCell(text: string, width?: number): TableCell {
+  return new TableCell({
+    children: [new Paragraph({
+      children: [new TextRun({ text, size: 20, font: "Calibri", bold: true, color: COLORS.secondary })],
+      spacing: { before: 30, after: 30 },
+    })],
+    borders: borderStyle(),
+    width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
+    verticalAlign: VerticalAlign.CENTER,
+    margins: CELL_MARGINS,
+    shading: { type: ShadingType.SOLID, fill: COLORS.cellLabel, color: COLORS.cellLabel },
   });
 }
 
 function shadedCell(text: string, fill: string, bold = false, width?: number): TableCell {
   return new TableCell({
-    children: [new Paragraph({ children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: COLORS.primary })] })],
+    children: [new Paragraph({
+      children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: COLORS.primary })],
+      spacing: { before: 30, after: 30 },
+    })],
     shading: { type: ShadingType.SOLID, fill, color: fill },
     borders: borderStyle(),
     width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
+    verticalAlign: VerticalAlign.CENTER,
+    margins: CELL_MARGINS,
+  });
+}
+
+function statusCell(text: string, level: "green" | "yellow" | "orange" | "red", width?: number): TableCell {
+  const fills = { green: COLORS.greenBg, yellow: COLORS.yellowBg, orange: COLORS.orangeBg, red: COLORS.redBg };
+  const colors = { green: COLORS.greenText, yellow: COLORS.yellowText, orange: COLORS.orangeText, red: COLORS.redText };
+  return new TableCell({
+    children: [new Paragraph({
+      children: [new TextRun({ text, size: 19, font: "Calibri", bold: true, color: colors[level] })],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 30, after: 30 },
+    })],
+    shading: { type: ShadingType.SOLID, fill: fills[level], color: fills[level] },
+    borders: borderStyle(),
+    width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
+    verticalAlign: VerticalAlign.CENTER,
+    margins: CELL_MARGINS,
   });
 }
 
 function mergedCell(text: string, colSpan: number, bold = false, fill?: string): TableCell {
   return new TableCell({
-    children: [new Paragraph({ children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: COLORS.primary })] })],
-    borders: borderStyle(),
+    children: [new Paragraph({
+      children: [new TextRun({ text, size: 20, font: "Calibri", bold, color: fill === COLORS.headerBg ? COLORS.white : COLORS.primary })],
+      spacing: { before: 40, after: 40 },
+    })],
+    borders: fill === COLORS.headerBg ? borderHeader() : borderStyle(),
     columnSpan: colSpan,
     shading: fill ? { type: ShadingType.SOLID, fill, color: fill } : undefined,
+    verticalAlign: VerticalAlign.CENTER,
+    margins: CELL_MARGINS,
   });
 }
 
+// ============ TEXT HELPERS ============
 function heading(text: string, level: typeof HeadingLevel[keyof typeof HeadingLevel] = HeadingLevel.HEADING_1): Paragraph {
+  const isH1 = level === HeadingLevel.HEADING_1;
+  const isH2 = level === HeadingLevel.HEADING_2;
   return new Paragraph({
-    text,
-    heading: level,
-    spacing: { before: 360, after: 120 },
+    children: [
+      new TextRun({
+        text,
+        bold: true,
+        size: isH1 ? 28 : isH2 ? 24 : 22,
+        font: "Calibri",
+        color: isH1 ? COLORS.primary : isH2 ? COLORS.secondary : COLORS.secondary,
+      }),
+    ],
+    spacing: { before: isH1 ? 480 : 360, after: isH1 ? 200 : 120 },
+    border: isH1 ? {
+      bottom: { style: BorderStyle.SINGLE, size: 6, color: COLORS.accent, space: 4 },
+    } : undefined,
   });
 }
 
-function body(text: string, options?: { bold?: boolean; spacing?: { before?: number; after?: number } }): Paragraph {
+function body(text: string, options?: { bold?: boolean; spacing?: { before?: number; after?: number }; italic?: boolean }): Paragraph {
   return new Paragraph({
-    children: [new TextRun({ text, size: 22, font: "Calibri", bold: options?.bold, color: COLORS.primary })],
+    children: [new TextRun({
+      text,
+      size: 22,
+      font: "Calibri",
+      bold: options?.bold,
+      italics: options?.italic,
+      color: COLORS.primary,
+    })],
     spacing: options?.spacing || { after: 120 },
+    alignment: AlignmentType.JUSTIFIED,
   });
 }
 
@@ -108,6 +262,17 @@ function numberedItem(text: string): Paragraph {
     numbering: { reference: "default-numbering", level: 0 },
     spacing: { after: 60 },
   });
+}
+
+function decorativeLine(color = COLORS.accent): Paragraph {
+  return new Paragraph({
+    border: { bottom: { style: BorderStyle.SINGLE, size: 4, color, space: 2 } },
+    spacing: { before: 100, after: 200 },
+  });
+}
+
+function spacer(twips = 200): Paragraph {
+  return new Paragraph({ spacing: { before: twips } });
 }
 
 function pageBreak(): Paragraph {
