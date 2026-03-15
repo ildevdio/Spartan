@@ -812,9 +812,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   // 1. Introdução
   children.push(heading("1. INTRODUÇÃO"));
   children.push(accentCallout("A ergonomia é fundamental para a saúde, segurança e produtividade dos trabalhadores.", "info"));
-  children.push(body("Na busca por elevar a produtividade, a qualidade, a segurança e o conforto durante a execução das atividades — sejam elas rotineiras ou mais complexas — a ergonomia tem ganhado cada vez mais espaço dentro das organizações. Seu uso tornou-se essencial para reduzir falhas e otimizar processos nos setores produtivos, administrativos e, sobretudo, nos aspectos que envolvem comportamento e interação humana."));
-  children.push(body("A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa."));
-  children.push(body("Locais de trabalho planejados de forma incorreta tendem a reduzir o desempenho, comprometer a qualidade, elevar o absenteísmo e aumentar custos operacionais. A ergonomia busca tornar a interação entre trabalhador, equipamentos e ambiente o mais segura, eficiente e confortável possível."));
+  children.push(...expandSection("ergonomia_intro"));
   children.push(body(`Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17.`));
   children.push(pageBreak());
 
