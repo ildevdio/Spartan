@@ -83,7 +83,7 @@ export default function PsicossocialPage() {
   const [predictability, setPredictability] = useState(50);
   const [socialSupport, setSocialSupport] = useState(50);
 
-  const companyAnalyses = analyses.filter(a => a.company_id === selectedCompanyId);
+  
 
   const handleSave = () => {
     if (!evaluator.trim()) { toast.error("Informe o avaliador."); return; }
