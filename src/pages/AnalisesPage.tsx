@@ -7,10 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
-import { mockRiskAssessments } from "@/lib/mock-data";
-import type { Analysis, ErgonomicMethod, AnalysisStatus } from "@/lib/types";
+import type { ErgonomicMethod, AnalysisStatus } from "@/lib/types";
 import { analysisStatusLabel } from "@/lib/types";
-import { Plus, ClipboardCheck } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { RiskBadge } from "./DashboardPage";
 
@@ -32,7 +31,7 @@ const statusStyles: Record<AnalysisStatus, string> = {
 };
 
 export default function AnalisesPage() {
-  const { companyAnalyses, companyWorkstations, analyses, setAnalyses } = useCompany();
+  const { companyAnalyses, companyWorkstations, addAnalysis, riskAssessments } = useCompany();
   const [open, setOpen] = useState(false);
   const [wsId, setWsId] = useState("");
   const [method, setMethod] = useState<ErgonomicMethod>("REBA");
@@ -47,19 +46,17 @@ export default function AnalisesPage() {
     setBodyParts(parts);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!wsId || !score) return;
     const totalScore = Object.values(bodyParts).reduce((a, b) => a + b, 0);
-    setAnalyses([...analyses, {
-      id: `a${Date.now()}`,
+    await addAnalysis({
       workstation_id: wsId,
       method,
       score: totalScore || Number(score),
       notes,
       body_parts: bodyParts,
       analysis_status: "in_progress",
-      created_at: new Date().toISOString().split("T")[0],
-    }]);
+    });
     setOpen(false);
     setWsId(""); setScore(""); setNotes(""); setBodyParts({});
   };
@@ -92,7 +89,6 @@ export default function AnalisesPage() {
                     {METHODS.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
                   </SelectContent>
                 </Select>
-
                 <div className="space-y-2">
                   <p className="text-sm font-medium">Pontuação por segmento</p>
                   {methodBodyParts[method].map((part) => (
@@ -102,7 +98,6 @@ export default function AnalisesPage() {
                     </div>
                   ))}
                 </div>
-
                 <Input placeholder="Score total (ou calculado)" value={score} onChange={(e) => setScore(e.target.value)} type="number" />
                 <Textarea placeholder="Observações" value={notes} onChange={(e) => setNotes(e.target.value)} />
                 <Button onClick={handleSave} className="w-full">Salvar Análise</Button>
@@ -112,7 +107,6 @@ export default function AnalisesPage() {
         </div>
       </div>
 
-      {/* Status summary */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {(["pending", "in_progress", "completed"] as AnalysisStatus[]).map((status) => {
           const count = companyAnalyses.filter((a) => a.analysis_status === status).length;
@@ -129,10 +123,8 @@ export default function AnalisesPage() {
         })}
       </div>
 
-      {/* Mobile: card list / Desktop: table */}
       <Card>
         <CardContent className="p-0">
-          {/* Desktop table */}
           <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -148,7 +140,7 @@ export default function AnalisesPage() {
               <tbody>
                 {companyAnalyses.map((a) => {
                   const ws = companyWorkstations.find((w) => w.id === a.workstation_id);
-                  const risk = mockRiskAssessments.find((r) => r.analysis_id === a.id);
+                  const risk = riskAssessments.find((r) => r.analysis_id === a.id);
                   return (
                     <tr key={a.id} className="border-b border-border last:border-0">
                       <td className="p-3 font-medium">{ws?.name || "—"}</td>
@@ -174,12 +166,10 @@ export default function AnalisesPage() {
               </tbody>
             </table>
           </div>
-
-          {/* Mobile stacked cards */}
           <div className="sm:hidden divide-y divide-border">
             {companyAnalyses.map((a) => {
               const ws = companyWorkstations.find((w) => w.id === a.workstation_id);
-              const risk = mockRiskAssessments.find((r) => r.analysis_id === a.id);
+              const risk = riskAssessments.find((r) => r.analysis_id === a.id);
               return (
                 <div key={a.id} className="p-3 space-y-1">
                   <div className="flex items-center justify-between">
