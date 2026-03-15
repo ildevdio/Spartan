@@ -1477,7 +1477,7 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("6. INTRODUÇÃO"));
   children.push(accentCallout("O PGR tem como objetivo a identificação, avaliação e controle de riscos ocupacionais de forma sistemática e contínua.", "info"));
-  children.push(body("A elaboração deste Programa de Gerenciamento de Riscos tem como propósito um estudo das condições ambientais atuais existentes nesta empresa, a fim de identificar os agentes de riscos e caracterizar as atividades e operações desenvolvidas."));
+  children.push(...expandSection("pgr_intro"));
 
   children.push(heading("7. OBJETIVOS"));
   children.push(heading("7.1 Objetivo Geral", HeadingLevel.HEADING_3));
