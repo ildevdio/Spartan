@@ -21,7 +21,42 @@ export function generateReportHTML(ctx: ReportContext): string {
   const { reportType } = ctx;
   if (reportType === "AET") return generateAETReport(ctx);
   if (reportType === "PGR") return generatePGRReport(ctx);
+  if (reportType === "APR") return generateAPRReport(ctx);
+  if (reportType === "PCMSO") return generatePCMSOReport(ctx);
   return generateGenericReport(ctx);
+}
+
+function vividStyles() {
+  return `
+    <style>
+      .rpt-cover { text-align:center; padding:60px 40px; background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%); color:white; border-radius:8px; margin-bottom:30px; }
+      .rpt-cover h1 { font-size:32px; margin-bottom:8px; color:white; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+      .rpt-cover h2 { font-size:22px; color:#B2EBF2; margin-bottom:30px; }
+      .rpt-cover .company { font-size:26px; font-weight:bold; color:white; }
+      .rpt-cover .meta { font-size:14px; color:#B2EBF2; }
+      .rpt-section { background: linear-gradient(90deg, #0A1F44, #1565C0); color:white; padding:12px 20px; margin:30px 0 15px 0; border-radius:6px; font-size:18px; font-weight:bold; }
+      .rpt-section2 { background: linear-gradient(90deg, #1565C0, #00838F); color:white; padding:10px 18px; margin:24px 0 12px 0; border-radius:5px; font-size:16px; font-weight:bold; }
+      .rpt-section3 { border-left:5px solid #00BCD4; padding:8px 14px; margin:20px 0 10px 0; font-size:15px; font-weight:bold; color:#0A1F44; background:#E1F5FE; border-radius:0 5px 5px 0; }
+      .rpt-callout { border-left:5px solid #1565C0; background:#E3F2FD; padding:12px 16px; margin:12px 0; border-radius:0 6px 6px 0; font-style:italic; color:#0A1F44; }
+      .rpt-callout.warning { border-left-color:#FF6F00; background:#FFF3E0; }
+      .rpt-callout.success { border-left-color:#43A047; background:#C8E6C9; }
+      .rpt-callout.danger { border-left-color:#D32F2F; background:#FFCDD2; }
+      .rpt-table { width:100%; border-collapse:collapse; margin:12px 0; border-radius:6px; overflow:hidden; }
+      .rpt-table th { background:#0A1F44; color:white; padding:10px 12px; font-size:13px; text-align:left; border:1px solid #0A1F44; }
+      .rpt-table th.alt { background:#1565C0; border-color:#1565C0; }
+      .rpt-table th.teal { background:#00838F; border-color:#00838F; }
+      .rpt-table td { padding:9px 12px; font-size:13px; border:1px solid #B0BEC5; }
+      .rpt-table tr:nth-child(even) td { background:#E3F2FD; }
+      .rpt-table td.label { background:#E1F5FE; font-weight:bold; color:#1565C0; }
+      .rpt-badge { display:inline-block; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:bold; }
+      .rpt-badge.green { background:#C8E6C9; color:#1B5E20; }
+      .rpt-badge.yellow { background:#FFF9C4; color:#F57F17; }
+      .rpt-badge.orange { background:#FFE0B2; color:#E65100; }
+      .rpt-badge.red { background:#FFCDD2; color:#B71C1C; }
+      .rpt-divider { height:4px; background: linear-gradient(90deg, #00BCD4, #1565C0, #0A1F44); margin:20px 0; border-radius:2px; }
+      .rpt-sig { text-align:center; margin-top:50px; padding-top:20px; border-top:2px solid #B0BEC5; }
+    </style>
+  `;
 }
 
 function generateAETReport(ctx: ReportContext): string {
