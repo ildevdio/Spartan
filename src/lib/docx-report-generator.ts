@@ -235,7 +235,7 @@ function createInfoTable(company: Company, sectorName: string, wsName: string): 
 }
 
 // ========== AET REPORT ==========
-function generateAETDocx(ctx: DocxReportContext): Document {
+async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   const { company, sector, workstation, workstations, sectors, analyses, photos } = ctx;
   const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
   const wsIds = workstations.map(w => w.id);
