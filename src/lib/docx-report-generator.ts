@@ -233,7 +233,7 @@ function createCoverPage(title: string, subtitle: string, company: Company, cons
   ];
 }
 
-function createRevisionTable(): Paragraph[] {
+function createRevisionTable(): (Paragraph | Table)[] {
   return [
     heading("CONTROLE DE REVISÕES", HeadingLevel.HEADING_2),
     new Table({
