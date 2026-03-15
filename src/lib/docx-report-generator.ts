@@ -507,24 +507,6 @@ function createProfessionalFooter(): Footer {
     ],
   });
 }
-    ["Cidade/UF", `${company.city}/${company.state}`],
-    ["Descrição", company.description],
-    ["Setor(es) Avaliado(s)", sectorName],
-    ["Posto(s) de Trabalho", wsName],
-  ];
-
-  return new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: rows.map(([label, value]) =>
-      new TableRow({
-        children: [
-          textCell(label, true, 30),
-          textCell(value, false, 70),
-        ],
-      })
-    ),
-  });
-}
 
 // ========== AET REPORT — Full professional structure ==========
 async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
