@@ -1640,8 +1640,6 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
       children,
     }],
   });
-    }],
-  });
 }
 
 // ========== PGR REPORT ==========
