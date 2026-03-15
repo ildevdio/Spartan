@@ -1433,61 +1433,307 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
   const analysisIds = analyses.map(a => a.id);
   const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
   const actions = mockActionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
+  const allTasks = mockTasks.filter(t => workstations.some(w => w.id === t.workstation_id));
+  const today = new Date().toLocaleDateString("pt-BR");
 
   const children: any[] = [];
 
+  // Cover
   children.push(...createCoverPage("PROGRAMA DE GERENCIAMENTO DE RISCOS", "PGR", company, consultant));
 
-  children.push(heading("1. IDENTIFICAÇÃO DA EMPRESA"));
+  // Sumário
+  children.push(heading("SUMÁRIO"));
+  const sumarioItems = [
+    "Definições e Abreviaturas", "Referências", "Identificação da Empresa",
+    "Responsabilidade Técnica", "Aprovação, Distribuição e Implementação", "Introdução",
+    "Objetivos", "Campo de Aplicação", "Metodologia Utilizada", "Inventário de Risco",
+    "Implementação das Medidas de Prevenção", "EPC — Equipamento de Proteção Coletiva",
+    "EPI — Equipamento de Proteção Individual", "Responsabilidades", "Meta e Objetivos",
+    "Referências Bibliográficas",
+  ];
+  sumarioItems.forEach((item, i) => children.push(body(`${i + 1}. ${item}`)));
+  children.push(pageBreak());
+
+  // Controle de Revisões
+  children.push(heading("CONTROLE DE REVISÕES"));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Revisão", 15), headerCell("Data", 25), headerCell("Página", 20), headerCell("Descrição", 40)] }),
+      new TableRow({ children: [textCell("00", false, 15), textCell(today, false, 25), textCell("TODAS", false, 20), textCell("PRIMEIRA APLICAÇÃO", false, 40)] }),
+    ],
+  }));
+  children.push(pageBreak());
+
+  // 1. Definições
+  children.push(heading("1. DEFINIÇÕES E ABREVIATURAS"));
+  const defs: [string, string][] = [
+    ["ART", "Anotação de Responsabilidade Técnica"],
+    ["CIPA", "Comissão Interna de Prevenção de Acidentes"],
+    ["EPC", "Equipamento de Proteção Coletiva"],
+    ["EPI", "Equipamento de Proteção Individual"],
+    ["GHE", "Grupos Homogêneos de Exposição"],
+    ["NR", "Norma Regulamentadora"],
+    ["PCMSO", "Programa de Controle Médico de Saúde Ocupacional"],
+    ["PGR", "Programa de Gerenciamento de Riscos"],
+    ["SESMT", "Serviços Especializados em Eng. de Segurança e Medicina do Trabalho"],
+    ["Risco Ocupacional", "Combinação da probabilidade de lesão e da severidade dessa lesão"],
+    ["Perigo", "Fonte com potencial de causar lesões ou agravos à saúde"],
+  ];
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Termo", 30), headerCell("Definição", 70)] }),
+      ...defs.map(([term, def]) => new TableRow({ children: [textCell(term, true, 30), textCell(def, false, 70)] })),
+    ],
+  }));
+
+  // 2. Referências
+  children.push(heading("2. REFERÊNCIAS"));
+  [
+    "NR 1 — Disposições Gerais e Gerenciamento de Riscos Ocupacionais",
+    "NR 4 — SESMT", "NR 5 — CIPA", "NR 6 — EPI", "NR 7 — PCMSO",
+    "NR 9 — Agentes Físicos, Químicos e Biológicos",
+    "NR 15 — Atividades e Operações Insalubres", "NR 17 — Ergonomia",
+    "NR 23 — Proteção contra Incêndios", "NR 26 — Sinalização de Segurança",
+  ].forEach(ref => children.push(bulletItem(ref)));
+
+  // 3. Identificação da Empresa
+  children.push(heading("3. IDENTIFICAÇÃO DA EMPRESA"));
   children.push(createInfoTable(company, sectors.map(s => s.name).join(", "), workstations.map(w => w.name).join(", ")));
 
-  children.push(heading("2. INVENTÁRIO DE RISCOS"));
-  if (risks.length > 0) {
-    const riskTable = new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({ children: [headerCell("GHE/Posto", 25), headerCell("Risco", 35), headerCell("Score", 15), headerCell("Nível", 25)] }),
-        ...risks.map((r, i) => {
-          const analysis = analyses.find(a => a.id === r.analysis_id);
-          const ws = analysis ? workstations.find(w => w.id === analysis.workstation_id) : null;
-          return new TableRow({
-            children: [
-              textCell(ws?.name || `GHE ${i + 1}`, false, 25),
-              textCell(r.description, false, 35),
-              textCell(String(r.risk_score), true, 15),
-              textCell(riskLevelLabel(r.risk_level), true, 25),
-            ],
-          });
-        }),
-      ],
-    });
-    children.push(riskTable);
-  } else {
-    children.push(body("Nenhum risco identificado."));
-  }
+  // 4. Responsabilidade Técnica
+  children.push(heading("4. RESPONSABILIDADE TÉCNICA"));
+  children.push(body("Profissional legalmente habilitado e responsável pela elaboração deste programa."));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Campo", 35), headerCell("Informação", 65)] }),
+      new TableRow({ children: [textCell("Responsável Técnico", true, 35), textCell(consultant, false, 65)] }),
+      new TableRow({ children: [textCell("Título Profissional", true, 35), textCell("Engenheiro de Segurança do Trabalho", false, 65)] }),
+      new TableRow({ children: [textCell("Registro", true, 35), textCell("CREA/CONFEA: XXXXX", false, 65)] }),
+      new TableRow({ children: [textCell("Período de Avaliação", true, 35), textCell(today, false, 65)] }),
+    ],
+  }));
 
-  children.push(heading("3. PLANO DE AÇÃO"));
-  if (actions.length > 0) {
-    const actionTable = new Table({
+  // 5. Aprovação
+  children.push(heading("5. APROVAÇÃO, DISTRIBUIÇÃO E IMPLEMENTAÇÃO"));
+  children.push(body("Ao aprovar o Programa de Gerenciamento de Riscos, a empresa compromete-se a cumprir rigorosamente o que nele consta, sua efetiva implementação, bem como zelar pela sua eficácia."));
+
+  // 6. Introdução
+  children.push(heading("6. INTRODUÇÃO"));
+  children.push(body("A elaboração deste Programa de Gerenciamento de Riscos tem como propósito um estudo das condições ambientais atuais existentes nesta empresa, a fim de identificar os agentes de riscos e caracterizar as atividades e operações desenvolvidas. Tal programa está direcionado no reconhecimento e avaliação dos fatores ambientais ou de locais de trabalho que possam causar prejuízos à saúde e ao bem-estar dos colaboradores."));
+
+  // 7. Objetivos
+  children.push(heading("7. OBJETIVOS"));
+  children.push(heading("7.1 Objetivo Geral", HeadingLevel.HEADING_3));
+  children.push(body("Preservar a saúde e a integridade dos trabalhadores através da antecipação, reconhecimento, avaliação e consequente controle da ocorrência de riscos ambientais existentes ou que venham a existir nos locais de trabalho."));
+  children.push(heading("7.2 Objetivos Específicos", HeadingLevel.HEADING_3));
+  ["Seguir a política da empresa relacionada à saúde e segurança dos colaboradores",
+   "Proteção do meio ambiente e dos recursos naturais",
+   "Tratar os riscos ambientais existentes ou que venham a existir",
+   "Planejar ações para preservar a saúde e a segurança dos trabalhadores",
+  ].forEach(item => children.push(bulletItem(item)));
+  children.push(heading("7.3 Antecipação", HeadingLevel.HEADING_3));
+  children.push(body("Consiste na análise dos setores de trabalho, funções e horários de trabalho, formação dos GHEs, visando identificar riscos potenciais e introduzir medidas de proteção."));
+  children.push(heading("7.4 Reconhecimento", HeadingLevel.HEADING_3));
+  children.push(body("Trabalho de campo para identificar atividades, tarefas, fontes e tipos de riscos ambientais."));
+  children.push(heading("7.5 Controle", HeadingLevel.HEADING_3));
+  children.push(body("Adotar medidas de controle administrativas, de engenharia, EPCs e EPIs para eliminar, neutralizar ou reduzir a exposição."));
+  children.push(heading("7.6 Monitoramento", HeadingLevel.HEADING_3));
+  children.push(body("Mensurar a exposição ou inexistência dos riscos e acompanhar eficácia das medidas de controle."));
+
+  // 8. Campo de Aplicação
+  children.push(heading("8. CAMPO DE APLICAÇÃO"));
+  children.push(body("Este programa é aplicado a toda organização. A avaliação de riscos deve ser revista a cada dois anos ou quando da ocorrência de mudanças significativas."));
+
+  // 9. Metodologia
+  children.push(heading("9. METODOLOGIA UTILIZADA"));
+  children.push(heading("9.1 Análise Qualitativa", HeadingLevel.HEADING_3));
+  children.push(body("Análise preliminar dos riscos ambientais envolvendo instalações, métodos e processos de trabalho."));
+  children.push(heading("9.2 Análise Quantitativa", HeadingLevel.HEADING_3));
+  children.push(body("Monitoramento ambiental que mensura a exposição dos trabalhadores utilizando dosimetria de ruído (NHO 01), medição de luminosidade (NHO 11) e medição de calor/IBUTG (NHO 06)."));
+  children.push(heading("9.3 Probabilidade (P)", HeadingLevel.HEADING_3));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Índice", 15), headerCell("Exposição", 45), headerCell("Fator de Proteção", 40)] }),
+      new TableRow({ children: [textCell("1 — Baixo", true, 15), textCell("Contato baixo ou eventual", false, 45), textCell("Medidas adequadas e com manutenção", false, 40)] }),
+      new TableRow({ children: [textCell("2 — Moderado", true, 15), textCell("Contato moderado ou intermitente", false, 45), textCell("Medidas adequadas mas sem garantia de manutenção", false, 40)] }),
+      new TableRow({ children: [textCell("3 — Alto", true, 15), textCell("Contato alto ou permanente", false, 45), textCell("Medidas com desvios significativos", false, 40)] }),
+      new TableRow({ children: [textCell("4 — Excessivo", true, 15), textCell("Exposição excessiva ou permanente a intensidade elevada", false, 45), textCell("Medidas inexistentes ou inadequadas", false, 40)] }),
+    ],
+  }));
+  children.push(heading("9.4 Gravidade (G)", HeadingLevel.HEADING_3));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Índice", 15), headerCell("Critério", 40), headerCell("Pessoas Expostas", 20)] }),
+      new TableRow({ children: [textCell("1 — Baixo", true, 15), textCell("Lesão leve, efeitos reversíveis", false, 40), textCell("Até 10%", false, 20)] }),
+      new TableRow({ children: [textCell("2 — Moderado", true, 15), textCell("Lesão séria, efeitos reversíveis severos", false, 40), textCell("10% a 30%", false, 20)] }),
+      new TableRow({ children: [textCell("3 — Alto", true, 15), textCell("Lesão crítica, efeitos irreversíveis", false, 40), textCell("30% a 60%", false, 20)] }),
+      new TableRow({ children: [textCell("4 — Excessivo", true, 15), textCell("Lesão incapacitante ou fatal", false, 40), textCell("Acima de 60%", false, 20)] }),
+    ],
+  }));
+  children.push(heading("9.5 Nível de Risco e Priorização", HeadingLevel.HEADING_3));
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ children: [headerCell("Nível", 20), headerCell("Ação Requerida", 50), headerCell("Prazo", 30)] }),
+      new TableRow({ children: [textCell("Crítico", true, 20), textCell("Ações corretivas imediatas", false, 50), textCell("Implementação imediata", false, 30)] }),
+      new TableRow({ children: [textCell("Alto", true, 20), textCell("Planejamento a curto prazo", false, 50), textCell("Máximo 3 meses", false, 30)] }),
+      new TableRow({ children: [textCell("Médio", true, 20), textCell("Planejamento a médio/longo prazo", false, 50), textCell("Máximo 6 meses", false, 30)] }),
+      new TableRow({ children: [textCell("Baixo", true, 20), textCell("Manter controle existente", false, 50), textCell("Máximo 1 ano", false, 30)] }),
+    ],
+  }));
+  children.push(pageBreak());
+
+  // 10. Inventário de Risco por GHE/Setor
+  children.push(heading("10. INVENTÁRIO DE RISCO"));
+
+  // Group by sector
+  const sectorMap = new Map<string, { sectorName: string; sectorWs: typeof workstations }>();
+  workstations.forEach(ws => {
+    const sId = (ws as any).sector_id || "unknown";
+    const sName = sectors.find(s => s.id === sId)?.name || "Geral";
+    if (!sectorMap.has(sId)) sectorMap.set(sId, { sectorName: sName, sectorWs: [] });
+    sectorMap.get(sId)!.sectorWs.push(ws);
+  });
+
+  let gheIndex = 0;
+  sectorMap.forEach(({ sectorName, sectorWs }) => {
+    gheIndex++;
+    children.push(heading(`GHE ${String(gheIndex).padStart(2, '0')} / SETOR — ${sectorName.toUpperCase()}`, HeadingLevel.HEADING_2));
+    children.push(body(`Caracterização dos processos: ${sectorWs.map(w => w.activity_description || w.description).join(". ")}.`));
+
+    // Activities table
+    children.push(heading("Descrição das Atividades Exercidas", HeadingLevel.HEADING_3));
+    const actRows = sectorWs.map(ws => {
+      const wsTasks = allTasks.filter(t => t.workstation_id === ws.id);
+      return new TableRow({
+        children: [
+          textCell(ws.name, true, 30),
+          textCell(wsTasks.map(t => t.description).join("; ") || ws.tasks_performed, false, 70),
+        ],
+      });
+    });
+    children.push(new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
-        new TableRow({ children: [headerCell("Ação", 40), headerCell("Responsável", 20), headerCell("Prazo", 20), headerCell("Status", 20)] }),
+        new TableRow({ children: [headerCell("Posto/Função", 30), headerCell("Descrição das Atividades", 70)] }),
+        ...actRows,
+      ],
+    }));
+
+    // Risk inventory for this sector
+    const sectorRisks = risks.filter(r => {
+      const a = analyses.find(an => an.id === r.analysis_id);
+      return a && sectorWs.some(w => w.id === a.workstation_id);
+    });
+
+    children.push(heading("Inventário de Riscos Ocupacionais", HeadingLevel.HEADING_3));
+    if (sectorRisks.length > 0) {
+      children.push(new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({ children: [headerCell("Perigo", 25), headerCell("Danos", 20), headerCell("Fonte", 20), headerCell("P", 8), headerCell("G", 8), headerCell("NR", 8), headerCell("Controle", 16)] }),
+          ...sectorRisks.map(r => {
+            const a = analyses.find(an => an.id === r.analysis_id);
+            const ws = a ? sectorWs.find(w => w.id === a.workstation_id) : null;
+            const pL = r.probability <= 1 ? "B" : r.probability <= 2 ? "M" : r.probability <= 3 ? "A" : "E";
+            const gL = r.consequence <= 1 ? "B" : r.consequence <= 2 ? "M" : r.consequence <= 3 ? "A" : "E";
+            const ctrl = mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I.";
+            return new TableRow({
+              children: [
+                textCell(r.description, false, 25), textCell(ws?.name || "—", false, 20),
+                textCell(ws?.activity_description || "—", false, 20),
+                textCell(pL, false, 8), textCell(gL, false, 8),
+                textCell(riskLevelLabel(r.risk_level).charAt(0), false, 8), textCell(ctrl, false, 16),
+              ],
+            });
+          }),
+        ],
+      }));
+    } else {
+      children.push(body("Nenhum risco identificado para este setor."));
+    }
+    children.push(body("Recomendação: Realizar Análise Ergonômica do Trabalho (AET).", { bold: true }));
+  });
+
+  children.push(pageBreak());
+
+  // 11. Implementação
+  children.push(heading("11. IMPLEMENTAÇÃO DAS MEDIDAS DE PREVENÇÃO"));
+  children.push(body("A implementação das medidas de prevenção e respectivos ajustes são registrados no PLANO DE AÇÃO, com a indicação clara do que deve ser realizado, responsabilidades e prazos."));
+  children.push(heading("11.1 Plano de Ação", HeadingLevel.HEADING_3));
+  children.push(body("O Ciclo PDCA (Plan, Do, Check, Act) é utilizado para acompanhamento das ações."));
+
+  if (actions.length > 0) {
+    children.push(new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      rows: [
+        new TableRow({ children: [headerCell("Ação", 30), headerCell("Estratégia", 25), headerCell("Responsável", 15), headerCell("Prazo", 15), headerCell("Status", 15)] }),
         ...actions.map(ap => new TableRow({
           children: [
-            textCell(ap.description, false, 40),
-            textCell(ap.responsible, false, 20),
-            textCell(ap.deadline, false, 20),
-            textCell(statusLabel(ap.status), false, 20),
+            textCell(ap.description, false, 30), textCell("Implementar medidas conforme PGR", false, 25),
+            textCell(ap.responsible, false, 15), textCell(ap.deadline, false, 15), textCell(statusLabel(ap.status), false, 15),
           ],
         })),
       ],
-    });
-    children.push(actionTable);
-  } else {
-    children.push(body("Sem ações definidas."));
+    }));
   }
 
+  // 12. EPC
+  children.push(heading("12. EPC — EQUIPAMENTO DE PROTEÇÃO COLETIVA"));
+  children.push(body("O estudo, desenvolvimento e implantação de medidas de proteção coletiva deverá obedecer à hierarquia: eliminação na fonte, prevenção de disseminação, redução de níveis."));
+
+  // 13. EPI
+  children.push(heading("13. EPI — EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL"));
+  children.push(body("O EPI é todo dispositivo de uso individual destinado à proteção de riscos suscetíveis de ameaçar a segurança e a saúde no trabalho."));
+  ["Adquirir o EPI adequado ao risco", "Exigir seu uso", "Orientar e treinar sobre uso, guarda e conservação",
+   "Substituir imediatamente quando danificado", "Registrar o fornecimento ao trabalhador"
+  ].forEach(item => children.push(bulletItem(`Cabe ao empregador: ${item}`)));
+
+  // 14. Responsabilidades
+  children.push(heading("14. RESPONSABILIDADES"));
+  children.push(heading("Responsabilidades do Empregador", HeadingLevel.HEADING_3));
+  ["Estabelecer e assegurar o cumprimento do PGR", "Informar trabalhadores sobre riscos ambientais",
+   "Garantir interrupção de atividades em risco grave", "Incentivar participação dos trabalhadores no PGR"
+  ].forEach(item => children.push(bulletItem(item)));
+  children.push(heading("Responsabilidades do SESMT", HeadingLevel.HEADING_3));
+  ["Executar, coordenar e monitorar as etapas do programa", "Programar e aplicar treinamentos",
+   "Manter arquivado por 20 anos os relatórios"
+  ].forEach(item => children.push(bulletItem(item)));
+
+  // 15. Meta e Objetivos
+  children.push(heading("15. META E OBJETIVOS"));
+  ["Reduzir em 20% os riscos Alto/Crítico", "Garantir treinamento a 100% dos trabalhadores expostos",
+   "Implementar ações do Plano dentro dos prazos"
+  ].forEach(item => children.push(bulletItem(item)));
+
+  // 16. Referências
+  children.push(heading("16. REFERÊNCIAS BIBLIOGRÁFICAS"));
+  ["Normas Regulamentadoras — Ministério do Trabalho e Emprego",
+   "ABNT NBR ISO 31000:2009 — Gestão de Riscos", "BS 8800:1996 — Guide to OHS Management Systems",
+   "MULHAUSEN & DAMIANO (1998) — Strategy for Assessing Occupational Exposures",
+   "FUNDACENTRO — NHO 01, NHO 06, NHO 11",
+  ].forEach(item => children.push(bulletItem(item)));
+
+  // Signature
   children.push(new Paragraph({ spacing: { before: 600 } }));
+  children.push(new Paragraph({
+    children: [new TextRun({ text: "_____________________________________________", size: 22, font: "Calibri", color: COLORS.primary })],
+    alignment: AlignmentType.CENTER,
+  }));
+  children.push(new Paragraph({
+    children: [new TextRun({ text: consultant, size: 22, font: "Calibri", bold: true, color: COLORS.primary })],
+    alignment: AlignmentType.CENTER,
+  }));
+  children.push(new Paragraph({
+    children: [new TextRun({ text: "Engenheiro de Segurança do Trabalho — CREA/CONFEA: XXXXX", size: 20, font: "Calibri", color: COLORS.secondary })],
+    alignment: AlignmentType.CENTER,
+  }));
+  children.push(new Paragraph({ spacing: { before: 200 } }));
   children.push(new Paragraph({
     children: [new TextRun({ text: "Documento gerado pelo sistema Spartan — MG Consultoria", size: 18, font: "Calibri", color: COLORS.light, italics: true })],
     alignment: AlignmentType.CENTER,
