@@ -493,24 +493,57 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
 
   children.push(heading("7.2 Análises Ergonômicas", HeadingLevel.HEADING_3));
   if (analyses.length > 0) {
-    children.push(body(`As análises foram realizadas utilizando os métodos: ${methods}.`));
+    children.push(body(`As análises foram realizadas utilizando os métodos: ${methods}. O detalhamento por segmento corporal é apresentado a seguir:`));
+
+    const bodyPartLabels: Record<string, string> = {
+      trunk: "Tronco", neck: "Pescoço", legs: "Pernas", upper_arm: "Braço Superior",
+      lower_arm: "Antebraço", wrist: "Punho", chair: "Cadeira", monitor: "Monitor",
+      keyboard: "Teclado", mouse: "Mouse", telephone: "Telefone",
+    };
+
     analyses.forEach(a => {
       const ws = workstations.find(w => w.id === a.workstation_id);
       const risk = risks.find(r => r.analysis_id === a.id);
+      const wsSector = sectors.find(s => s.id === ws?.sector_id);
+
+      // Summary table
       const analysisTable = new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [
-          new TableRow({
-            children: [mergedCell(ws?.name || "—", 2, true, COLORS.headerBg)],
-          }),
+          new TableRow({ children: [mergedCell(`${ws?.name || "—"} — ${wsSector?.name || ""}`, 2, true, COLORS.headerBg)] }),
           new TableRow({ children: [textCell("Método", true, 30), textCell(a.method, false, 70)] }),
-          new TableRow({ children: [textCell("Score", true, 30), textCell(String(a.score), false, 70)] }),
+          new TableRow({ children: [textCell("Score Final", true, 30), textCell(String(a.score), false, 70)] }),
           new TableRow({ children: [textCell("Nível de Risco", true, 30), textCell(risk ? riskLevelLabel(risk.risk_level) : "N/A", false, 70)] }),
+          new TableRow({ children: [textCell("Status", true, 30), textCell(a.analysis_status === "completed" ? "Concluída" : a.analysis_status === "in_progress" ? "Em Andamento" : "Pendente", false, 70)] }),
           new TableRow({ children: [textCell("Observações", true, 30), textCell(a.notes, false, 70)] }),
         ],
       });
       children.push(analysisTable);
-      children.push(new Paragraph({ spacing: { after: 200 } }));
+      children.push(new Paragraph({ spacing: { after: 100 } }));
+
+      // Body parts breakdown
+      if (Object.keys(a.body_parts).length > 0) {
+        children.push(body("Pontuação por Segmento Corporal:", { bold: true, spacing: { before: 60, after: 60 } }));
+        const bpRows: TableRow[] = [
+          new TableRow({ children: [headerCell("Segmento Corporal", 40), headerCell("Pontuação", 20), headerCell("Interpretação", 40)] }),
+        ];
+        Object.entries(a.body_parts).forEach(([part, score]) => {
+          const label = bodyPartLabels[part] || part;
+          const interp = score <= 1 ? "Postura aceitável" : score <= 2 ? "Risco leve – monitorar" : score <= 3 ? "Risco moderado – investigar" : score <= 4 ? "Risco alto – ação necessária" : "Risco muito alto – ação imediata";
+          const fill = score <= 1 ? COLORS.greenBg : score <= 2 ? COLORS.greenBg : score <= 3 ? COLORS.yellowBg : COLORS.redBg;
+          bpRows.push(new TableRow({
+            children: [textCell(label, false, 40), textCell(String(score), true, 20), shadedCell(interp, fill, false, 40)],
+          }));
+        });
+        children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: bpRows }));
+      }
+
+      // Risk details if available
+      if (risk) {
+        children.push(body(`Avaliação de Risco: Probabilidade ${risk.probability} × Exposição ${risk.exposure} × Consequência ${risk.consequence} = Score ${risk.risk_score} (${riskLevelLabel(risk.risk_level)})`, { spacing: { before: 60, after: 60 } }));
+      }
+
+      children.push(new Paragraph({ spacing: { after: 300 } }));
     });
   } else {
     children.push(body("Nenhuma análise realizada."));
