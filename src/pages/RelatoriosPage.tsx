@@ -47,9 +47,9 @@ export default function RelatoriosPage() {
     return photoCount < MIN_PHOTOS_REQUIRED;
   });
 
-  const companyRisks = mockRiskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
-  const companyActions = mockActionPlans.filter((ap) => companyRisks.some((r) => r.id === ap.risk_assessment_id));
-  const companyPsychosocial = mockPsychosocialAnalyses.filter((p) => p.company_id === selectedCompanyId);
+  const companyRisks = riskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
+  const companyActions = actionPlans.filter((ap) => companyRisks.some((r) => r.id === ap.risk_assessment_id));
+  const companyPsychosocial = psychosocialAnalyses.filter((p) => p.company_id === selectedCompanyId);
   const completedAnalyses = companyAnalyses.filter((a) => a.analysis_status === "completed").length;
   const totalPhotos = posturePhotos.filter((p) => companyWorkstations.some((w) => w.id === p.workstation_id)).length;
   const riskDist: Record<RiskLevel, number> = { low: 0, medium: 0, high: 0, critical: 0 };
