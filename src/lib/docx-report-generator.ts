@@ -924,8 +924,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   // 6. Referencial teórico
   children.push(heading("6. REFERENCIAL TEÓRICO"));
   children.push(accentCallout("O uso inadequado do sistema osteomuscular pode levar a lesões quando os mecanismos de recuperação são insuficientes.", "warning"));
-  children.push(body("A produtividade tende a aumentar quando o trabalhador adota posturas corretas e quando o ambiente é organizado para prevenir riscos. As pausas durante atividades físicas trazem benefícios relevantes: em esforços estáticos auxiliam na remoção do ácido lático; em tarefas repetitivas oferecem tempo para recuperação dos tendões."));
-  children.push(body("Os principais fatores biomecânicos relacionados ao surgimento de lesões incluem força excessiva, posturas inadequadas, repetitividade elevada e compressões mecânicas, sendo o descanso insuficiente o fator crítico."));
+  children.push(...expandSection("biomecânica"));
 
   children.push(heading("Posturas dos membros superiores e sua relação patológica:", HeadingLevel.HEADING_3));
   [
@@ -937,6 +936,8 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
     "Cabeça excessivamente estendida — fibromialgia do trapézio",
     "Cabeça excessivamente fletida — cervicobraquialgia",
   ].forEach(t => children.push(bulletItem(t)));
+
+  children.push(...expandSection("ginastica_laboral"));
   children.push(pageBreak());
 
   // 7. Estudo ergonômico
