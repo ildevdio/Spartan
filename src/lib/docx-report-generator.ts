@@ -853,6 +853,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
     ],
   });
   children.push(normasTable);
+  children.push(...expandSection("nr17_detalhada"));
   children.push(pageBreak());
 
   // 5. Análise da demanda
