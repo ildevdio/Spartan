@@ -15,7 +15,7 @@ import { toast } from "sonner";
 export default function PostureCapturePage() {
   const {
     companyWorkstations, companySectors,
-    posturePhotos, setPosturePhotos,
+    posturePhotos, addPosturePhoto,
     workstations,
   } = useCompany();
   const [open, setOpen] = useState(false);
