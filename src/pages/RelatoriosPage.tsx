@@ -261,7 +261,7 @@ export default function RelatoriosPage() {
                     )}
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                    {(["AEP", "AET", "PGR"] as ReportType[]).map((type) => (
+                    {(["AET", "PGR"] as ReportType[]).map((type) => (
                       <div key={type} className="flex gap-1">
                         <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => handlePreviewWs(ws.id, type)}>
                           <Eye className="h-3 w-3 mr-1" />
