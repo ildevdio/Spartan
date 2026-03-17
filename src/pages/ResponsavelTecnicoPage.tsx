@@ -315,7 +315,7 @@ export default function ResponsavelTecnicoPage() {
         {pkiLoading ? (
           <Badge variant="outline" className="gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Verificando Web PKI...</Badge>
         ) : pkiReady ? (
-          <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30"><CheckCircle2 className="h-3 w-3" /> Web PKI ativo</Badge>
+          <Badge variant="outline" className="gap-1 bg-success/10 text-success border-success/30"><CheckCircle2 className="h-3 w-3" /> Web PKI ativo</Badge>
         ) : (
           <Badge variant="outline" className="gap-1 bg-amber-500/10 text-amber-600 border-amber-500/30">
             <KeyRound className="h-3 w-3" />
