@@ -69,7 +69,15 @@ function sharedStyles() {
     .rpt-sig { text-align:center; margin-top:50px; padding-top:20px; border-top:2px solid #B0BEC5; }
     .rpt-header { display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0A1F44; padding-bottom:8px; margin-bottom:20px; font-size:11px; color:#64748b; }
     .rpt-footer { text-align:center; font-size:10px; color:#94a3b8; margin-top:30px; border-top:1px solid #e2e8f0; padding-top:8px; }
-    .page-break { page-break-after: always; }
+    .page-break { page-break-after: always; break-after: page; }
+    .rpt-section, .rpt-section2, .rpt-section3 { page-break-before: auto; page-break-after: avoid; break-after: avoid; }
+    .rpt-table { page-break-inside: avoid; break-inside: avoid; }
+    .rpt-table tr { page-break-inside: avoid; break-inside: avoid; }
+    .rpt-callout { page-break-inside: avoid; break-inside: avoid; }
+    .rpt-cover { page-break-inside: avoid; break-inside: avoid; }
+    .rpt-sig { page-break-inside: avoid; break-inside: avoid; }
+    ul, ol { page-break-inside: avoid; break-inside: avoid; }
+    h1, h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
   </style>`;
 }
 
