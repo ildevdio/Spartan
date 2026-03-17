@@ -7,9 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCompany } from "@/lib/company-context";
 import { statusLabel, type ActionStatus } from "@/lib/types";
-import { Plus, CheckCircle2, Clock, CircleDot, Hourglass } from "lucide-react";
+import { Plus, CheckCircle2, Clock, CircleDot, Hourglass, Wand2, Loader2 } from "lucide-react";
 import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
+import { calculateRiskScore, classifyRisk } from "@/lib/types";
+import { toast } from "sonner";
 
 const STATUS_OPTIONS: ActionStatus[] = ["pending", "approved", "in_progress", "completed"];
 

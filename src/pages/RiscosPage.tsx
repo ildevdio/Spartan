@@ -7,9 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCompany } from "@/lib/company-context";
 import { calculateRiskScore, classifyRisk, riskLevelLabel, type RiskLevel } from "@/lib/types";
-import { Plus, AlertTriangle } from "lucide-react";
+import { Plus, AlertTriangle, Wand2, Loader2 } from "lucide-react";
 import { CompanySelector } from "@/components/CompanySelector";
 import { RiskBadge } from "./DashboardPage";
+import { toast } from "sonner";
 
 export default function RiscosPage() {
   const { companyAnalyses, companyWorkstations, riskAssessments, addRiskAssessment } = useCompany();
