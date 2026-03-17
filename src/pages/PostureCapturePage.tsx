@@ -175,6 +175,14 @@ export default function PostureCapturePage() {
                         <Camera className="h-3 w-3 shrink-0" />
                         <span className="truncate">{p.posture_type}</span>
                         <span className="ml-auto shrink-0">{p.created_at}</span>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive hover:text-destructive shrink-0" onClick={async () => {
+                          if (confirm("Excluir esta foto de postura?")) {
+                            await deletePosturePhoto(p.id);
+                            toast.success("Foto excluída!");
+                          }
+                        }}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     ))}
                   </div>

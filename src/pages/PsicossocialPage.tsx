@@ -253,6 +253,14 @@ export default function PsicossocialPage() {
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setViewing(a)}>
                     <Eye className="h-3 w-3" />
                   </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={async () => {
+                    if (confirm("Tem certeza que deseja excluir esta avaliação?")) {
+                      await deletePsychosocialAnalysis(a.id);
+                      toast.success("Avaliação excluída!");
+                    }
+                  }}>
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
                 </div>
               </div>
             );
