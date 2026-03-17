@@ -17,6 +17,7 @@ import AnaliseCameraPage from "./pages/AnaliseCameraPage";
 import PostureCapturePage from "./pages/PostureCapturePage";
 import PsicossocialPage from "./pages/PsicossocialPage";
 import QuestionariosPsicossociaisPage from "./pages/QuestionariosPsicossociaisPage";
+import ResponsavelTecnicoPage from "./pages/ResponsavelTecnicoPage";
 import NotFound from "./pages/NotFound";
 import { useNativeApp } from "@/hooks/use-native-app";
 const queryClient = new QueryClient();
