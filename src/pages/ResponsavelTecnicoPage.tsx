@@ -7,15 +7,18 @@ import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserCheck, Plus, Trash2, Edit2, Save, X, ShieldCheck, Loader2, FileSignature } from "lucide-react";
+import {
+  UserCheck, Plus, Trash2, Edit2, Save, X, ShieldCheck,
+  Loader2, KeyRound, RefreshCw, CheckCircle2,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  initWebPKI, listCertificates, signData, readCertificate,
+  type CertificateInfo,
+} from "@/lib/web-pki";
 
 interface TechnicalResponsible {
   id: string;
@@ -41,13 +44,32 @@ const EMPTY_FORM = {
 };
 
 export default function ResponsavelTecnicoPage() {
-  const { selectedCompanyId, selectedCompany } = useCompany();
+  const { selectedCompanyId } = useCompany();
   const [responsibles, setResponsibles] = useState<TechnicalResponsible[]>([]);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [signing, setSigning] = useState<string | null>(null);
+
+  // Web PKI state
+  const [pkiReady, setPkiReady] = useState(false);
+  const [pkiLoading, setPkiLoading] = useState(false);
+  const [certificates, setCertificates] = useState<CertificateInfo[]>([]);
+  const [certDialogOpen, setCertDialogOpen] = useState(false);
+  const [signingId, setSigningId] = useState<string | null>(null);
+  const [selectedCert, setSelectedCert] = useState<string | null>(null);
+
+  // Initialize Web PKI on mount
+  useEffect(() => {
+    setPkiLoading(true);
+    initWebPKI().then((ready) => {
+      setPkiReady(ready);
+      if (!ready) {
+        console.warn("Lacuna Web PKI não está instalado.");
+      }
+      setPkiLoading(false);
+    });
+  }, []);
 
   const fetchResponsibles = async () => {
     if (!selectedCompanyId) return;
@@ -59,7 +81,6 @@ export default function ResponsavelTecnicoPage() {
       .order("created_at", { ascending: false });
     if (error) {
       toast.error("Erro ao carregar responsáveis técnicos.");
-      console.error(error);
     } else {
       setResponsibles(data as TechnicalResponsible[]);
     }
@@ -84,7 +105,6 @@ export default function ResponsavelTecnicoPage() {
         .eq("id", editingId);
       if (error) {
         toast.error("Erro ao atualizar.");
-        console.error(error);
       } else {
         toast.success("Responsável técnico atualizado.");
       }
@@ -94,7 +114,6 @@ export default function ResponsavelTecnicoPage() {
         .insert({ ...form, company_id: selectedCompanyId });
       if (error) {
         toast.error("Erro ao cadastrar.");
-        console.error(error);
       } else {
         toast.success("Responsável técnico cadastrado.");
       }
@@ -129,30 +148,89 @@ export default function ResponsavelTecnicoPage() {
     }
   };
 
-  const handleGovBrSign = async (responsible: TechnicalResponsible) => {
-    setSigning(responsible.id);
+  const handleOpenSignDialog = async (responsible: TechnicalResponsible) => {
+    if (!pkiReady) {
+      toast.error(
+        "Lacuna Web PKI não está instalado. Instale a extensão do navegador para usar assinatura digital.",
+      );
+      window.open("https://get.webpkiplugin.com/", "_blank");
+      return;
+    }
+
+    setSigningId(responsible.id);
+    setCertDialogOpen(true);
+    setSelectedCert(null);
+
     try {
-      const { data, error } = await supabase.functions.invoke("govbr-signature", {
-        body: {
-          action: "init_auth",
-          responsible_id: responsible.id,
-          redirect_uri: window.location.origin + "/responsavel-tecnico",
-        },
-      });
-
-      if (error) throw error;
-
-      if (data?.auth_url) {
-        window.open(data.auth_url, "_blank", "width=600,height=700");
-        toast.info("Complete a autenticação na janela do gov.br.");
-      } else if (data?.message) {
-        toast.info(data.message);
+      const certs = await listCertificates();
+      setCertificates(certs);
+      if (certs.length === 0) {
+        toast.warning("Nenhum certificado digital encontrado. Verifique se o token USB está conectado.");
       }
     } catch (err) {
       console.error(err);
-      toast.error("Erro ao iniciar assinatura gov.br. Verifique se as credenciais estão configuradas.");
-    } finally {
-      setSigning(null);
+      toast.error("Erro ao listar certificados. Verifique se o token USB está conectado.");
+    }
+  };
+
+  const handleRefreshCerts = async () => {
+    try {
+      const certs = await listCertificates();
+      setCertificates(certs);
+      toast.success(`${certs.length} certificado(s) encontrado(s).`);
+    } catch {
+      toast.error("Erro ao atualizar lista de certificados.");
+    }
+  };
+
+  const handleSign = async () => {
+    if (!selectedCert || !signingId) return;
+
+    try {
+      // Read the certificate encoding
+      const certEncoding = await readCertificate(selectedCert);
+
+      // Create a simple signature payload with the responsible's data
+      const responsible = responsibles.find((r) => r.id === signingId);
+      if (!responsible) return;
+
+      const signaturePayload = JSON.stringify({
+        name: responsible.name,
+        cpf: responsible.cpf,
+        registration: responsible.professional_registration,
+        timestamp: new Date().toISOString(),
+      });
+
+      const payloadBase64 = btoa(unescape(encodeURIComponent(signaturePayload)));
+
+      // Sign the data with the selected certificate
+      const signature = await signData(selectedCert, payloadBase64);
+
+      // Store the certificate info and signature in the database
+      const certInfo = certificates.find((c) => c.thumbprint === selectedCert);
+      const certificateId = `ICP-Brasil: ${certInfo?.subjectName || selectedCert}`;
+
+      const { error } = await supabase
+        .from("technical_responsibles")
+        .update({
+          govbr_certificate_id: certificateId,
+          signature_image_url: signature.substring(0, 500), // store signature fragment
+        })
+        .eq("id", signingId);
+
+      if (error) {
+        toast.error("Erro ao salvar assinatura.");
+      } else {
+        toast.success("Documento assinado digitalmente com sucesso!");
+        fetchResponsibles();
+      }
+
+      setCertDialogOpen(false);
+      setSigningId(null);
+      setSelectedCert(null);
+    } catch (err) {
+      console.error("Signing error:", err);
+      toast.error("Erro ao assinar. Verifique se o token está conectado e o PIN foi informado.");
     }
   };
 
@@ -170,7 +248,7 @@ export default function ResponsavelTecnicoPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">Responsável Técnico</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Cadastre os responsáveis técnicos e assine digitalmente via gov.br
+            Cadastre os responsáveis técnicos e assine digitalmente via certificado A3 (token USB)
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -192,61 +270,30 @@ export default function ResponsavelTecnicoPage() {
               <div className="space-y-4 pt-2">
                 <div className="space-y-2">
                   <Label htmlFor="rt-name">Nome Completo *</Label>
-                  <Input
-                    id="rt-name"
-                    placeholder="Ex: Gisele Dantas"
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  />
+                  <Input id="rt-name" placeholder="Ex: Gisele Dantas" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="rt-title">Titulação</Label>
-                    <Input
-                      id="rt-title"
-                      placeholder="Ex: M.Sc Eng. De Produção (Ergonomia)"
-                      value={form.title}
-                      onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    />
+                    <Input id="rt-title" placeholder="Ex: M.Sc Eng. De Produção (Ergonomia)" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="rt-specialization">Especialização</Label>
-                    <Input
-                      id="rt-specialization"
-                      placeholder="Ex: Especialista em Ergonomia"
-                      value={form.specialization}
-                      onChange={(e) => setForm({ ...form, specialization: e.target.value })}
-                    />
+                    <Input id="rt-specialization" placeholder="Ex: Especialista em Ergonomia" value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="rt-registration">Registro Profissional *</Label>
-                  <Input
-                    id="rt-registration"
-                    placeholder="Ex: CREA/CE 061294159-0"
-                    value={form.professional_registration}
-                    onChange={(e) => setForm({ ...form, professional_registration: e.target.value })}
-                  />
+                  <Input id="rt-registration" placeholder="Ex: CREA/CE 061294159-0" value={form.professional_registration} onChange={(e) => setForm({ ...form, professional_registration: e.target.value })} />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-2">
                     <Label htmlFor="rt-cpf">CPF</Label>
-                    <Input
-                      id="rt-cpf"
-                      placeholder="000.000.000-00"
-                      value={form.cpf}
-                      onChange={(e) => setForm({ ...form, cpf: formatCpf(e.target.value) })}
-                    />
+                    <Input id="rt-cpf" placeholder="000.000.000-00" value={form.cpf} onChange={(e) => setForm({ ...form, cpf: formatCpf(e.target.value) })} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="rt-email">E-mail</Label>
-                    <Input
-                      id="rt-email"
-                      type="email"
-                      placeholder="email@exemplo.com"
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    />
+                    <Input id="rt-email" type="email" placeholder="email@exemplo.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
@@ -261,6 +308,20 @@ export default function ResponsavelTecnicoPage() {
             </DialogContent>
           </Dialog>
         </div>
+      </div>
+
+      {/* Web PKI Status */}
+      <div className="flex items-center gap-2 text-xs">
+        {pkiLoading ? (
+          <Badge variant="outline" className="gap-1"><Loader2 className="h-3 w-3 animate-spin" /> Verificando Web PKI...</Badge>
+        ) : pkiReady ? (
+          <Badge variant="outline" className="gap-1 bg-emerald-500/10 text-emerald-600 border-emerald-500/30"><CheckCircle2 className="h-3 w-3" /> Web PKI ativo</Badge>
+        ) : (
+          <Badge variant="outline" className="gap-1 bg-amber-500/10 text-amber-600 border-amber-500/30">
+            <KeyRound className="h-3 w-3" />
+            <a href="https://get.webpkiplugin.com/" target="_blank" rel="noopener" className="underline">Instalar Web PKI</a>
+          </Badge>
+        )}
       </div>
 
       {!selectedCompanyId && (
@@ -299,7 +360,7 @@ export default function ResponsavelTecnicoPage() {
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {r.govbr_certificate_id && (
-                      <Badge variant="outline" className="text-[10px] bg-success/10 text-success gap-1">
+                      <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1">
                         <ShieldCheck className="h-3 w-3" /> Assinado
                       </Badge>
                     )}
@@ -307,26 +368,23 @@ export default function ResponsavelTecnicoPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {r.title && (
-                  <p className="text-xs text-accent font-medium">{r.title}</p>
-                )}
-                {r.specialization && (
-                  <p className="text-xs text-muted-foreground">{r.specialization}</p>
-                )}
+                {r.title && <p className="text-xs text-accent font-medium">{r.title}</p>}
+                {r.specialization && <p className="text-xs text-muted-foreground">{r.specialization}</p>}
                 <p className="text-xs font-mono text-foreground">{r.professional_registration}</p>
                 <div className="flex gap-4 text-[11px] text-muted-foreground">
                   {r.cpf && <span>CPF: {r.cpf}</span>}
                   {r.email && <span>{r.email}</span>}
                 </div>
 
-                {/* Signature block preview */}
+                {/* Signature block */}
                 <div className="mt-3 p-3 border border-dashed border-border rounded-lg bg-muted/30">
                   <p className="text-[9px] text-muted-foreground text-center mb-1">
-                    {r.govbr_certificate_id ? "Documento assinado digitalmente" : "Prévia do bloco de assinatura"}
+                    {r.govbr_certificate_id ? "Documento assinado digitalmente (ICP-Brasil)" : "Prévia do bloco de assinatura"}
                   </p>
                   {r.govbr_certificate_id && (
                     <div className="flex items-center justify-center gap-1 mb-1">
-                      <img src="https://www.gov.br/++theme++flavour/assets/portal/images/govbr-logo-large.png" alt="gov.br" className="h-4" />
+                      <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                      <span className="text-[10px] font-medium text-emerald-600">ICP-Brasil</span>
                     </div>
                   )}
                   <div className="text-center">
@@ -335,6 +393,11 @@ export default function ResponsavelTecnicoPage() {
                     {r.specialization && <p className="text-[11px] text-muted-foreground">{r.specialization}</p>}
                     <p className="text-[11px] font-mono">{r.professional_registration}</p>
                   </div>
+                  {r.govbr_certificate_id && (
+                    <p className="text-[9px] text-muted-foreground text-center mt-1 break-all">
+                      {r.govbr_certificate_id}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex gap-1 pt-2 flex-wrap">
@@ -345,15 +408,10 @@ export default function ResponsavelTecnicoPage() {
                     size="sm"
                     variant="outline"
                     className="text-xs h-7 gap-1"
-                    onClick={() => handleGovBrSign(r)}
-                    disabled={!!signing}
+                    onClick={() => handleOpenSignDialog(r)}
                   >
-                    {signing === r.id ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <FileSignature className="h-3 w-3" />
-                    )}
-                    Assinar gov.br
+                    <KeyRound className="h-3 w-3" />
+                    Assinar (Token A3)
                   </Button>
                   <Button size="sm" variant="ghost" className="text-xs h-7 gap-1 text-destructive hover:text-destructive" onClick={() => handleDelete(r.id)}>
                     <Trash2 className="h-3 w-3" /> Excluir
@@ -365,21 +423,80 @@ export default function ResponsavelTecnicoPage() {
         </div>
       )}
 
-      {/* Info about gov.br integration */}
+      {/* Certificate Selection Dialog */}
+      <Dialog open={certDialogOpen} onOpenChange={(open) => { if (!open) { setCertDialogOpen(false); setSigningId(null); setSelectedCert(null); } }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-accent" />
+              Selecionar Certificado Digital
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Selecione o certificado do token USB conectado:
+              </p>
+              <Button size="sm" variant="ghost" className="gap-1 text-xs" onClick={handleRefreshCerts}>
+                <RefreshCw className="h-3 w-3" /> Atualizar
+              </Button>
+            </div>
+
+            {certificates.length === 0 ? (
+              <div className="text-center py-6 text-muted-foreground">
+                <KeyRound className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Nenhum certificado encontrado.</p>
+                <p className="text-xs mt-1">Conecte o token USB e clique em "Atualizar".</p>
+              </div>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {certificates.map((cert) => (
+                  <div
+                    key={cert.thumbprint}
+                    className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                      selectedCert === cert.thumbprint
+                        ? "border-accent bg-accent/10"
+                        : "border-border hover:border-accent/50"
+                    }`}
+                    onClick={() => setSelectedCert(cert.thumbprint)}
+                  >
+                    <p className="text-sm font-medium">{cert.subjectName}</p>
+                    <p className="text-[11px] text-muted-foreground">Emitido por: {cert.issuerName}</p>
+                    <div className="flex gap-3 mt-1 text-[10px] text-muted-foreground">
+                      <span>Validade: {new Date(cert.validityEnd).toLocaleDateString("pt-BR")}</span>
+                      {cert.pkiBrazil?.cpf && <span>CPF: {cert.pkiBrazil.cpf}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={() => { setCertDialogOpen(false); setSigningId(null); }}>
+                <X className="h-4 w-4 mr-1" /> Cancelar
+              </Button>
+              <Button onClick={handleSign} disabled={!selectedCert}>
+                <ShieldCheck className="h-4 w-4 mr-1" /> Assinar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Info card */}
       <Card className="border-accent/30">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+            <KeyRound className="h-5 w-5 text-accent shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="text-sm font-medium">Assinatura Digital gov.br</p>
+              <p className="text-sm font-medium">Assinatura Digital com Certificado A3 (Token USB)</p>
               <p className="text-xs text-muted-foreground">
-                A integração com a API de Assinatura Eletrônica do gov.br permite assinar documentos 
-                digitalmente utilizando certificados avançados emitidos pela plataforma gov.br. 
-                O processo requer autenticação OAuth 2.0 via Login Único e utiliza a API REST do ITI 
-                para gerar assinaturas em formato PKCS#7.
+                A assinatura digital utiliza o componente Lacuna Web PKI para acessar certificados 
+                ICP-Brasil armazenados em tokens USB (A3). O processo de assinatura ocorre 
+                inteiramente no navegador, garantindo que a chave privada nunca saia do dispositivo.
               </p>
               <p className="text-[11px] text-muted-foreground/70">
-                Ambiente de homologação: assinatura-api.staging.iti.br — Produção: assinatura-api.iti.gov.br
+                Requisitos: Token USB com certificado A3 válido + extensão Lacuna Web PKI instalada no navegador.
               </p>
             </div>
           </div>
