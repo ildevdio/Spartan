@@ -317,7 +317,7 @@ ${risks.map((r, i) => {
 <hr>
 
 <h2>10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</h2>
-${psychosocial.length > 0 ? psychosocial.map(psa => `
+<h3>10.1 Análise Complementar dos Riscos Psicossociais</h3>
 <h3>Avaliação Psicossocial${psa.workstation_id ? ` — ${workstations.find(w => w.id === psa.workstation_id)?.name || ""}` : ""}</h3>
 <p><strong>Avaliador:</strong> ${psa.evaluator_name}</p>
 
