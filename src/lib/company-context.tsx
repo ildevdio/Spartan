@@ -39,6 +39,7 @@ interface CompanyContextType {
   deleteWorkstation: (id: string) => Promise<void>;
   addAnalysis: (a: Omit<Analysis, "id" | "created_at">) => Promise<void>;
   updateAnalysis: (id: string, a: Partial<Analysis>) => Promise<void>;
+  deleteAnalysis: (id: string) => Promise<void>;
   addPosturePhoto: (p: Omit<PosturePhoto, "id" | "created_at">) => Promise<void>;
   addReport: (r: Omit<Report, "id" | "created_at">) => Promise<void>;
   updateReport: (id: string, r: Partial<Report>) => Promise<void>;
