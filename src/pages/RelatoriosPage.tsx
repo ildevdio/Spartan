@@ -109,6 +109,7 @@ export default function RelatoriosPage() {
     setPreviewHtml(html);
     setPreviewTitle(label);
     setPreviewDownload(() => () => handleDownloadDocx(ctx));
+    setPreviewPdfDownload(() => () => generateAndDownloadPdf(ctx));
   };
 
   const handlePreviewAll = (type: ReportType) => {
