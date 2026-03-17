@@ -2,9 +2,9 @@ import type { Sector, Workstation, Analysis, RiskAssessment, ActionPlan, Report,
 import { calculateRiskScore, classifyRisk } from "./types";
 
 export const mockCompanies: Company[] = [
-  { id: "comp1", name: "Yello Sucos & Lanches", cnpj: "31.643.918/0001-82", address: "Rua das Flores, 150", city: "Fortaleza", state: "CE", description: "Empresa do ramo alimentício especializada em sucos naturais e lanches", created_at: "2025-01-01" },
-  { id: "comp2", name: "MedTraum Saúde Ocupacional", cnpj: "98.765.432/0001-10", address: "Av. Santos Dumont, 500", city: "Fortaleza", state: "CE", description: "Clínica de saúde ocupacional e medicina do trabalho", created_at: "2025-01-10" },
-  { id: "comp3", name: "Empresa Teste Ltda", cnpj: "12.345.678/0001-90", address: "Rua Principal, 100", city: "São Paulo", state: "SP", description: "Empresa de teste para validação de relatórios AET completos com múltiplos setores e postos de trabalho", created_at: "2025-02-01" },
+  { id: "comp1", name: "Yello Sucos & Lanches", trade_name: "YELLO SUCOS & LANCHES", cnpj: "31.643.918/0001-82", cnae_principal: "56.11-2-03", cnae_secundario: "56.11-2-01", activity_risk: "02", address: "Rua das Flores, 150", neighborhood: "Meireles", city: "Fortaleza", state: "CE", cep: "60165-120", description: "Empresa do ramo alimentício especializada em sucos naturais e lanches", created_at: "2025-01-01" },
+  { id: "comp2", name: "MedTraum Saúde Ocupacional", trade_name: "MEDTRAUM", cnpj: "98.765.432/0001-10", cnae_principal: "86.30-5-03", cnae_secundario: "", activity_risk: "03", address: "Av. Santos Dumont, 500", neighborhood: "Centro", city: "Fortaleza", state: "CE", cep: "60150-160", description: "Clínica de saúde ocupacional e medicina do trabalho", created_at: "2025-01-10" },
+  { id: "comp3", name: "Empresa Teste Ltda", trade_name: "EMPRESA TESTE", cnpj: "12.345.678/0001-90", cnae_principal: "10.91-1-02", cnae_secundario: "", activity_risk: "03", address: "Rua Principal, 100", neighborhood: "Jardins", city: "São Paulo", state: "SP", cep: "01310-100", description: "Empresa de teste para validação de relatórios AET completos com múltiplos setores e postos de trabalho", created_at: "2025-02-01" },
 ];
 
 export const mockSectors: Sector[] = [

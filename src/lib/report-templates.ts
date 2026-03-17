@@ -75,50 +75,54 @@ function generateAETReport(ctx: ReportContext): string {
 
   return `
 <div style="text-align:center; padding: 60px 40px; border: 2px solid #1e293b;">
+  <img src="/mg-consult-logo.png" alt="MG Consult" style="height: 60px; margin-bottom: 20px;" onerror="this.style.display='none'" />
   <h1 style="font-size: 28px; margin-bottom: 8px; color: #1e293b;">ANÁLISE ERGONÔMICA DO TRABALHO</h1>
   <h2 style="font-size: 20px; color: #475569; margin-bottom: 40px;">AET</h2>
-  <p style="font-size: 24px; font-weight: bold; color: #1e293b;">${company.name}</p>
+  <p style="font-size: 24px; font-weight: bold; color: #1e293b;">${company.trade_name || company.name}</p>
   <p style="font-size: 14px; color: #64748b;">CNPJ: ${company.cnpj}</p>
-  <p style="font-size: 14px; color: #64748b; margin-bottom: 40px;">${company.address} — ${company.city}/${company.state}</p>
-  <p style="font-size: 14px; color: #64748b;">Emissão: ${getToday()}</p>
-  <p style="font-size: 14px; color: #64748b;">Revisão: 00</p>
-  <p style="font-size: 14px; color: #475569; margin-top: 40px;"><strong>Responsável Técnico:</strong> ${consultant}</p>
-  <p style="font-size: 11px; color: #94a3b8; margin-top: 20px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
+  <p style="font-size: 16px; color: #64748b; margin-top: 30px;">${new Date().getFullYear()}</p>
+  <p style="font-size: 11px; color: #94a3b8; margin-top: 40px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
 </div>
 <div style="page-break-after: always;"></div>
 
 <h2>ÍNDICE</h2>
-<ol style="font-size: 14px; line-height: 2;">
-  <li>Introdução</li>
-  <li>Identificação e Caracterização da Empresa</li>
-  <li>Objetivos</li>
-  <li>Referências Normativas</li>
-  <li>Análise da Demanda e do Funcionamento da Organização</li>
-  <li>Referencial Teórico</li>
-  <li>Estudo Ergonômico do Trabalho</li>
-  <li>Definição de Métodos, Técnicas e Ferramentas</li>
-  <li>Agrupamento por GHE e Matriz de Avaliação Ergonômica</li>
-  <li>Análise dos Riscos Psicossociais</li>
-  <li>Responsabilidade Técnica</li>
-</ol>
+<table style="width:100%; border-collapse: collapse; font-size: 14px;">
+  <tr><td style="padding: 6px 0;">1. Introdução</td><td style="text-align:right; padding: 6px 0;">2</td></tr>
+  <tr><td style="padding: 6px 0;">2. Dados da Empresa</td><td style="text-align:right; padding: 6px 0;">4</td></tr>
+  <tr><td style="padding: 6px 0;">3. Objetivos</td><td style="text-align:right; padding: 6px 0;">5</td></tr>
+  <tr><td style="padding: 6px 0;">4. Referências Normativas</td><td style="text-align:right; padding: 6px 0;">5</td></tr>
+  <tr><td style="padding: 6px 0;">5. Análise da Demanda e do Funcionamento da Organização</td><td style="text-align:right; padding: 6px 0;">6</td></tr>
+  <tr><td style="padding: 6px 0;">6. Referencial Teórico</td><td style="text-align:right; padding: 6px 0;">7</td></tr>
+  <tr><td style="padding: 6px 0;">7. Estudo Ergonômico do Trabalho</td><td style="text-align:right; padding: 6px 0;">9</td></tr>
+  <tr><td style="padding: 6px 0;">8. Definição de Métodos, Técnicas e Ferramentas</td><td style="text-align:right; padding: 6px 0;">10</td></tr>
+  <tr><td style="padding: 6px 0;">9. Agrupamento por GHE e Matriz de Avaliação Ergonômica</td><td style="text-align:right; padding: 6px 0;">12</td></tr>
+  <tr><td style="padding: 6px 0;">10. Análise dos Riscos Psicossociais</td><td style="text-align:right; padding: 6px 0;">14</td></tr>
+  <tr><td style="padding: 6px 0;">11. Responsabilidade Técnica</td><td style="text-align:right; padding: 6px 0;">15</td></tr>
+  <tr><td style="padding: 6px 0;">12. Anexos</td><td style="text-align:right; padding: 6px 0;">16</td></tr>
+</table>
 <div style="page-break-after: always;"></div>
 
 <h2>1. INTRODUÇÃO</h2>
 <p>Na busca por elevar a produtividade, a qualidade, a segurança e o conforto durante a execução das atividades — sejam elas rotineiras ou mais complexas — a ergonomia tem ganhado cada vez mais espaço dentro das organizações. Seu uso tornou-se essencial para reduzir falhas e otimizar processos nos setores produtivos, administrativos e, sobretudo, nos aspectos que envolvem comportamento e interação humana.</p>
-<p>A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa. Em qualquer ambiente, pode-se compreender a atividade como um sistema que integra pessoas, máquinas e o meio ao redor. Quando esse sistema opera em condições inadequadas, surgem desconfortos imediatos, fadiga e até lesões ao longo do tempo.</p>
-<p>Locais de trabalho planejados de forma incorreta tendem a reduzir o desempenho, comprometer a qualidade, elevar o absenteísmo e aumentar custos operacionais. A ergonomia busca tornar a interação entre trabalhador, equipamentos e ambiente o mais segura, eficiente e confortável possível.</p>
+<p>A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa. Em qualquer ambiente industrial, pode-se compreender a atividade como um sistema que integra pessoas, máquinas e o meio ao redor. Quando esse sistema opera em condições inadequadas, surgem desconfortos imediatos, fadiga e até lesões ao longo do tempo.</p>
+<p>Locais de trabalho planejados de forma incorreta tendem a reduzir o desempenho, comprometer a qualidade, elevar o absenteísmo e aumentar custos operacionais. A ergonomia busca tornar a interação entre trabalhador, equipamentos e ambiente o mais segura, eficiente e confortável possível, priorizando inicialmente a preservação da saúde e o bem-estar do colaborador e, como consequência, contribuindo para melhores resultados empresariais.</p>
 <p>Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17, com o objetivo de subsidiar a elaboração da Análise Ergonômica do Trabalho.</p>
 <hr>
 
-<h2>2. IDENTIFICAÇÃO E CARACTERIZAÇÃO DA EMPRESA</h2>
+<h2>2. DADOS DA EMPRESA</h2>
 <table style="width:100%; border-collapse: collapse;">
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 200px;">Razão Social</td><td style="border: 1px solid #ddd; padding: 8px;">${company.name}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">CNPJ</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnpj}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Endereço</td><td style="border: 1px solid #ddd; padding: 8px;">${company.address}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Cidade/UF</td><td style="border: 1px solid #ddd; padding: 8px;">${company.city}/${company.state}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Descrição</td><td style="border: 1px solid #ddd; padding: 8px;">${company.description}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Setor Avaliado</td><td style="border: 1px solid #ddd; padding: 8px;">${sectorName}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Posto(s) de Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${wsName}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 200px; background: #f1f5f9;">Razão Social</td><td style="border: 1px solid #ddd; padding: 8px;">${company.name}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Nome Fantasia</td><td style="border: 1px solid #ddd; padding: 8px;">${company.trade_name || company.name}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">CNPJ</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnpj}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">CNAE Principal</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnae_principal || "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">CNAE Secundário</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnae_secundario || "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Risco da Atividade</td><td style="border: 1px solid #ddd; padding: 8px;">${company.activity_risk ? `${company.activity_risk} (NR-04)` : "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;" rowspan="4">Endereço Completo</td><td style="border: 1px solid #ddd; padding: 8px;"><strong>Logradouro:</strong> ${company.address}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Bairro:</strong> ${company.neighborhood || "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Cidade/Estado:</strong> ${company.city} — ${company.state}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>CEP:</strong> ${company.cep || "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Setor(es) Avaliado(s)</td><td style="border: 1px solid #ddd; padding: 8px;">${sectorName}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Posto(s) de Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${wsName}</td></tr>
 </table>
 <hr>
 
@@ -172,6 +176,8 @@ ${workstations.map(ws => {
 <hr>
 
 <h2>7. ESTUDO ERGONÔMICO DO TRABALHO</h2>
+<p>A realização do Estudo Ergonômico do Trabalho é indispensável não apenas pelo cumprimento da NR17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral. Há diversas metodologias para conduzir esse estudo, e o presente trabalho foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT.</p>
+
 <h3>7.1 Registro Postural</h3>
 ${photos.length > 0 ? `<p>Foram registradas <strong>${photos.length}</strong> posturas de trabalho para documentação e análise biomecânica:</p>
 <table style="width:100%; border-collapse: collapse;">
@@ -185,35 +191,108 @@ ${analyses.length > 0 ? `<p>As análises foram realizadas utilizando os métodos
 ${analyses.map(a => {
   const ws = workstations.find(w => w.id === a.workstation_id);
   const risk = risks.find(r => r.analysis_id === a.id);
-  return `
-<table style="width:100%; border-collapse: collapse; margin-bottom: 16px;">
-  <tr style="background: #f1f5f9;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${ws?.name || "—"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; width: 200px;"><strong>Método</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${a.method}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Score</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${a.score}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Nível de Risco</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${risk ? riskLevelLabel(risk.risk_level) : "N/A"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Observações</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${a.notes}</td></tr>
-</table>`;
+  return '<table style="width:100%; border-collapse: collapse; margin-bottom: 16px;">' +
+    '<tr style="background: #f1f5f9;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">' + (ws?.name || "—") + '</td></tr>' +
+    '<tr><td style="border: 1px solid #ddd; padding: 8px; width: 200px;"><strong>Método</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + a.method + '</td></tr>' +
+    '<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Score</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + a.score + '</td></tr>' +
+    '<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Nível de Risco</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + (risk ? riskLevelLabel(risk.risk_level) : "N/A") + '</td></tr>' +
+    '<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Observações</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + a.notes + '</td></tr>' +
+    '</table>';
 }).join("")}` : "<p>Nenhuma análise realizada.</p>"}
 <hr>
 
 <h2>8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS</h2>
-<p>Para a avaliação ergonômica dos postos de trabalho, foram utilizados os seguintes métodos:</p>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Método</th><th style="border: 1px solid #ddd; padding: 8px;">Aplicação</th><th style="border: 1px solid #ddd; padding: 8px;">Classificação</th></tr></thead>
-<tbody>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>REBA</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Avaliação rápida do corpo inteiro</td><td style="border: 1px solid #ddd; padding: 8px;">1-3: Baixo | 4-7: Médio | 8-10: Alto | 11+: Muito Alto</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>RULA</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Avaliação rápida de membros superiores</td><td style="border: 1px solid #ddd; padding: 8px;">1-2: Aceitável | 3-4: Investigar | 5-6: Mudar breve | 7: Mudar já</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>ROSA</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Avaliação de postos informatizados</td><td style="border: 1px solid #ddd; padding: 8px;">1-2: Desprezível | 3-4: Baixo | 5-6: Médio | 7+: Alto</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>OWAS</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Sistema de análise de posturas</td><td style="border: 1px solid #ddd; padding: 8px;">1: Normal | 2: Leve | 3: Severo | 4: Muito severo</td></tr>
-</tbody>
-</table>
+<p>No âmbito do Programa de Análise Ergonômica do Trabalho da empresa, adotou-se a seguinte abordagem metodológica:</p>
+<ul>
+  <li><strong>Consultoria Inicial:</strong> Etapa destinada à coleta de informações sobre a empresa, seus colaboradores e as prioridades de avaliação, realizada em conjunto com os setores de Segurança e Medicina do Trabalho.</li>
+  <li><strong>Observação dos Postos e Postura de Trabalho Descritiva:</strong> Inspeção presencial minuciosa de cada posto, aliada a entrevistas e troca de informações com os trabalhadores.</li>
+  <li><strong>Aplicação de questionários:</strong> Utilizados para identificar a percepção dos colaboradores quanto às condições ergonômicas.</li>
+</ul>
+
+<h3>Ferramentas Ergonômicas:</h3>
+<p><strong>REBA (Rapid Entire Body Assessment):</strong> Criado por Hignett e McAtamney (2000), o método tem como finalidade estimar o risco de desenvolvimento de distúrbios musculoesqueléticos decorrentes das posturas adotadas no trabalho. Trata-se de uma ferramenta indicada para analisar tarefas que envolvem manipulação de pessoas ou cargas em movimento. O REBA considera fatores posturais estáticos e dinâmicos na interação trabalhador–carga e incorpora o conceito de "assistência gravitacional". Classificação: 1-3: Baixo | 4-7: Médio | 8-10: Alto | 11+: Muito Alto.</p>
+<p><strong>RULA (Rapid Upper Limb Assessment):</strong> Desenvolvido por McAtamney e Corlett (1993), avalia a exposição dos membros superiores a fatores de risco que contribuem para o desenvolvimento de distúrbios relacionados ao trabalho. Classificação: 1-2: Aceitável | 3-4: Investigar | 5-6: Mudar breve | 7: Mudar imediatamente.</p>
+<p><strong>OCRA (Occupational Repetitive Actions):</strong> Metodologia internacionalmente reconhecida para avaliação do risco de lesões musculoesqueléticas associadas a movimentos repetitivos dos membros superiores. Desenvolvido por Colombini, Occhipinti e colaboradores, é amplamente utilizado em ergonomia ocupacional, especialmente em setores que exigem repetição contínua de tarefas.</p>
+<p><strong>ROSA (Rapid Office Strain Assessment):</strong> Ferramenta ergonômica usada para identificar riscos musculoesqueléticos em postos administrativos, especialmente aqueles com uso contínuo de computador. O método avalia cadeira, mesa, monitor, teclado, mouse e telefone, considerando ajustes, postura e tempo de exposição. Classificação: 1-2: Desprezível | 3-4: Baixo | 5-6: Médio | 7+: Alto.</p>
+<p><strong>OWAS (Ovako Working Posture Analysing System):</strong> Sistema de análise postural que classifica posturas de trabalho quanto ao risco musculoesquelético. Classificação: 1: Normal | 2: Leve | 3: Severo | 4: Muito severo.</p>
 <p>A detecção de posturas foi realizada com auxílio de inteligência artificial (BlazePose/MediaPipe) para cálculo preciso dos ângulos articulares, com filtragem de confiança mínima de 0.35 e suavização temporal de 5 frames.</p>
+
+<h3>Norma Regulamentadora nº 17 – Ergonomia</h3>
+<p>Foram também considerados todos os requisitos da NR-17, incluindo: levantamento, transporte e descarga individual de materiais; mobiliário dos postos de trabalho; equipamentos dos postos de trabalho; condições ambientais de trabalho; pausas para descanso.</p>
+
+<h3>8.1 Equipamentos Utilizados para Medição no Ambiente de Trabalho</h3>
+<table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">
+  <tr style="background: #0A1F44; color: white;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">CALOR</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 150px;">Instrumento</td><td style="border: 1px solid #ddd; padding: 8px;">Medidor de stress térmico</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Método</td><td style="border: 1px solid #ddd; padding: 8px;">NR-15, Portaria 3214/78, do MTE</td></tr>
+</table>
+<table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">
+  <tr style="background: #0A1F44; color: white;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">RUÍDO</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 150px;">Instrumento</td><td style="border: 1px solid #ddd; padding: 8px;">Decibelímetro</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Método</td><td style="border: 1px solid #ddd; padding: 8px;">NHT-06, FUNDACENTRO / NR-15</td></tr>
+</table>
+<table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">
+  <tr style="background: #0A1F44; color: white;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">ILUMINAÇÃO</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 150px;">Instrumento</td><td style="border: 1px solid #ddd; padding: 8px;">Luxímetro</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Método</td><td style="border: 1px solid #ddd; padding: 8px;">NHO 11</td></tr>
+</table>
 <hr>
 
 <h2>9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA</h2>
-<p>Os trabalhadores foram agrupados por Grupos Homogêneos de Exposição (GHE), considerando as atividades realizadas, posturas adotadas e riscos identificados.</p>
+<p>A empresa <strong>${company.trade_name || company.name}</strong> atua no segmento de ${company.description.toLowerCase()}. Os trabalhadores são classificados em Grupos Homogêneos de Exposição (GHE), conforme metodologia adotada pelo Programa de Gerenciamento de Riscos (PGR). Essa classificação visa agrupar funções com condições de exposição semelhantes, possibilitando uma avaliação mais precisa dos riscos ergonômicos, biomecânicos e psicossociais presentes nas diferentes áreas da empresa.</p>
+<p>O enquadramento por GHE permite a integração entre os programas de gestão de riscos (GRO/PGR) e a Análise Ergonômica do Trabalho (AET), promovendo uma visão unificada da exposição ocupacional e das ações preventivas aplicáveis.</p>
+
+<h3>9.1 Grupo Homogêneo de Exposição – GHE</h3>
+<table style="width:100%; border-collapse: collapse;">
+<thead><tr style="background: #0A1F44; color: white;">
+  <th style="border: 1px solid #ddd; padding: 8px;">GHE</th>
+  <th style="border: 1px solid #ddd; padding: 8px;">Setor / Atividade</th>
+  <th style="border: 1px solid #ddd; padding: 8px;">Descrição das Atividades</th>
+</tr></thead>
+<tbody>
+${workstations.map((ws, i) => {
+  const sector = ctx.workstations.length > 0 ? (ctx.sector || { name: "Geral" }) : { name: "Geral" };
+  return '<tr>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">GHE ' + String(i + 1).padStart(2, '0') + ' - ' + ws.name + '</td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">' + (sector?.name || "—") + '</td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">' + (ws.activity_description || ws.description || ws.tasks_performed) + '</td>' +
+    '</tr>';
+}).join("")}
+</tbody></table>
+
+<h3>9.2 Matriz de Avaliação de Riscos</h3>
+<p>A análise dos riscos ergonômicos foi realizada com base na Matriz de Probabilidade × Severidade, metodologia utilizada no PGR da empresa e alinhada aos princípios da AIHA (1998) e da norma BS 8800 (1996):</p>
+<table style="width:100%; border-collapse: collapse;">
+<thead><tr style="background: #0A1F44; color: white;">
+  <th style="border: 1px solid #ddd; padding: 8px;">Severidade (S)</th>
+  <th style="border: 1px solid #ddd; padding: 8px;">Probabilidade (P)</th>
+  <th style="border: 1px solid #ddd; padding: 8px;">Resultado (Nível de Risco)</th>
+  <th style="border: 1px solid #ddd; padding: 8px;">Classificação / Ação Recomendada</th>
+</tr></thead>
+<tbody>
+  <tr>
+    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Leve / Reversível</strong> — desconfortos temporários, sem impacto funcional</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Baixa probabilidade — exposição eventual ou sob controle</td>
+    <td style="border: 1px solid #ddd; padding: 8px; background: #C8E6C9; font-weight: bold;">Baixo (Aceitável)</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Manter as condições atuais, reforçando boas práticas e pausas.</td>
+  </tr>
+  <tr>
+    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Moderada / Desconforto persistente</strong> — sintomas repetitivos ou leves</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Média probabilidade — exposição frequente, posturas mantidas</td>
+    <td style="border: 1px solid #ddd; padding: 8px; background: #FFF9C4; font-weight: bold;">Médio (Tolerável)</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Promover ajustes ergonômicos, pausas regulares e orientação postural.</td>
+  </tr>
+  <tr>
+    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Grave / Potencial de LER/DORT</strong> — dor crônica, limitação de movimento ou necessidade de afastamento</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Alta probabilidade — exposição contínua, sem pausas ou ajustes</td>
+    <td style="border: 1px solid #ddd; padding: 8px; background: #FFCDD2; font-weight: bold;">Alto (Crítico)</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Implementar medidas corretivas imediatas no posto de trabalho.</td>
+  </tr>
+</tbody></table>
+<p><em>Critério de interpretação: quanto maior a severidade e a probabilidade combinadas, mais urgente é a necessidade de intervenção.</em></p>
+
 ${risks.length > 0 ? `
-<h3>Matriz de Risco Ergonômico</h3>
+<h3>Riscos Identificados</h3>
 <table style="width:100%; border-collapse: collapse;">
 <thead><tr style="background: #f1f5f9;">
   <th style="border: 1px solid #ddd; padding: 8px;">GHE/Posto</th>
@@ -226,105 +305,70 @@ ${risks.length > 0 ? `
 ${risks.map((r, i) => {
   const analysis = analyses.find(a => a.id === r.analysis_id);
   const ws = analysis ? workstations.find(w => w.id === analysis.workstation_id) : null;
-  return `<tr>
-    <td style="border: 1px solid #ddd; padding: 8px;">${ws?.name || `GHE ${i + 1}`}</td>
-    <td style="border: 1px solid #ddd; padding: 8px;">${r.description}</td>
-    <td style="border: 1px solid #ddd; padding: 8px;">${r.probability} × ${r.exposure} × ${r.consequence}</td>
-    <td style="border: 1px solid #ddd; padding: 8px;"><strong>${r.risk_score}</strong></td>
-    <td style="border: 1px solid #ddd; padding: 8px;"><strong>${riskLevelLabel(r.risk_level)}</strong></td>
-  </tr>`;
+  return '<tr>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">' + (ws?.name || 'GHE ' + (i + 1)) + '</td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">' + r.description + '</td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">' + r.probability + ' × ' + r.exposure + ' × ' + r.consequence + '</td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;"><strong>' + r.risk_score + '</strong></td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;"><strong>' + riskLevelLabel(r.risk_level) + '</strong></td>' +
+    '</tr>';
 }).join("")}
-</tbody></table>
-
-<h3>Plano de Ação</h3>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;">
-  <th style="border: 1px solid #ddd; padding: 8px;">Ação Corretiva</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Responsável</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Prazo</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Status</th>
-</tr></thead>
-<tbody>
-${actions.map(ap => `<tr>
-  <td style="border: 1px solid #ddd; padding: 8px;">${ap.description}</td>
-  <td style="border: 1px solid #ddd; padding: 8px;">${ap.responsible}</td>
-  <td style="border: 1px solid #ddd; padding: 8px;">${ap.deadline}</td>
-  <td style="border: 1px solid #ddd; padding: 8px;">${statusLabel(ap.status)}</td>
-</tr>`).join("")}
-</tbody></table>` : "<p>Nenhum risco avaliado.</p>"}
+</tbody></table>` : ""}
 <hr>
 
 <h2>10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</h2>
-${psychosocial.length > 0 ? psychosocial.map(psa => `
-<h3>Avaliação Psicossocial${psa.workstation_id ? ` — ${workstations.find(w => w.id === psa.workstation_id)?.name || ""}` : ""}</h3>
-<p><strong>Avaliador:</strong> ${psa.evaluator_name}</p>
-
-${psa.nasa_tlx_details ? `
-<h4>NASA-TLX (Índice de Carga de Trabalho)</h4>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (0-100)</th></tr></thead>
-<tbody>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Mental</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.mental_demand}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Física</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.physical_demand}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Temporal</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.temporal_demand}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Performance</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.performance}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Esforço</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.effort}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Frustração</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.frustration}</td></tr>
-  <tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${psa.nasa_tlx_score}</td></tr>
-</tbody></table>` : ""}
-
-${psa.hse_it_details ? `
-<h4>HSE-IT (Indicadores de Estresse Ocupacional)</h4>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (1-5)</th></tr></thead>
-<tbody>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.demands}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Controle</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.control}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Suporte</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.support}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Relacionamentos</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.relationships}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Papel</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.role}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Mudança</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.change}</td></tr>
-  <tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${psa.hse_it_score}</td></tr>
-</tbody></table>` : ""}
-
-${psa.copenhagen_details ? `
-<h4>Copenhagen Psychosocial Questionnaire (COPSOQ)</h4>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (0-100)</th></tr></thead>
-<tbody>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas Quantitativas</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.quantitative_demands}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Ritmo de Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.work_pace}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas Cognitivas</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.cognitive_demands}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas Emocionais</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.emotional_demands}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Influência no Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.influence}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Possibilidades de Desenvolvimento</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.possibilities_development}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Significado do Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.meaning_work}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Compromisso</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.commitment}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Previsibilidade</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.predictability}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Suporte Social</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.social_support}</td></tr>
-  <tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${psa.copenhagen_score}</td></tr>
-</tbody></table>` : ""}
-
-<p><strong>Observações:</strong> ${psa.observations}</p>
-`).join("<hr>") : `<p>Nenhuma avaliação psicossocial realizada para esta empresa. Recomenda-se a aplicação dos questionários NASA-TLX, HSE-IT e Copenhagen Psychosocial Questionnaire para uma avaliação completa dos fatores psicossociais do trabalho.</p>`}
+<h3>10.1 Análise Complementar dos Riscos Psicossociais</h3>
+${psychosocial.length > 0 ? '<p>A validação dos resultados psicossociais foi realizada por meio da aplicação dos seguintes instrumentos: ' + (psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II (Copenhagen Psychosocial Questionnaire)</strong>, ' : '') + (psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : '') + (psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : '') + ' aplicados junto aos colaboradores da <strong>' + (company.trade_name || company.name) + '</strong>.</p>' + psychosocial.map(psa => {
+  let html = '<h4>Avaliação Psicossocial' + (psa.workstation_id ? ' — ' + (workstations.find(w => w.id === psa.workstation_id)?.name || "") : "") + '</h4>';
+  html += '<p><strong>Avaliador:</strong> ' + psa.evaluator_name + '</p>';
+  if (psa.nasa_tlx_details) {
+    html += '<h4>NASA-TLX (Índice de Carga de Trabalho)</h4><table style="width:100%; border-collapse: collapse;"><thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (0-100)</th></tr></thead><tbody>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Mental</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.mental_demand + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Física</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.physical_demand + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Temporal</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.temporal_demand + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Performance</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.performance + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Esforço</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.effort + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Frustração</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.frustration + '</td></tr>';
+    html += '<tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">' + psa.nasa_tlx_score + '</td></tr>';
+    html += '</tbody></table>';
+  }
+  if (psa.copenhagen_details) {
+    html += '<h4>COPSOQ II</h4><table style="width:100%; border-collapse: collapse;"><thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (0-100)</th></tr></thead><tbody>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas Quantitativas</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.copenhagen_details.quantitative_demands + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Ritmo de Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.copenhagen_details.work_pace + '</td></tr>';
+    html += '<tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">' + psa.copenhagen_score + '</td></tr>';
+    html += '</tbody></table>';
+  }
+  html += '<p><strong>Observações:</strong> ' + psa.observations + '</p>';
+  return html;
+}).join("<hr>") : '<p>Nenhuma avaliação psicossocial realizada. Recomenda-se a aplicação dos questionários NASA-TLX, HSE-IT e Copenhagen Psychosocial Questionnaire (COPSOQ II) para uma avaliação completa dos fatores psicossociais do trabalho.</p>'}
 <hr>
 
 <h2>11. RESPONSABILIDADE TÉCNICA</h2>
-<table style="width:100%; border-collapse: collapse;">
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Responsável Técnico</td><td style="border: 1px solid #ddd; padding: 8px;">${consultant}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Empresa</td><td style="border: 1px solid #ddd; padding: 8px;">MG Consultoria — Ergonomia & Segurança do Trabalho</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Data de Emissão</td><td style="border: 1px solid #ddd; padding: 8px;">${getToday()}</td></tr>
-</table>
-<br>
+<p>O presente documento foi elaborado sob a responsabilidade técnica da MG CONSULT.</p>
+<p>Sendo de responsabilidade da empresa, programar, monitorar e assegurar o cumprimento desta Análise Ergonômica.</p>
+<p>${company.city}, ${getToday()}.</p>
 <div style="text-align: center; margin-top: 60px;">
   <p>_____________________________________________</p>
   <p><strong>${consultant}</strong></p>
-  <p>Engenheiro de Segurança do Trabalho</p>
-  <p>CREA/CONFEA: XXXXX</p>
+  <p>M.Sc Eng. de Produção (Ergonomia)</p>
+  <p>Eng. de Segurança do Trabalho</p>
+  <p>Especialista em Ergonomia</p>
 </div>
+<div style="page-break-after: always;"></div>
+
+<h2>12. ANEXOS</h2>
+<ul style="font-size: 14px; line-height: 2;">
+  <li>Análise Ergonômica dos Postos (AEP)</li>
+  <li>Ferramentas Aplicadas</li>
+  <li>Relatório Técnico Fatores Psicossociais</li>
+  <li>Plano de Ação</li>
+</ul>
+
+${actions.length > 0 ? '<h3>Plano de Ação</h3><table style="width:100%; border-collapse: collapse;"><thead><tr style="background: #0A1F44; color: white;"><th style="border: 1px solid #ddd; padding: 8px;">Ação Corretiva</th><th style="border: 1px solid #ddd; padding: 8px;">Responsável</th><th style="border: 1px solid #ddd; padding: 8px;">Prazo</th><th style="border: 1px solid #ddd; padding: 8px;">Status</th></tr></thead><tbody>' + actions.map(ap => '<tr><td style="border: 1px solid #ddd; padding: 8px;">' + ap.description + '</td><td style="border: 1px solid #ddd; padding: 8px;">' + ap.responsible + '</td><td style="border: 1px solid #ddd; padding: 8px;">' + ap.deadline + '</td><td style="border: 1px solid #ddd; padding: 8px;">' + statusLabel(ap.status) + '</td></tr>').join("") + '</tbody></table>' : ''}
+
 <br>
-<p style="text-align:center; font-size: 11px; color: #94a3b8;"><em>Documento gerado pelo sistema Spartan — MG Consultoria</em></p>
-<p style="text-align:center; font-size: 11px; color: #94a3b8;"><em>Este relatório deve ser revisado e assinado pelo profissional responsável antes da validação.</em></p>
+<p style="text-align:center; font-size: 11px; color: #94a3b8;"><em>Documento gerado pelo sistema Focus Spartan — MG Consultoria</em></p>
 `;
 }
 

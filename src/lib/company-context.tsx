@@ -86,7 +86,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         supabase.from("posture_analyses").select("*").order("created_at"),
       ]);
       
-      const mappedCompanies = (comp || []).map(c => ({ ...c, created_at: c.created_at?.split("T")[0] || "" })) as Company[];
+      const mappedCompanies = (comp || []).map(c => ({ ...c, created_at: c.created_at?.split("T")[0] || "", trade_name: c.trade_name || "", cnae_principal: c.cnae_principal || "", cnae_secundario: c.cnae_secundario || "", activity_risk: c.activity_risk || "", cep: c.cep || "", neighborhood: c.neighborhood || "" })) as Company[];
       setCompanies(mappedCompanies);
       if (mappedCompanies.length > 0 && !selectedCompanyId) {
         setSelectedCompanyId(mappedCompanies[0].id);

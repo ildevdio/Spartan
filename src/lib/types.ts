@@ -1,10 +1,16 @@
 export interface Company {
   id: string;
   name: string;
+  trade_name: string;
   cnpj: string;
+  cnae_principal: string;
+  cnae_secundario: string;
+  activity_risk: string;
   address: string;
+  neighborhood: string;
   city: string;
   state: string;
+  cep: string;
   description: string;
   created_at: string;
 }
