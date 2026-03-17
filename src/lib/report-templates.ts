@@ -176,6 +176,8 @@ ${workstations.map(ws => {
 <hr>
 
 <h2>7. ESTUDO ERGONÔMICO DO TRABALHO</h2>
+<p>A realização do Estudo Ergonômico do Trabalho é indispensável não apenas pelo cumprimento da NR17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral. Há diversas metodologias para conduzir esse estudo, e o presente trabalho foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT.</p>
+
 <h3>7.1 Registro Postural</h3>
 ${photos.length > 0 ? `<p>Foram registradas <strong>${photos.length}</strong> posturas de trabalho para documentação e análise biomecânica:</p>
 <table style="width:100%; border-collapse: collapse;">
@@ -189,29 +191,52 @@ ${analyses.length > 0 ? `<p>As análises foram realizadas utilizando os métodos
 ${analyses.map(a => {
   const ws = workstations.find(w => w.id === a.workstation_id);
   const risk = risks.find(r => r.analysis_id === a.id);
-  return `
+  return \`
 <table style="width:100%; border-collapse: collapse; margin-bottom: 16px;">
-  <tr style="background: #f1f5f9;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${ws?.name || "—"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; width: 200px;"><strong>Método</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${a.method}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Score</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${a.score}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Nível de Risco</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${risk ? riskLevelLabel(risk.risk_level) : "N/A"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Observações</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${a.notes}</td></tr>
-</table>`;
+  <tr style="background: #f1f5f9;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">\${ws?.name || "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; width: 200px;"><strong>Método</strong></td><td style="border: 1px solid #ddd; padding: 8px;">\${a.method}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Score</strong></td><td style="border: 1px solid #ddd; padding: 8px;">\${a.score}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Nível de Risco</strong></td><td style="border: 1px solid #ddd; padding: 8px;">\${risk ? riskLevelLabel(risk.risk_level) : "N/A"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Observações</strong></td><td style="border: 1px solid #ddd; padding: 8px;">\${a.notes}</td></tr>
+</table>\`;
 }).join("")}` : "<p>Nenhuma análise realizada.</p>"}
 <hr>
 
 <h2>8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS</h2>
-<p>Para a avaliação ergonômica dos postos de trabalho, foram utilizados os seguintes métodos:</p>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Método</th><th style="border: 1px solid #ddd; padding: 8px;">Aplicação</th><th style="border: 1px solid #ddd; padding: 8px;">Classificação</th></tr></thead>
-<tbody>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>REBA</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Avaliação rápida do corpo inteiro</td><td style="border: 1px solid #ddd; padding: 8px;">1-3: Baixo | 4-7: Médio | 8-10: Alto | 11+: Muito Alto</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>RULA</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Avaliação rápida de membros superiores</td><td style="border: 1px solid #ddd; padding: 8px;">1-2: Aceitável | 3-4: Investigar | 5-6: Mudar breve | 7: Mudar já</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>ROSA</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Avaliação de postos informatizados</td><td style="border: 1px solid #ddd; padding: 8px;">1-2: Desprezível | 3-4: Baixo | 5-6: Médio | 7+: Alto</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>OWAS</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Sistema de análise de posturas</td><td style="border: 1px solid #ddd; padding: 8px;">1: Normal | 2: Leve | 3: Severo | 4: Muito severo</td></tr>
-</tbody>
-</table>
+<p>No âmbito do Programa de Análise Ergonômica do Trabalho da empresa, adotou-se a seguinte abordagem metodológica:</p>
+<ul>
+  <li><strong>Consultoria Inicial:</strong> Etapa destinada à coleta de informações sobre a empresa, seus colaboradores e as prioridades de avaliação, realizada em conjunto com os setores de Segurança e Medicina do Trabalho.</li>
+  <li><strong>Observação dos Postos e Postura de Trabalho Descritiva:</strong> Inspeção presencial minuciosa de cada posto, aliada a entrevistas e troca de informações com os trabalhadores.</li>
+  <li><strong>Aplicação de questionários:</strong> Utilizados para identificar a percepção dos colaboradores quanto às condições ergonômicas.</li>
+</ul>
+
+<h3>Ferramentas Ergonômicas:</h3>
+<p><strong>REBA (Rapid Entire Body Assessment):</strong> Criado por Hignett e McAtamney (2000), o método tem como finalidade estimar o risco de desenvolvimento de distúrbios musculoesqueléticos decorrentes das posturas adotadas no trabalho. Trata-se de uma ferramenta indicada para analisar tarefas que envolvem manipulação de pessoas ou cargas em movimento. O REBA considera fatores posturais estáticos e dinâmicos na interação trabalhador–carga e incorpora o conceito de "assistência gravitacional". Classificação: 1-3: Baixo | 4-7: Médio | 8-10: Alto | 11+: Muito Alto.</p>
+<p><strong>RULA (Rapid Upper Limb Assessment):</strong> Desenvolvido por McAtamney e Corlett (1993), avalia a exposição dos membros superiores a fatores de risco que contribuem para o desenvolvimento de distúrbios relacionados ao trabalho. Classificação: 1-2: Aceitável | 3-4: Investigar | 5-6: Mudar breve | 7: Mudar imediatamente.</p>
+<p><strong>OCRA (Occupational Repetitive Actions):</strong> Metodologia internacionalmente reconhecida para avaliação do risco de lesões musculoesqueléticas associadas a movimentos repetitivos dos membros superiores. Desenvolvido por Colombini, Occhipinti e colaboradores, é amplamente utilizado em ergonomia ocupacional, especialmente em setores que exigem repetição contínua de tarefas.</p>
+<p><strong>ROSA (Rapid Office Strain Assessment):</strong> Ferramenta ergonômica usada para identificar riscos musculoesqueléticos em postos administrativos, especialmente aqueles com uso contínuo de computador. O método avalia cadeira, mesa, monitor, teclado, mouse e telefone, considerando ajustes, postura e tempo de exposição. Classificação: 1-2: Desprezível | 3-4: Baixo | 5-6: Médio | 7+: Alto.</p>
+<p><strong>OWAS (Ovako Working Posture Analysing System):</strong> Sistema de análise postural que classifica posturas de trabalho quanto ao risco musculoesquelético. Classificação: 1: Normal | 2: Leve | 3: Severo | 4: Muito severo.</p>
 <p>A detecção de posturas foi realizada com auxílio de inteligência artificial (BlazePose/MediaPipe) para cálculo preciso dos ângulos articulares, com filtragem de confiança mínima de 0.35 e suavização temporal de 5 frames.</p>
+
+<h3>Norma Regulamentadora nº 17 – Ergonomia</h3>
+<p>Foram também considerados todos os requisitos da NR-17, incluindo: levantamento, transporte e descarga individual de materiais; mobiliário dos postos de trabalho; equipamentos dos postos de trabalho; condições ambientais de trabalho; pausas para descanso.</p>
+
+<h3>8.1 Equipamentos Utilizados para Medição no Ambiente de Trabalho</h3>
+<table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">
+  <tr style="background: #0A1F44; color: white;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">CALOR</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 150px;">Instrumento</td><td style="border: 1px solid #ddd; padding: 8px;">Medidor de stress térmico</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Método</td><td style="border: 1px solid #ddd; padding: 8px;">NR-15, Portaria 3214/78, do MTE</td></tr>
+</table>
+<table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">
+  <tr style="background: #0A1F44; color: white;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">RUÍDO</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 150px;">Instrumento</td><td style="border: 1px solid #ddd; padding: 8px;">Decibelímetro</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Método</td><td style="border: 1px solid #ddd; padding: 8px;">NHT-06, FUNDACENTRO / NR-15</td></tr>
+</table>
+<table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">
+  <tr style="background: #0A1F44; color: white;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">ILUMINAÇÃO</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 150px;">Instrumento</td><td style="border: 1px solid #ddd; padding: 8px;">Luxímetro</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Método</td><td style="border: 1px solid #ddd; padding: 8px;">NHO 11</td></tr>
+</table>
 <hr>
 
 <h2>9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA</h2>
