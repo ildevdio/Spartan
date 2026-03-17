@@ -2008,30 +2008,6 @@ function generateGenericDocx(ctx: DocxReportContext): Document {
 }
 
 // ========== MAIN EXPORT ==========
-async function generateLegacyDocx(ctx: DocxReportContext): Promise<Document> {
-  switch (ctx.reportType) {
-    case "AET":
-      return await generateAETDocx(ctx);
-    case "PGR":
-      return generatePGRDocx(ctx);
-    case "APR":
-      return generateAPRDocx(ctx);
-    case "PCMSO":
-      return generatePCMSODocx(ctx);
-    case "LTCAT":
-      return generateLTCATDocx(ctx);
-    case "Insalubridade":
-      return generateInsalubridadeDocx(ctx);
-    case "Periculosidade":
-      return generatePericulosidadeDocx(ctx);
-    case "PCA":
-      return generatePCADocx(ctx);
-    case "PPR":
-      return generatePPRDocx(ctx);
-    default:
-      return generateGenericDocx(ctx);
-  }
-}
 
 function buildPreviewHtmlDocument(ctx: DocxReportContext): string {
   const previewHtml = generateReportHTML({
