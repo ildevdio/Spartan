@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
 import { MIN_PHOTOS_REQUIRED, type PosturePhoto } from "@/lib/types";
-import { Plus, Camera, Upload, CheckCircle2, AlertTriangle, Image } from "lucide-react";
+import { Plus, Camera, Upload, CheckCircle2, AlertTriangle, Image, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PostureCapturePage() {
