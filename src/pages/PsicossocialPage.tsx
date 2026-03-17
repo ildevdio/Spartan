@@ -44,7 +44,7 @@ function classifyHseIt(score: number): { label: string; color: string } {
 }
 
 export default function PsicossocialPage() {
-  const { selectedCompany, companyWorkstations, selectedCompanyId, psychosocialAnalyses, addPsychosocialAnalysis } = useCompany();
+  const { selectedCompany, companyWorkstations, selectedCompanyId, psychosocialAnalyses, addPsychosocialAnalysis, deletePsychosocialAnalysis } = useCompany();
   const companyAnalyses = psychosocialAnalyses.filter(a => a.company_id === selectedCompanyId);
   const [open, setOpen] = useState(false);
   const [viewing, setViewing] = useState<PsychosocialAnalysis | null>(null);
