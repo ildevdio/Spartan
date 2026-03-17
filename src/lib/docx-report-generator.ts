@@ -666,8 +666,8 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   ];
   children.push(new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
-    rows: tocItems.map(([item, page]) =>
-      new TableRow({ children: [textCell(item, false, 85), textCell(page, false, 15)] })
+    rows: tocItems.map(([item, page], i) =>
+      new TableRow({ children: [altCell(item, i % 2 === 1, false, 85), altCell(page, i % 2 === 1, false, 15)] })
     ),
   }));
   children.push(pageBreak());
