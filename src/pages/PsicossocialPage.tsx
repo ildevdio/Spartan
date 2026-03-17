@@ -11,7 +11,7 @@ import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
 import type { PsychosocialAnalysis } from "@/lib/types";
 
-import { Plus, Brain, BarChart3, Eye } from "lucide-react";
+import { Plus, Brain, BarChart3, Eye, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
