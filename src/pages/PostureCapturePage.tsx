@@ -9,13 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
 import { MIN_PHOTOS_REQUIRED, type PosturePhoto } from "@/lib/types";
-import { Plus, Camera, Upload, CheckCircle2, AlertTriangle, Image } from "lucide-react";
+import { Plus, Camera, Upload, CheckCircle2, AlertTriangle, Image, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PostureCapturePage() {
   const {
     companyWorkstations, companySectors,
-    posturePhotos, addPosturePhoto,
+    posturePhotos, addPosturePhoto, deletePosturePhoto,
     workstations,
   } = useCompany();
   const [open, setOpen] = useState(false);
@@ -175,6 +175,14 @@ export default function PostureCapturePage() {
                         <Camera className="h-3 w-3 shrink-0" />
                         <span className="truncate">{p.posture_type}</span>
                         <span className="ml-auto shrink-0">{p.created_at}</span>
+                        <Button variant="ghost" size="icon" className="h-5 w-5 text-destructive hover:text-destructive shrink-0" onClick={async () => {
+                          if (confirm("Excluir esta foto de postura?")) {
+                            await deletePosturePhoto(p.id);
+                            toast.success("Foto excluída!");
+                          }
+                        }}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
                       </div>
                     ))}
                   </div>

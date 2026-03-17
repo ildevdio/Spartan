@@ -47,6 +47,8 @@ interface CompanyContextType {
   addActionPlan: (a: Omit<ActionPlan, "id" | "created_at">) => Promise<void>;
   updateActionPlan: (id: string, a: Partial<ActionPlan>) => Promise<void>;
   addPsychosocialAnalysis: (p: Omit<PsychosocialAnalysis, "id" | "created_at">) => Promise<void>;
+  deletePsychosocialAnalysis: (id: string) => Promise<void>;
+  deletePosturePhoto: (id: string) => Promise<void>;
   refreshData: () => Promise<void>;
 }
 
@@ -257,6 +259,16 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     if (error) { toast.error("Erro ao criar avaliação psicossocial"); return; }
     await fetchAll();
   };
+  const deletePsychosocialAnalysis = async (id: string) => {
+    const { error } = await supabase.from("psychosocial_analyses").delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir avaliação psicossocial"); return; }
+    await fetchAll();
+  };
+  const deletePosturePhoto = async (id: string) => {
+    const { error } = await supabase.from("posture_photos").delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir foto de postura"); return; }
+    await fetchAll();
+  };
 
   return (
     <CompanyContext.Provider value={{
@@ -272,7 +284,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       addPosturePhoto, addReport, updateReport,
       addRiskAssessment, updateRiskAssessment,
       addActionPlan, updateActionPlan,
-      addPsychosocialAnalysis,
+      addPsychosocialAnalysis, deletePsychosocialAnalysis,
+      deletePosturePhoto,
       refreshData: fetchAll,
     }}>
       {children}

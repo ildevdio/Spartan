@@ -11,7 +11,7 @@ import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
 import type { PsychosocialAnalysis } from "@/lib/types";
 
-import { Plus, Brain, BarChart3, Eye } from "lucide-react";
+import { Plus, Brain, BarChart3, Eye, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
@@ -44,7 +44,7 @@ function classifyHseIt(score: number): { label: string; color: string } {
 }
 
 export default function PsicossocialPage() {
-  const { selectedCompany, companyWorkstations, selectedCompanyId, psychosocialAnalyses, addPsychosocialAnalysis } = useCompany();
+  const { selectedCompany, companyWorkstations, selectedCompanyId, psychosocialAnalyses, addPsychosocialAnalysis, deletePsychosocialAnalysis } = useCompany();
   const companyAnalyses = psychosocialAnalyses.filter(a => a.company_id === selectedCompanyId);
   const [open, setOpen] = useState(false);
   const [viewing, setViewing] = useState<PsychosocialAnalysis | null>(null);
@@ -252,6 +252,14 @@ export default function PsicossocialPage() {
                   </Badge>
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setViewing(a)}>
                     <Eye className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={async () => {
+                    if (confirm("Tem certeza que deseja excluir esta avaliação?")) {
+                      await deletePsychosocialAnalysis(a.id);
+                      toast.success("Avaliação excluída!");
+                    }
+                  }}>
+                    <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
