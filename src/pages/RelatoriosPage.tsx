@@ -198,7 +198,7 @@ export default function RelatoriosPage() {
             {companyWorkstations.length} postos, {companyAnalyses.length} análises e {companyRisks.length} avaliações de risco.
           </p>
           <div className="flex gap-2 flex-wrap">
-            {["AEP", "AET", "PGR"].map((type) => (
+            {["AET", "PGR"].map((type) => (
               <div key={type} className="flex gap-1">
                 <Button size="sm" variant="outline" className="text-xs h-8" onClick={() => handlePreviewAll(type as ReportType)}>
                   <Eye className="h-3.5 w-3.5 mr-1" />
