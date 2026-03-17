@@ -191,14 +191,13 @@ ${analyses.length > 0 ? `<p>As análises foram realizadas utilizando os métodos
 ${analyses.map(a => {
   const ws = workstations.find(w => w.id === a.workstation_id);
   const risk = risks.find(r => r.analysis_id === a.id);
-  return \`
-<table style="width:100%; border-collapse: collapse; margin-bottom: 16px;">
-  <tr style="background: #f1f5f9;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">\${ws?.name || "—"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; width: 200px;"><strong>Método</strong></td><td style="border: 1px solid #ddd; padding: 8px;">\${a.method}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Score</strong></td><td style="border: 1px solid #ddd; padding: 8px;">\${a.score}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Nível de Risco</strong></td><td style="border: 1px solid #ddd; padding: 8px;">\${risk ? riskLevelLabel(risk.risk_level) : "N/A"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Observações</strong></td><td style="border: 1px solid #ddd; padding: 8px;">\${a.notes}</td></tr>
-</table>\`;
+  return '<table style="width:100%; border-collapse: collapse; margin-bottom: 16px;">' +
+    '<tr style="background: #f1f5f9;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">' + (ws?.name || "—") + '</td></tr>' +
+    '<tr><td style="border: 1px solid #ddd; padding: 8px; width: 200px;"><strong>Método</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + a.method + '</td></tr>' +
+    '<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Score</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + a.score + '</td></tr>' +
+    '<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Nível de Risco</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + (risk ? riskLevelLabel(risk.risk_level) : "N/A") + '</td></tr>' +
+    '<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Observações</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + a.notes + '</td></tr>' +
+    '</table>';
 }).join("")}` : "<p>Nenhuma análise realizada.</p>"}
 <hr>
 
