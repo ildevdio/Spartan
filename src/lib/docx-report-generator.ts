@@ -2073,7 +2073,7 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
 
     const blob = blobOrBuffer instanceof Blob
       ? blobOrBuffer
-      : new Blob([blobOrBuffer as ArrayBuffer], {
+      : new Blob([blobOrBuffer as BlobPart], {
           type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         });
 
