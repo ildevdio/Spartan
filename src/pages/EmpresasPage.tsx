@@ -7,37 +7,86 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useCompany } from "@/lib/company-context";
 import type { Company } from "@/lib/types";
 import { MIN_PHOTOS_REQUIRED } from "@/lib/types";
-import { Plus, Building2, Pencil, Trash2, Monitor, Layers, Camera, ClipboardCheck, AlertTriangle, MapPin } from "lucide-react";
+import { Plus, Building2, Pencil, Trash2, Monitor, Layers, Camera, ClipboardCheck, AlertTriangle, MapPin, Search, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+
+async function fetchAddressByCep(cep: string) {
+  const cleanCep = cep.replace(/\D/g, "");
+  if (cleanCep.length !== 8) return null;
+  try {
+    const res = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+    const data = await res.json();
+    if (data.erro) return null;
+    return {
+      address: data.logradouro || "",
+      neighborhood: data.bairro || "",
+      city: data.localidade || "",
+      state: data.uf || "",
+    };
+  } catch {
+    return null;
+  }
+}
 
 export default function EmpresasPage() {
   const { companies, addCompany, updateCompany, deleteCompany, sectors, workstations, analyses, posturePhotos, riskAssessments } = useCompany();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Company | null>(null);
   const [name, setName] = useState("");
+  const [tradeName, setTradeName] = useState("");
   const [cnpj, setCnpj] = useState("");
+  const [cnaePrincipal, setCnaePrincipal] = useState("");
+  const [cnaeSecundario, setCnaeSecundario] = useState("");
+  const [activityRisk, setActivityRisk] = useState("");
+  const [cep, setCep] = useState("");
   const [address, setAddress] = useState("");
+  const [neighborhood, setNeighborhood] = useState("");
   const [city, setCity] = useState("");
   const [state, setState] = useState("");
   const [description, setDescription] = useState("");
+  const [loadingCep, setLoadingCep] = useState(false);
+
+  const handleCepLookup = async () => {
+    setLoadingCep(true);
+    const result = await fetchAddressByCep(cep);
+    if (result) {
+      setAddress(result.address);
+      setNeighborhood(result.neighborhood);
+      setCity(result.city);
+      setState(result.state);
+      toast.success("Endereço preenchido pelo CEP!");
+    } else {
+      toast.error("CEP não encontrado");
+    }
+    setLoadingCep(false);
+  };
 
   const handleSave = async () => {
     if (!name.trim()) return;
+    const data = { name, trade_name: tradeName, cnpj, cnae_principal: cnaePrincipal, cnae_secundario: cnaeSecundario, activity_risk: activityRisk, cep, address, neighborhood, city, state, description };
     if (editing) {
-      await updateCompany(editing.id, { name, cnpj, address, city, state, description });
+      await updateCompany(editing.id, data);
     } else {
-      await addCompany({ name, cnpj, address, city, state, description });
+      await addCompany(data);
     }
     resetForm();
   };
 
   const resetForm = () => {
-    setName(""); setCnpj(""); setAddress(""); setCity(""); setState(""); setDescription(""); setEditing(null); setOpen(false);
+    setName(""); setTradeName(""); setCnpj(""); setCnaePrincipal(""); setCnaeSecundario("");
+    setActivityRisk(""); setCep(""); setAddress(""); setNeighborhood(""); setCity(""); setState(""); setDescription("");
+    setEditing(null); setOpen(false);
   };
 
   const handleEdit = (c: Company) => {
-    setEditing(c); setName(c.name); setCnpj(c.cnpj); setAddress(c.address); setCity(c.city); setState(c.state); setDescription(c.description); setOpen(true);
+    setEditing(c); setName(c.name); setTradeName(c.trade_name || ""); setCnpj(c.cnpj);
+    setCnaePrincipal(c.cnae_principal || ""); setCnaeSecundario(c.cnae_secundario || "");
+    setActivityRisk(c.activity_risk || ""); setCep(c.cep || "");
+    setAddress(c.address); setNeighborhood(c.neighborhood || ""); setCity(c.city); setState(c.state);
+    setDescription(c.description); setOpen(true);
   };
 
   return (
@@ -51,19 +100,80 @@ export default function EmpresasPage() {
           <DialogTrigger asChild>
             <Button size="sm"><Plus className="h-4 w-4 mr-1" />Nova Empresa</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-[95vw] sm:max-w-lg">
+          <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editing ? "Editar Empresa" : "Nova Empresa"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
-              <Input placeholder="Nome da empresa" value={name} onChange={(e) => setName(e.target.value)} />
-              <Input placeholder="CNPJ" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
-              <Input placeholder="Endereço" value={address} onChange={(e) => setAddress(e.target.value)} />
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
-                <Input placeholder="UF" value={state} onChange={(e) => setState(e.target.value)} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Razão Social *</Label>
+                  <Input placeholder="Razão Social" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Nome Fantasia</Label>
+                  <Input placeholder="Nome Fantasia" value={tradeName} onChange={(e) => setTradeName(e.target.value)} />
+                </div>
               </div>
-              <Textarea placeholder="Descrição" value={description} onChange={(e) => setDescription(e.target.value)} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">CNPJ</Label>
+                  <Input placeholder="00.000.000/0000-00" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">Risco da Atividade (NR-04)</Label>
+                  <Input placeholder="Ex: 02" value={activityRisk} onChange={(e) => setActivityRisk(e.target.value)} />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">CNAE Principal</Label>
+                  <Input placeholder="Ex: 56.11-2-03" value={cnaePrincipal} onChange={(e) => setCnaePrincipal(e.target.value)} />
+                </div>
+                <div>
+                  <Label className="text-xs">CNAE Secundário</Label>
+                  <Input placeholder="Ex: 56.11-2-01" value={cnaeSecundario} onChange={(e) => setCnaeSecundario(e.target.value)} />
+                </div>
+              </div>
+
+              <div className="border-t pt-3">
+                <Label className="text-xs font-semibold text-muted-foreground">Endereço</Label>
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div className="col-span-2">
+                    <Label className="text-xs">CEP</Label>
+                    <Input placeholder="00000-000" value={cep} onChange={(e) => setCep(e.target.value)} />
+                  </div>
+                  <div className="flex items-end">
+                    <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleCepLookup} disabled={loadingCep}>
+                      {loadingCep ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5 mr-1" />}
+                      Buscar
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <Label className="text-xs">Logradouro</Label>
+                  <Input placeholder="Endereço completo" value={address} onChange={(e) => setAddress(e.target.value)} />
+                </div>
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  <div>
+                    <Label className="text-xs">Bairro</Label>
+                    <Input placeholder="Bairro" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Cidade</Label>
+                    <Input placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">UF</Label>
+                    <Input placeholder="UF" value={state} onChange={(e) => setState(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs">Descrição da atividade</Label>
+                <Textarea placeholder="Descrição da atividade da empresa" value={description} onChange={(e) => setDescription(e.target.value)} />
+              </div>
               <Button onClick={handleSave} className="w-full">{editing ? "Salvar" : "Criar Empresa"}</Button>
             </div>
           </DialogContent>
@@ -88,7 +198,7 @@ export default function EmpresasPage() {
               <CardHeader className="pb-2 flex-row items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <Building2 className="h-4 w-4 text-accent shrink-0" />
-                  <CardTitle className="text-sm truncate">{company.name}</CardTitle>
+                  <CardTitle className="text-sm truncate">{company.trade_name || company.name}</CardTitle>
                 </div>
                 <div className="flex gap-1 shrink-0">
                   <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit(company)}><Pencil className="h-3 w-3" /></Button>
@@ -96,11 +206,13 @@ export default function EmpresasPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
+                <p className="text-[10px] text-muted-foreground">{company.name}</p>
                 {company.cnpj && <p className="text-xs text-muted-foreground">CNPJ: {company.cnpj}</p>}
+                {company.cnae_principal && <p className="text-[10px] text-muted-foreground">CNAE: {company.cnae_principal}</p>}
                 {company.address && (
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <MapPin className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{company.address} — {company.city}/{company.state}</span>
+                    <span className="truncate">{company.address}{company.neighborhood ? `, ${company.neighborhood}` : ""} — {company.city}/{company.state}</span>
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground line-clamp-2">{company.description}</p>
