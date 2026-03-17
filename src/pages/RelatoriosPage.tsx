@@ -13,8 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { ReportPreviewDialog } from "@/components/ReportPreviewDialog";
 
 const REPORT_TYPES: { type: ReportType; label: string; description: string }[] = [
-  { type: "AEP", label: "AEP", description: "Avaliação Ergonômica Preliminar" },
-  { type: "AET", label: "AET", description: "Análise Ergonômica do Trabalho" },
+  { type: "AET", label: "AET", description: "Análise Ergonômica do Trabalho (inclui AEP como anexo)" },
   { type: "PGR", label: "PGR", description: "Programa de Gerenciamento de Riscos" },
   { type: "APR", label: "APR", description: "Avaliação Preliminar de Riscos Psicossociais" },
   { type: "PCMSO", label: "PCMSO", description: "Programa de Controle Médico de Saúde Ocupacional" },
@@ -199,7 +198,7 @@ export default function RelatoriosPage() {
             {companyWorkstations.length} postos, {companyAnalyses.length} análises e {companyRisks.length} avaliações de risco.
           </p>
           <div className="flex gap-2 flex-wrap">
-            {["AEP", "AET", "PGR"].map((type) => (
+            {["AET", "PGR"].map((type) => (
               <div key={type} className="flex gap-1">
                 <Button size="sm" variant="outline" className="text-xs h-8" onClick={() => handlePreviewAll(type as ReportType)}>
                   <Eye className="h-3.5 w-3.5 mr-1" />
@@ -262,7 +261,7 @@ export default function RelatoriosPage() {
                     )}
                   </div>
                   <div className="flex gap-2 flex-wrap">
-                    {(["AEP", "AET", "PGR"] as ReportType[]).map((type) => (
+                    {(["AET", "PGR"] as ReportType[]).map((type) => (
                       <div key={type} className="flex gap-1">
                         <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => handlePreviewWs(ws.id, type)}>
                           <Eye className="h-3 w-3 mr-1" />
