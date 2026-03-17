@@ -284,7 +284,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       addPosturePhoto, addReport, updateReport,
       addRiskAssessment, updateRiskAssessment,
       addActionPlan, updateActionPlan,
-      addPsychosocialAnalysis,
+      addPsychosocialAnalysis, deletePsychosocialAnalysis,
+      deletePosturePhoto,
       refreshData: fetchAll,
     }}>
       {children}
