@@ -380,62 +380,93 @@ function getYear(): number {
 }
 
 // ============ COVER PAGE ============
+// Matches the HTML preview: dark gradient-like cover with white text
 function createCoverPage(title: string, subtitle: string, company: Company, consultant: string): Paragraph[] {
   const year = new Date().getFullYear().toString();
+  const coverShading = { type: ShadingType.SOLID as const, fill: COLORS.coverGradientTop, color: COLORS.coverGradientTop };
+  const coverShadingMid = { type: ShadingType.SOLID as const, fill: COLORS.secondary, color: COLORS.secondary };
+  const coverShadingAccent = { type: ShadingType.SOLID as const, fill: COLORS.accentBright, color: COLORS.accentBright };
   return [
-    new Paragraph({ shading: { type: ShadingType.SOLID, fill: COLORS.coverGradientTop, color: COLORS.coverGradientTop }, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 24 })] }),
-    new Paragraph({ shading: { type: ShadingType.SOLID, fill: COLORS.secondary, color: COLORS.secondary }, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 16 })] }),
-    new Paragraph({ shading: { type: ShadingType.SOLID, fill: COLORS.accentBright, color: COLORS.accentBright }, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 8 })] }),
-    new Paragraph({ spacing: { before: 1600 } }),
+    // Top gradient bands
+    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 30 })] }),
+    new Paragraph({ shading: coverShadingMid, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 20 })] }),
+    new Paragraph({ shading: coverShadingAccent, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 8 })] }),
+    // Spacer with dark bg
+    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
+    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
+    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
+    new Paragraph({ shading: coverShading, spacing: { before: 600, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
+    // Title
     new Paragraph({
-      children: [new TextRun({ text: title, bold: true, size: 56, font: "Calibri", color: COLORS.primary })],
+      children: [new TextRun({ text: title, bold: true, size: 56, font: "Calibri", color: COLORS.white })],
       alignment: AlignmentType.CENTER, spacing: { after: 60 },
+      shading: coverShading,
     }),
+    // Divider line
     new Paragraph({
-      border: { bottom: { style: BorderStyle.SINGLE, size: 12, color: COLORS.accentBright, space: 1 } },
-      spacing: { after: 60 }, indent: { left: convertInchesToTwip(1.5), right: convertInchesToTwip(1.5) },
+      shading: coverShading,
+      spacing: { after: 60 },
+      children: [new TextRun({ text: " ", size: 10 })],
     }),
+    // Subtitle badge
     new Paragraph({
-      children: [new TextRun({ text: `  ${subtitle}  `, size: 40, font: "Calibri", color: COLORS.white, bold: true })],
+      children: [new TextRun({ text: `  ${subtitle}  `, size: 36, font: "Calibri", color: COLORS.accentLight, bold: false })],
       alignment: AlignmentType.CENTER, spacing: { after: 60 },
-      shading: { type: ShadingType.SOLID, fill: COLORS.secondary, color: COLORS.secondary },
-      indent: { left: convertInchesToTwip(2.5), right: convertInchesToTwip(2.5) },
+      shading: coverShading,
     }),
+    // Year
     new Paragraph({
-      children: [new TextRun({ text: year, size: 28, font: "Calibri", color: COLORS.accent, bold: true })],
-      alignment: AlignmentType.CENTER, spacing: { after: 800 },
+      children: [new TextRun({ text: " ", size: 10 })],
+      shading: coverShading, spacing: { after: 400 },
     }),
+    // Company name
     new Paragraph({
-      children: [new TextRun({ text: (company.trade_name || company.name).toUpperCase(), bold: true, size: 40, font: "Calibri", color: COLORS.primary })],
+      children: [new TextRun({ text: (company.trade_name || company.name).toUpperCase(), bold: true, size: 40, font: "Calibri", color: COLORS.white })],
       alignment: AlignmentType.CENTER, spacing: { after: 80 },
+      shading: coverShading,
     }),
+    // CNPJ
     new Paragraph({
       children: [
-        new TextRun({ text: "CNPJ: ", size: 22, font: "Calibri", color: COLORS.muted }),
-        new TextRun({ text: company.cnpj, size: 22, font: "Calibri", color: COLORS.secondary, bold: true }),
+        new TextRun({ text: "CNPJ: ", size: 22, font: "Calibri", color: COLORS.accentLight }),
+        new TextRun({ text: company.cnpj, size: 22, font: "Calibri", color: COLORS.accentLight, bold: true }),
       ],
       alignment: AlignmentType.CENTER, spacing: { after: 40 },
+      shading: coverShading,
     }),
+    // Address
     new Paragraph({
-      children: [new TextRun({ text: `${company.address}${company.neighborhood ? ', ' + company.neighborhood : ''} — ${company.city}/${company.state}`, size: 20, font: "Calibri", color: COLORS.muted })],
+      children: [new TextRun({ text: `${company.address}${company.neighborhood ? ', ' + company.neighborhood : ''} — ${company.city}/${company.state}`, size: 20, font: "Calibri", color: COLORS.accentLight })],
       alignment: AlignmentType.CENTER, spacing: { after: 40 },
+      shading: coverShading,
     }),
+    // Spacer
+    new Paragraph({ shading: coverShading, spacing: { before: 200, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
+    // Emission / Revision
     new Paragraph({
-      children: [new TextRun({ text: `Emissão: ${getToday()} | Revisão: 00`, size: 20, font: "Calibri", color: COLORS.muted })],
+      children: [new TextRun({ text: `Emissão: ${getToday()} | Revisão: 00`, size: 20, font: "Calibri", color: COLORS.accentLight })],
       alignment: AlignmentType.CENTER, spacing: { after: 40 },
+      shading: coverShading,
     }),
+    // Responsible
     new Paragraph({
-      children: [new TextRun({ text: `Responsável Técnico: ${consultant}`, size: 20, font: "Calibri", color: COLORS.muted })],
+      children: [new TextRun({ text: `Responsável Técnico: ${consultant}`, size: 20, font: "Calibri", color: COLORS.accentLight })],
       alignment: AlignmentType.CENTER, spacing: { after: 40 },
+      shading: coverShading,
     }),
+    // Consultoria
     new Paragraph({
       children: [new TextRun({ text: "MG Consultoria — Ergonomia & Segurança do Trabalho", size: 18, font: "Calibri", color: COLORS.light, italics: true })],
       alignment: AlignmentType.CENTER, spacing: { after: 60 },
+      shading: coverShading,
     }),
-    spacer(400),
-    new Paragraph({ shading: { type: ShadingType.SOLID, fill: COLORS.accentBright, color: COLORS.accentBright }, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 8 })] }),
-    new Paragraph({ shading: { type: ShadingType.SOLID, fill: COLORS.secondary, color: COLORS.secondary }, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 16 })] }),
-    new Paragraph({ shading: { type: ShadingType.SOLID, fill: COLORS.coverGradientTop, color: COLORS.coverGradientTop }, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 24 })] }),
+    // Bottom spacer + gradient bands
+    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
+    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
+    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
+    new Paragraph({ shading: coverShadingAccent, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 8 })] }),
+    new Paragraph({ shading: coverShadingMid, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 20 })] }),
+    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 30 })] }),
     pageBreak(),
   ];
 }
