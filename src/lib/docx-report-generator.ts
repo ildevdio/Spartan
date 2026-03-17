@@ -2080,11 +2080,7 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
     saveAs(blob, fileName);
     return;
   } catch (error) {
-    console.warn("Falha ao converter HTML->DOCX; aplicando fallback de geração programática.", error);
+    console.error("Falha ao converter o HTML da visualização para DOCX.", error);
+    throw error;
   }
-
-  // Fallback de segurança para não quebrar exportação em browsers sem suporte
-  const legacyDoc = await generateLegacyDocx(ctx);
-  const legacyBlob = await Packer.toBlob(legacyDoc);
-  saveAs(legacyBlob, fileName);
 }
