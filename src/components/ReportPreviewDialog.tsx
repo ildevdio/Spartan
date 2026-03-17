@@ -48,8 +48,8 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
             {onDownloadDocx && (
               <Button size="sm" className="h-7 text-xs" onClick={onDownloadDocx}>
                 <Download className="h-3.5 w-3.5 mr-1" />
-                <span className="hidden sm:inline">Baixar .docx</span>
-                <span className="sm:hidden">.docx</span>
+                <span className="hidden sm:inline">Baixar HTML</span>
+                <span className="sm:hidden">HTML</span>
               </Button>
             )}
           </div>

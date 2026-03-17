@@ -86,7 +86,7 @@ export default function RelatoriosPage() {
     setGenerating("download");
     try {
       await generateAndDownloadDocx(ctx);
-      toast.success(`Relatório ${ctx.reportType} baixado como .docx!`);
+      toast.success(`Relatório ${ctx.reportType} baixado com o mesmo HTML da visualização.`);
     } catch (err) {
       console.error(err);
       toast.error("Erro ao gerar relatório.");
@@ -141,7 +141,7 @@ export default function RelatoriosPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">Relatórios</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Visualize ou exporte documentos técnicos (.docx)
+            Visualize e baixe o mesmo arquivo da pré-visualização (HTML)
           </p>
         </div>
         <CompanySelector />

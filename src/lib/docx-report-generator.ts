@@ -6,7 +6,6 @@ import {
   HeightRule, VerticalAlign,
 } from "docx";
 import { saveAs } from "file-saver";
-import { asBlob } from "html-docx-js-typescript";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
 import { riskLevelLabel, statusLabel } from "./types";
 import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses, mockPostureAnalyses } from "./mock-data";
@@ -2010,7 +2009,7 @@ function generateGenericDocx(ctx: DocxReportContext): Document {
 // ========== MAIN EXPORT ==========
 
 function buildPreviewHtmlDocument(ctx: DocxReportContext): string {
-  const previewHtml = generateReportHTML({
+  return generateReportHTML({
     company: ctx.company,
     sector: ctx.sector,
     workstation: ctx.workstation,
@@ -2020,43 +2019,19 @@ function buildPreviewHtmlDocument(ctx: DocxReportContext): string {
     reportType: ctx.reportType,
     consultantName: ctx.consultantName,
   });
-
-  const logoAbsoluteUrl = `${window.location.origin}/mg-consult-logo.png`;
-  const normalizedHtml = previewHtml.split('src="/mg-consult-logo.png"').join(`src="${logoAbsoluteUrl}"`);
-
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <title>${ctx.reportType} - ${ctx.company.name}</title>
-</head>
-<body>
-${normalizedHtml}
-</body>
-</html>`;
 }
 
 export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<void> {
-  const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.docx`;
+  const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.html`;
 
   try {
-    // Fonte única: usa o MESMO HTML do preview para gerar o .docx
+    // Download do MESMO arquivo da visualização nativa (HTML idêntico)
     const htmlDocument = buildPreviewHtmlDocument(ctx);
-    const blobOrBuffer = await asBlob(htmlDocument, {
-      orientation: "portrait",
-      margins: { top: 720, right: 720, bottom: 720, left: 720 },
-    });
-
-    const blob = blobOrBuffer instanceof Blob
-      ? blobOrBuffer
-      : new Blob([blobOrBuffer as BlobPart], {
-          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        });
-
+    const blob = new Blob([htmlDocument], { type: "text/html;charset=utf-8" });
     saveAs(blob, fileName);
     return;
   } catch (error) {
-    console.error("Falha ao converter o HTML da visualização para DOCX.", error);
+    console.error("Falha ao baixar o HTML da visualização.", error);
     throw error;
   }
 }
