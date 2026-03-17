@@ -455,6 +455,59 @@ export type Database = {
           },
         ]
       }
+      technical_responsibles: {
+        Row: {
+          company_id: string
+          cpf: string
+          created_at: string
+          email: string
+          govbr_certificate_id: string | null
+          id: string
+          name: string
+          professional_registration: string
+          signature_image_url: string | null
+          specialization: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          cpf?: string
+          created_at?: string
+          email?: string
+          govbr_certificate_id?: string | null
+          id?: string
+          name?: string
+          professional_registration?: string
+          signature_image_url?: string | null
+          specialization?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          cpf?: string
+          created_at?: string
+          email?: string
+          govbr_certificate_id?: string | null
+          id?: string
+          name?: string
+          professional_registration?: string
+          signature_image_url?: string | null
+          specialization?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "technical_responsibles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workstations: {
         Row: {
           activity_description: string
