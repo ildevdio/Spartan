@@ -2008,43 +2008,83 @@ function generateGenericDocx(ctx: DocxReportContext): Document {
 }
 
 // ========== MAIN EXPORT ==========
-export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<void> {
-  let doc: Document;
-
+async function generateLegacyDocx(ctx: DocxReportContext): Promise<Document> {
   switch (ctx.reportType) {
     case "AET":
-      doc = await generateAETDocx(ctx);
-      break;
+      return await generateAETDocx(ctx);
     case "PGR":
-      doc = generatePGRDocx(ctx);
-      break;
+      return generatePGRDocx(ctx);
     case "APR":
-      doc = generateAPRDocx(ctx);
-      break;
+      return generateAPRDocx(ctx);
     case "PCMSO":
-      doc = generatePCMSODocx(ctx);
-      break;
+      return generatePCMSODocx(ctx);
     case "LTCAT":
-      doc = generateLTCATDocx(ctx);
-      break;
+      return generateLTCATDocx(ctx);
     case "Insalubridade":
-      doc = generateInsalubridadeDocx(ctx);
-      break;
+      return generateInsalubridadeDocx(ctx);
     case "Periculosidade":
-      doc = generatePericulosidadeDocx(ctx);
-      break;
+      return generatePericulosidadeDocx(ctx);
     case "PCA":
-      doc = generatePCADocx(ctx);
-      break;
+      return generatePCADocx(ctx);
     case "PPR":
-      doc = generatePPRDocx(ctx);
-      break;
+      return generatePPRDocx(ctx);
     default:
-      doc = generateGenericDocx(ctx);
-      break;
+      return generateGenericDocx(ctx);
+  }
+}
+
+function buildPreviewHtmlDocument(ctx: DocxReportContext): string {
+  const previewHtml = generateReportHTML({
+    company: ctx.company,
+    sector: ctx.sector,
+    workstation: ctx.workstation,
+    workstations: ctx.workstations,
+    analyses: ctx.analyses,
+    photos: ctx.photos,
+    reportType: ctx.reportType,
+    consultantName: ctx.consultantName,
+  });
+
+  const logoAbsoluteUrl = `${window.location.origin}/mg-consult-logo.png`;
+  const normalizedHtml = previewHtml.replaceAll('src="/mg-consult-logo.png"', `src="${logoAbsoluteUrl}"`);
+
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>${ctx.reportType} - ${ctx.company.name}</title>
+</head>
+<body>
+${normalizedHtml}
+</body>
+</html>`;
+}
+
+export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<void> {
+  const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.docx`;
+
+  try {
+    // Fonte única: usa o MESMO HTML do preview para gerar o .docx
+    const htmlDocument = buildPreviewHtmlDocument(ctx);
+    const blobOrBuffer = await asBlob(htmlDocument, {
+      orientation: "portrait",
+      margins: { top: 720, right: 720, bottom: 720, left: 720 },
+    });
+
+    const blob = blobOrBuffer instanceof Blob
+      ? blobOrBuffer
+      : new Blob([blobOrBuffer as ArrayBuffer], {
+          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        });
+
+    saveAs(blob, fileName);
+    return;
+  } catch (error) {
+    console.warn("Falha ao converter HTML->DOCX; aplicando fallback de geração programática.", error);
   }
 
-  const blob = await Packer.toBlob(doc);
-  const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.docx`;
-  saveAs(blob, fileName);
+  // Fallback de segurança para não quebrar exportação em browsers sem suporte
+  const legacyDoc = await generateLegacyDocx(ctx);
+  const legacyBlob = await Packer.toBlob(legacyDoc);
+  saveAs(legacyBlob, fileName);
 }
