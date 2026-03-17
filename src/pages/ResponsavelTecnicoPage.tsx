@@ -360,7 +360,7 @@ export default function ResponsavelTecnicoPage() {
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {r.govbr_certificate_id && (
-                      <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30 gap-1">
+                      <Badge variant="outline" className="text-[10px] bg-success/10 text-success border-success/30 gap-1">
                         <ShieldCheck className="h-3 w-3" /> Assinado
                       </Badge>
                     )}
