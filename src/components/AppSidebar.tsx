@@ -40,6 +40,7 @@ const sections = [
       { title: "Empresas", url: "/empresas", icon: Building2 },
       { title: "Setores", url: "/setores", icon: Layers },
       { title: "Postos", url: "/postos", icon: Monitor },
+      { title: "Resp. Técnico", url: "/responsavel-tecnico", icon: UserCheck },
     ],
   },
   {
