@@ -6,9 +6,11 @@ import {
   HeightRule, VerticalAlign,
 } from "docx";
 import { saveAs } from "file-saver";
+import { asBlob } from "html-docx-js-typescript";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
 import { riskLevelLabel, statusLabel } from "./types";
 import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses, mockPostureAnalyses } from "./mock-data";
+import { generateReportHTML } from "./report-templates";
 
 export interface DocxReportContext {
   company: Company;
