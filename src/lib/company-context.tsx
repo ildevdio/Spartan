@@ -39,6 +39,7 @@ interface CompanyContextType {
   deleteWorkstation: (id: string) => Promise<void>;
   addAnalysis: (a: Omit<Analysis, "id" | "created_at">) => Promise<void>;
   updateAnalysis: (id: string, a: Partial<Analysis>) => Promise<void>;
+  deleteAnalysis: (id: string) => Promise<void>;
   addPosturePhoto: (p: Omit<PosturePhoto, "id" | "created_at">) => Promise<void>;
   addReport: (r: Omit<Report, "id" | "created_at">) => Promise<void>;
   updateReport: (id: string, r: Partial<Report>) => Promise<void>;
@@ -208,6 +209,11 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     if (error) { toast.error("Erro ao atualizar análise"); return; }
     await fetchAll();
   };
+  const deleteAnalysis = async (id: string) => {
+    const { error } = await supabase.from("analyses").delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir análise"); return; }
+    await fetchAll();
+  };
   const addPosturePhoto = async (p: Omit<PosturePhoto, "id" | "created_at">) => {
     const { error } = await supabase.from("posture_photos").insert(p);
     if (error) { toast.error("Erro ao adicionar foto"); return; }
@@ -280,7 +286,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       addCompany, updateCompany, deleteCompany,
       addSector, updateSector, deleteSector,
       addWorkstation, updateWorkstation, deleteWorkstation,
-      addAnalysis, updateAnalysis,
+      addAnalysis, updateAnalysis, deleteAnalysis,
       addPosturePhoto, addReport, updateReport,
       addRiskAssessment, updateRiskAssessment,
       addActionPlan, updateActionPlan,
