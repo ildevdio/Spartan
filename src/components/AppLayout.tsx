@@ -24,9 +24,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="min-h-screen flex w-full overflow-x-hidden">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-12 flex items-center border-b border-border bg-card px-3 sm:px-5 shrink-0 safe-area-top">
+          <header className="h-12 flex items-center border-b border-border bg-card px-3 sm:px-5 shrink-0 safe-area-top relative overflow-hidden">
+            <div className="absolute inset-0 opacity-[0.03] gradient-hero-animated pointer-events-none" />
             <MobileMenuButton />
-            <div className="flex items-center gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0 relative z-10">
               <div className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse shrink-0" />
               <span className="text-xs sm:text-sm text-muted-foreground tracking-wide truncate">Spartan - Gestão Ergonômica</span>
             </div>
