@@ -136,7 +136,7 @@ export function AppSidebar() {
                   )}
                 </CollapsibleTrigger>
 
-                <CollapsibleContent>
+                <CollapsibleContent className="overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
                   <SidebarMenu className="px-1">
                     {section.items.map((item) => (
                       <SidebarMenuItem key={item.title} className="my-0">
@@ -145,7 +145,7 @@ export function AppSidebar() {
                             to={item.url}
                             end={item.url === "/"}
                             className={cn(
-                              "hover:bg-sidebar-accent/50 transition-colors duration-150",
+                              "hover:bg-sidebar-accent/50 transition-all duration-200",
                               !collapsed && "pl-5"
                             )}
                             activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"

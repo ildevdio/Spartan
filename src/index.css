@@ -60,6 +60,46 @@ All colors MUST be HSL.
     --sidebar-border: 215 25% 22%;
     --sidebar-ring: 174 58% 42%;
     --sidebar-muted: 215 20% 35%;
+    --gradient-accent: linear-gradient(135deg, hsl(174 58% 32%), hsl(199 89% 48%));
+    --gradient-sidebar: linear-gradient(180deg, hsl(215 28% 14%), hsl(215 28% 10%));
+    --gradient-hero: linear-gradient(135deg, hsl(215 28% 17%) 0%, hsl(174 58% 32%) 100%);
+  }
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+@keyframes shimmer {
+  0% { left: -100%; }
+  100% { left: 200%; }
+}
+
+@layer base {
+  .gradient-accent-animated {
+    background: linear-gradient(135deg, hsl(174 58% 32%), hsl(199 89% 48%), hsl(174 58% 42%));
+    background-size: 200% 200%;
+    animation: gradient-shift 6s ease infinite;
+  }
+  .gradient-hero-animated {
+    background: linear-gradient(135deg, hsl(215 28% 17%), hsl(174 58% 32%), hsl(199 89% 48%));
+    background-size: 300% 300%;
+    animation: gradient-shift 8s ease infinite;
+  }
+  .gradient-card-shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .gradient-card-shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(174 58% 42% / 0.06), transparent);
+    animation: shimmer 4s ease-in-out infinite;
   }
 }
 
