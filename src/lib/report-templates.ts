@@ -479,7 +479,7 @@ ${photos.length > 0 ? `
   <tr><td>17.8</td><td>Fatores psicossociais avaliados</td><td>${psychosocial.length > 0 ? '✓ Sim' : '✗ Não'}</td><td>${psychosocial.length} avaliação(ões)</td></tr>
 </table>
 
-${footer()}
+${footer()}`;
 }
 
 // ==================== PGR ====================
