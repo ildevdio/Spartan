@@ -101,36 +101,54 @@ export type Database = {
       }
       companies: {
         Row: {
+          activity_risk: string
           address: string
+          cep: string
           city: string
+          cnae_principal: string
+          cnae_secundario: string
           cnpj: string
           created_at: string
           description: string
           id: string
           name: string
+          neighborhood: string
           state: string
+          trade_name: string
           updated_at: string
         }
         Insert: {
+          activity_risk?: string
           address?: string
+          cep?: string
           city?: string
+          cnae_principal?: string
+          cnae_secundario?: string
           cnpj?: string
           created_at?: string
           description?: string
           id?: string
           name: string
+          neighborhood?: string
           state?: string
+          trade_name?: string
           updated_at?: string
         }
         Update: {
+          activity_risk?: string
           address?: string
+          cep?: string
           city?: string
+          cnae_principal?: string
+          cnae_secundario?: string
           cnpj?: string
           created_at?: string
           description?: string
           id?: string
           name?: string
+          neighborhood?: string
           state?: string
+          trade_name?: string
           updated_at?: string
         }
         Relationships: []
