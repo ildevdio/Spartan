@@ -47,6 +47,8 @@ interface CompanyContextType {
   addActionPlan: (a: Omit<ActionPlan, "id" | "created_at">) => Promise<void>;
   updateActionPlan: (id: string, a: Partial<ActionPlan>) => Promise<void>;
   addPsychosocialAnalysis: (p: Omit<PsychosocialAnalysis, "id" | "created_at">) => Promise<void>;
+  deletePsychosocialAnalysis: (id: string) => Promise<void>;
+  deletePosturePhoto: (id: string) => Promise<void>;
   refreshData: () => Promise<void>;
 }
 
