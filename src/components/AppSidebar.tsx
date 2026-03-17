@@ -41,6 +41,7 @@ const analysisItems = [
   { title: "Análises", url: "/analises", icon: ClipboardCheck },
   { title: "Câmera", url: "/analise-camera", icon: Camera },
   { title: "Psicossocial", url: "/psicossocial", icon: Brain },
+  { title: "Questionários", url: "/questionarios-psicossociais", icon: Printer },
 ];
 
 const reportItems = [

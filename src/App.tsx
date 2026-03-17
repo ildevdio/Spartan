@@ -43,6 +43,7 @@ const App = () => {
               <Route path="/analise-camera" element={<AnaliseCameraPage />} />
               <Route path="/captura-posturas" element={<PostureCapturePage />} />
               <Route path="/psicossocial" element={<PsicossocialPage />} />
+              <Route path="/questionarios-psicossociais" element={<QuestionariosPsicossociaisPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
