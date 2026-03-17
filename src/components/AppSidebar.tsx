@@ -12,6 +12,7 @@ import {
   Brain,
   Printer,
   ChevronDown,
+  UserCheck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
