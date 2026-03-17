@@ -209,6 +209,11 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     if (error) { toast.error("Erro ao atualizar análise"); return; }
     await fetchAll();
   };
+  const deleteAnalysis = async (id: string) => {
+    const { error } = await supabase.from("analyses").delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir análise"); return; }
+    await fetchAll();
+  };
   const addPosturePhoto = async (p: Omit<PosturePhoto, "id" | "created_at">) => {
     const { error } = await supabase.from("posture_photos").insert(p);
     if (error) { toast.error("Erro ao adicionar foto"); return; }
