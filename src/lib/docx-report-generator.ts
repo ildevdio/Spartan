@@ -2035,3 +2035,45 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
     throw error;
   }
 }
+
+export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<void> {
+  const html = generateReportHTML({
+    company: ctx.company,
+    sector: ctx.sector,
+    workstation: ctx.workstation,
+    workstations: ctx.workstations,
+    analyses: ctx.analyses,
+    photos: ctx.photos,
+    reportType: ctx.reportType,
+  });
+
+  const container = document.createElement("div");
+  container.innerHTML = html;
+  container.style.width = "210mm";
+  container.style.padding = "20mm";
+  container.style.fontFamily = "Calibri, Arial, sans-serif";
+  container.style.color = "#1e293b";
+  container.style.lineHeight = "1.6";
+  container.style.background = "#fff";
+  document.body.appendChild(container);
+
+  const { default: html2pdf } = await import("html2pdf.js");
+
+  const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+
+  try {
+    await html2pdf()
+      .set({
+        margin: [10, 10, 10, 10],
+        filename: fileName,
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      })
+      .from(container)
+      .save();
+  } finally {
+    document.body.removeChild(container);
+  }
+}

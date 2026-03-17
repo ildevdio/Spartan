@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, X, Printer } from "lucide-react";
-import { useRef } from "react";
+import { Download, Printer, FileText, Loader2 } from "lucide-react";
+import { useRef, useState } from "react";
 
 interface ReportPreviewDialogProps {
   open: boolean;
@@ -9,10 +9,12 @@ interface ReportPreviewDialogProps {
   html: string;
   title: string;
   onDownloadDocx?: () => void;
+  onDownloadPdf?: () => void;
 }
 
-export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloadDocx }: ReportPreviewDialogProps) {
+export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloadDocx, onDownloadPdf }: ReportPreviewDialogProps) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
 
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
@@ -35,6 +37,16 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
     printWindow.print();
   };
 
+  const handlePdf = async () => {
+    if (!onDownloadPdf) return;
+    setGeneratingPdf(true);
+    try {
+      await onDownloadPdf();
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0 gap-0">
@@ -45,8 +57,15 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
               <Printer className="h-3.5 w-3.5 mr-1" />
               <span className="hidden sm:inline">Imprimir</span>
             </Button>
+            {onDownloadPdf && (
+              <Button size="sm" variant="default" className="h-7 text-xs" onClick={handlePdf} disabled={generatingPdf}>
+                {generatingPdf ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <FileText className="h-3.5 w-3.5 mr-1" />}
+                <span className="hidden sm:inline">Baixar PDF</span>
+                <span className="sm:hidden">PDF</span>
+              </Button>
+            )}
             {onDownloadDocx && (
-              <Button size="sm" className="h-7 text-xs" onClick={onDownloadDocx}>
+              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={onDownloadDocx}>
                 <Download className="h-3.5 w-3.5 mr-1" />
                 <span className="hidden sm:inline">Baixar HTML</span>
                 <span className="sm:hidden">HTML</span>
