@@ -2046,7 +2046,7 @@ function buildPreviewHtmlDocument(ctx: DocxReportContext): string {
   });
 
   const logoAbsoluteUrl = `${window.location.origin}/mg-consult-logo.png`;
-  const normalizedHtml = previewHtml.replaceAll('src="/mg-consult-logo.png"', `src="${logoAbsoluteUrl}"`);
+  const normalizedHtml = previewHtml.split('src="/mg-consult-logo.png"').join(`src="${logoAbsoluteUrl}"`);
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
