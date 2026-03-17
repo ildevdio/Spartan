@@ -318,75 +318,57 @@ ${risks.map((r, i) => {
 
 <h2>10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</h2>
 <h3>10.1 Análise Complementar dos Riscos Psicossociais</h3>
-<h3>Avaliação Psicossocial${psa.workstation_id ? ` — ${workstations.find(w => w.id === psa.workstation_id)?.name || ""}` : ""}</h3>
-<p><strong>Avaliador:</strong> ${psa.evaluator_name}</p>
-
-${psa.nasa_tlx_details ? `
-<h4>NASA-TLX (Índice de Carga de Trabalho)</h4>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (0-100)</th></tr></thead>
-<tbody>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Mental</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.mental_demand}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Física</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.physical_demand}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Temporal</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.temporal_demand}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Performance</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.performance}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Esforço</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.effort}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Frustração</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.nasa_tlx_details.frustration}</td></tr>
-  <tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${psa.nasa_tlx_score}</td></tr>
-</tbody></table>` : ""}
-
-${psa.hse_it_details ? `
-<h4>HSE-IT (Indicadores de Estresse Ocupacional)</h4>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (1-5)</th></tr></thead>
-<tbody>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.demands}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Controle</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.control}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Suporte</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.support}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Relacionamentos</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.relationships}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Papel</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.role}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Mudança</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.hse_it_details.change}</td></tr>
-  <tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${psa.hse_it_score}</td></tr>
-</tbody></table>` : ""}
-
-${psa.copenhagen_details ? `
-<h4>Copenhagen Psychosocial Questionnaire (COPSOQ)</h4>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (0-100)</th></tr></thead>
-<tbody>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas Quantitativas</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.quantitative_demands}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Ritmo de Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.work_pace}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas Cognitivas</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.cognitive_demands}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas Emocionais</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.emotional_demands}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Influência no Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.influence}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Possibilidades de Desenvolvimento</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.possibilities_development}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Significado do Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.meaning_work}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Compromisso</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.commitment}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Previsibilidade</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.predictability}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;">Suporte Social</td><td style="border: 1px solid #ddd; padding: 8px;">${psa.copenhagen_details.social_support}</td></tr>
-  <tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${psa.copenhagen_score}</td></tr>
-</tbody></table>` : ""}
-
-<p><strong>Observações:</strong> ${psa.observations}</p>
-`).join("<hr>") : `<p>Nenhuma avaliação psicossocial realizada para esta empresa. Recomenda-se a aplicação dos questionários NASA-TLX, HSE-IT e Copenhagen Psychosocial Questionnaire para uma avaliação completa dos fatores psicossociais do trabalho.</p>`}
+${psychosocial.length > 0 ? '<p>A validação dos resultados psicossociais foi realizada por meio da aplicação dos seguintes instrumentos: ' + (psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II (Copenhagen Psychosocial Questionnaire)</strong>, ' : '') + (psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : '') + (psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : '') + ' aplicados junto aos colaboradores da <strong>' + (company.trade_name || company.name) + '</strong>.</p>' + psychosocial.map(psa => {
+  let html = '<h4>Avaliação Psicossocial' + (psa.workstation_id ? ' — ' + (workstations.find(w => w.id === psa.workstation_id)?.name || "") : "") + '</h4>';
+  html += '<p><strong>Avaliador:</strong> ' + psa.evaluator_name + '</p>';
+  if (psa.nasa_tlx_details) {
+    html += '<h4>NASA-TLX (Índice de Carga de Trabalho)</h4><table style="width:100%; border-collapse: collapse;"><thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (0-100)</th></tr></thead><tbody>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Mental</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.mental_demand + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Física</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.physical_demand + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Temporal</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.temporal_demand + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Performance</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.performance + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Esforço</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.effort + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Frustração</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.frustration + '</td></tr>';
+    html += '<tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">' + psa.nasa_tlx_score + '</td></tr>';
+    html += '</tbody></table>';
+  }
+  if (psa.copenhagen_details) {
+    html += '<h4>COPSOQ II</h4><table style="width:100%; border-collapse: collapse;"><thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (0-100)</th></tr></thead><tbody>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas Quantitativas</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.copenhagen_details.quantitative_demands + '</td></tr>';
+    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Ritmo de Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.copenhagen_details.work_pace + '</td></tr>';
+    html += '<tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">' + psa.copenhagen_score + '</td></tr>';
+    html += '</tbody></table>';
+  }
+  html += '<p><strong>Observações:</strong> ' + psa.observations + '</p>';
+  return html;
+}).join("<hr>") : '<p>Nenhuma avaliação psicossocial realizada. Recomenda-se a aplicação dos questionários NASA-TLX, HSE-IT e Copenhagen Psychosocial Questionnaire (COPSOQ II) para uma avaliação completa dos fatores psicossociais do trabalho.</p>'}
 <hr>
 
 <h2>11. RESPONSABILIDADE TÉCNICA</h2>
-<table style="width:100%; border-collapse: collapse;">
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Responsável Técnico</td><td style="border: 1px solid #ddd; padding: 8px;">${consultant}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Empresa</td><td style="border: 1px solid #ddd; padding: 8px;">MG Consultoria — Ergonomia & Segurança do Trabalho</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Data de Emissão</td><td style="border: 1px solid #ddd; padding: 8px;">${getToday()}</td></tr>
-</table>
-<br>
+<p>O presente documento foi elaborado sob a responsabilidade técnica da MG CONSULT.</p>
+<p>Sendo de responsabilidade da empresa, programar, monitorar e assegurar o cumprimento desta Análise Ergonômica.</p>
+<p>${company.city}, ${getToday()}.</p>
 <div style="text-align: center; margin-top: 60px;">
   <p>_____________________________________________</p>
   <p><strong>${consultant}</strong></p>
-  <p>Engenheiro de Segurança do Trabalho</p>
-  <p>CREA/CONFEA: XXXXX</p>
+  <p>M.Sc Eng. de Produção (Ergonomia)</p>
+  <p>Eng. de Segurança do Trabalho</p>
+  <p>Especialista em Ergonomia</p>
 </div>
+<div style="page-break-after: always;"></div>
+
+<h2>12. ANEXOS</h2>
+<ul style="font-size: 14px; line-height: 2;">
+  <li>Análise Ergonômica dos Postos (AEP)</li>
+  <li>Ferramentas Aplicadas</li>
+  <li>Relatório Técnico Fatores Psicossociais</li>
+  <li>Plano de Ação</li>
+</ul>
+
+${actions.length > 0 ? '<h3>Plano de Ação</h3><table style="width:100%; border-collapse: collapse;"><thead><tr style="background: #0A1F44; color: white;"><th style="border: 1px solid #ddd; padding: 8px;">Ação Corretiva</th><th style="border: 1px solid #ddd; padding: 8px;">Responsável</th><th style="border: 1px solid #ddd; padding: 8px;">Prazo</th><th style="border: 1px solid #ddd; padding: 8px;">Status</th></tr></thead><tbody>' + actions.map(ap => '<tr><td style="border: 1px solid #ddd; padding: 8px;">' + ap.description + '</td><td style="border: 1px solid #ddd; padding: 8px;">' + ap.responsible + '</td><td style="border: 1px solid #ddd; padding: 8px;">' + ap.deadline + '</td><td style="border: 1px solid #ddd; padding: 8px;">' + statusLabel(ap.status) + '</td></tr>').join("") + '</tbody></table>' : ''}
+
 <br>
-<p style="text-align:center; font-size: 11px; color: #94a3b8;"><em>Documento gerado pelo sistema Spartan — MG Consultoria</em></p>
-<p style="text-align:center; font-size: 11px; color: #94a3b8;"><em>Este relatório deve ser revisado e assinado pelo profissional responsável antes da validação.</em></p>
+<p style="text-align:center; font-size: 11px; color: #94a3b8;"><em>Documento gerado pelo sistema Focus Spartan — MG Consultoria</em></p>
 `;
 }
 
