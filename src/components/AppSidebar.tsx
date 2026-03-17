@@ -117,17 +117,19 @@ export function AppSidebar() {
                 onOpenChange={() => toggleSection(sectionIdx)}
               >
                 <CollapsibleTrigger className={cn(
-                  "flex items-center w-full px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider",
-                  "hover:bg-sidebar-accent/30 transition-colors cursor-pointer rounded-sm mx-1",
-                  hasActiveItem ? "text-sidebar-primary" : "text-sidebar-muted",
-                  collapsed && "justify-center px-0"
+                  "flex items-center w-full px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider",
+                  "hover:bg-sidebar-accent/50 transition-all duration-200 cursor-pointer rounded-md mx-1",
+                  hasActiveItem
+                    ? "text-sidebar-primary bg-sidebar-accent/30 border border-sidebar-primary/20"
+                    : "text-sidebar-muted border border-transparent",
+                  collapsed && "justify-center px-1.5"
                 )}>
-                  <section.icon className={cn("h-3.5 w-3.5 shrink-0", collapsed ? "" : "mr-1.5")} />
+                  <section.icon className={cn("h-4 w-4 shrink-0", collapsed ? "" : "mr-2")} />
                   {!collapsed && (
                     <>
                       <span className="flex-1 text-left">{section.label}</span>
                       <ChevronDown className={cn(
-                        "h-3 w-3 transition-transform duration-200",
+                        "h-3.5 w-3.5 transition-transform duration-200",
                         isOpen && "rotate-180"
                       )} />
                     </>
