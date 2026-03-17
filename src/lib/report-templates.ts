@@ -75,50 +75,54 @@ function generateAETReport(ctx: ReportContext): string {
 
   return `
 <div style="text-align:center; padding: 60px 40px; border: 2px solid #1e293b;">
+  <img src="/mg-consult-logo.png" alt="MG Consult" style="height: 60px; margin-bottom: 20px;" onerror="this.style.display='none'" />
   <h1 style="font-size: 28px; margin-bottom: 8px; color: #1e293b;">ANÁLISE ERGONÔMICA DO TRABALHO</h1>
   <h2 style="font-size: 20px; color: #475569; margin-bottom: 40px;">AET</h2>
-  <p style="font-size: 24px; font-weight: bold; color: #1e293b;">${company.name}</p>
+  <p style="font-size: 24px; font-weight: bold; color: #1e293b;">${company.trade_name || company.name}</p>
   <p style="font-size: 14px; color: #64748b;">CNPJ: ${company.cnpj}</p>
-  <p style="font-size: 14px; color: #64748b; margin-bottom: 40px;">${company.address} — ${company.city}/${company.state}</p>
-  <p style="font-size: 14px; color: #64748b;">Emissão: ${getToday()}</p>
-  <p style="font-size: 14px; color: #64748b;">Revisão: 00</p>
-  <p style="font-size: 14px; color: #475569; margin-top: 40px;"><strong>Responsável Técnico:</strong> ${consultant}</p>
-  <p style="font-size: 11px; color: #94a3b8; margin-top: 20px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
+  <p style="font-size: 16px; color: #64748b; margin-top: 30px;">${new Date().getFullYear()}</p>
+  <p style="font-size: 11px; color: #94a3b8; margin-top: 40px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
 </div>
 <div style="page-break-after: always;"></div>
 
 <h2>ÍNDICE</h2>
-<ol style="font-size: 14px; line-height: 2;">
-  <li>Introdução</li>
-  <li>Identificação e Caracterização da Empresa</li>
-  <li>Objetivos</li>
-  <li>Referências Normativas</li>
-  <li>Análise da Demanda e do Funcionamento da Organização</li>
-  <li>Referencial Teórico</li>
-  <li>Estudo Ergonômico do Trabalho</li>
-  <li>Definição de Métodos, Técnicas e Ferramentas</li>
-  <li>Agrupamento por GHE e Matriz de Avaliação Ergonômica</li>
-  <li>Análise dos Riscos Psicossociais</li>
-  <li>Responsabilidade Técnica</li>
-</ol>
+<table style="width:100%; border-collapse: collapse; font-size: 14px;">
+  <tr><td style="padding: 6px 0;">1. Introdução</td><td style="text-align:right; padding: 6px 0;">2</td></tr>
+  <tr><td style="padding: 6px 0;">2. Dados da Empresa</td><td style="text-align:right; padding: 6px 0;">4</td></tr>
+  <tr><td style="padding: 6px 0;">3. Objetivos</td><td style="text-align:right; padding: 6px 0;">5</td></tr>
+  <tr><td style="padding: 6px 0;">4. Referências Normativas</td><td style="text-align:right; padding: 6px 0;">5</td></tr>
+  <tr><td style="padding: 6px 0;">5. Análise da Demanda e do Funcionamento da Organização</td><td style="text-align:right; padding: 6px 0;">6</td></tr>
+  <tr><td style="padding: 6px 0;">6. Referencial Teórico</td><td style="text-align:right; padding: 6px 0;">7</td></tr>
+  <tr><td style="padding: 6px 0;">7. Estudo Ergonômico do Trabalho</td><td style="text-align:right; padding: 6px 0;">9</td></tr>
+  <tr><td style="padding: 6px 0;">8. Definição de Métodos, Técnicas e Ferramentas</td><td style="text-align:right; padding: 6px 0;">10</td></tr>
+  <tr><td style="padding: 6px 0;">9. Agrupamento por GHE e Matriz de Avaliação Ergonômica</td><td style="text-align:right; padding: 6px 0;">12</td></tr>
+  <tr><td style="padding: 6px 0;">10. Análise dos Riscos Psicossociais</td><td style="text-align:right; padding: 6px 0;">14</td></tr>
+  <tr><td style="padding: 6px 0;">11. Responsabilidade Técnica</td><td style="text-align:right; padding: 6px 0;">15</td></tr>
+  <tr><td style="padding: 6px 0;">12. Anexos</td><td style="text-align:right; padding: 6px 0;">16</td></tr>
+</table>
 <div style="page-break-after: always;"></div>
 
 <h2>1. INTRODUÇÃO</h2>
 <p>Na busca por elevar a produtividade, a qualidade, a segurança e o conforto durante a execução das atividades — sejam elas rotineiras ou mais complexas — a ergonomia tem ganhado cada vez mais espaço dentro das organizações. Seu uso tornou-se essencial para reduzir falhas e otimizar processos nos setores produtivos, administrativos e, sobretudo, nos aspectos que envolvem comportamento e interação humana.</p>
-<p>A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa. Em qualquer ambiente, pode-se compreender a atividade como um sistema que integra pessoas, máquinas e o meio ao redor. Quando esse sistema opera em condições inadequadas, surgem desconfortos imediatos, fadiga e até lesões ao longo do tempo.</p>
-<p>Locais de trabalho planejados de forma incorreta tendem a reduzir o desempenho, comprometer a qualidade, elevar o absenteísmo e aumentar custos operacionais. A ergonomia busca tornar a interação entre trabalhador, equipamentos e ambiente o mais segura, eficiente e confortável possível.</p>
+<p>A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa. Em qualquer ambiente industrial, pode-se compreender a atividade como um sistema que integra pessoas, máquinas e o meio ao redor. Quando esse sistema opera em condições inadequadas, surgem desconfortos imediatos, fadiga e até lesões ao longo do tempo.</p>
+<p>Locais de trabalho planejados de forma incorreta tendem a reduzir o desempenho, comprometer a qualidade, elevar o absenteísmo e aumentar custos operacionais. A ergonomia busca tornar a interação entre trabalhador, equipamentos e ambiente o mais segura, eficiente e confortável possível, priorizando inicialmente a preservação da saúde e o bem-estar do colaborador e, como consequência, contribuindo para melhores resultados empresariais.</p>
 <p>Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17, com o objetivo de subsidiar a elaboração da Análise Ergonômica do Trabalho.</p>
 <hr>
 
-<h2>2. IDENTIFICAÇÃO E CARACTERIZAÇÃO DA EMPRESA</h2>
+<h2>2. DADOS DA EMPRESA</h2>
 <table style="width:100%; border-collapse: collapse;">
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 200px;">Razão Social</td><td style="border: 1px solid #ddd; padding: 8px;">${company.name}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">CNPJ</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnpj}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Endereço</td><td style="border: 1px solid #ddd; padding: 8px;">${company.address}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Cidade/UF</td><td style="border: 1px solid #ddd; padding: 8px;">${company.city}/${company.state}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Descrição</td><td style="border: 1px solid #ddd; padding: 8px;">${company.description}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Setor Avaliado</td><td style="border: 1px solid #ddd; padding: 8px;">${sectorName}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Posto(s) de Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${wsName}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 200px; background: #f1f5f9;">Razão Social</td><td style="border: 1px solid #ddd; padding: 8px;">${company.name}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Nome Fantasia</td><td style="border: 1px solid #ddd; padding: 8px;">${company.trade_name || company.name}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">CNPJ</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnpj}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">CNAE Principal</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnae_principal || "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">CNAE Secundário</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnae_secundario || "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Risco da Atividade</td><td style="border: 1px solid #ddd; padding: 8px;">${company.activity_risk ? `${company.activity_risk} (NR-04)` : "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;" rowspan="4">Endereço Completo</td><td style="border: 1px solid #ddd; padding: 8px;"><strong>Logradouro:</strong> ${company.address}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Bairro:</strong> ${company.neighborhood || "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Cidade/Estado:</strong> ${company.city} — ${company.state}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>CEP:</strong> ${company.cep || "—"}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Setor(es) Avaliado(s)</td><td style="border: 1px solid #ddd; padding: 8px;">${sectorName}</td></tr>
+  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Posto(s) de Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${wsName}</td></tr>
 </table>
 <hr>
 
