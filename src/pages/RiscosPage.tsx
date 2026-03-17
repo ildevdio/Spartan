@@ -7,18 +7,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCompany } from "@/lib/company-context";
 import { calculateRiskScore, classifyRisk, riskLevelLabel, type RiskLevel } from "@/lib/types";
-import { Plus, AlertTriangle } from "lucide-react";
+import { Plus, AlertTriangle, Wand2, Loader2 } from "lucide-react";
 import { CompanySelector } from "@/components/CompanySelector";
 import { RiskBadge } from "./DashboardPage";
+import { toast } from "sonner";
 
 export default function RiscosPage() {
-  const { companyAnalyses, companyWorkstations, riskAssessments, addRiskAssessment } = useCompany();
+  const { companyAnalyses, companyWorkstations, riskAssessments, addRiskAssessment, postureAnalyses } = useCompany();
   const [open, setOpen] = useState(false);
   const [analysisId, setAnalysisId] = useState("");
   const [probability, setProbability] = useState(1);
   const [exposure, setExposure] = useState(1);
   const [consequence, setConsequence] = useState(1);
   const [description, setDescription] = useState("");
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
 
   const score = calculateRiskScore(probability, exposure, consequence);
   const level = classifyRisk(score);
@@ -40,6 +42,62 @@ export default function RiscosPage() {
     setProbability(1); setExposure(1); setConsequence(1);
   };
 
+  const handleAutoFill = async () => {
+    const existingAnalysisIds = new Set(riskAssessments.map((r) => r.analysis_id));
+    const analysesToAssess = companyAnalyses.filter((a) => !existingAnalysisIds.has(a.id));
+
+    if (analysesToAssess.length === 0) {
+      toast.info("Todas as análises já possuem avaliação de risco.");
+      return;
+    }
+
+    setIsAutoFilling(true);
+    try {
+      for (const analysis of analysesToAssess) {
+        let prob = 3, exp = 3, cons = 3;
+        let desc = "";
+
+        // Use posture analysis data if available
+        const pa = postureAnalyses.filter((p) => p.workstation_id === analysis.workstation_id);
+        if (pa.length > 0) {
+          const latest = pa[pa.length - 1];
+          const riskMap: Record<string, number> = { low: 1, medium: 3, high: 6, critical: 10 };
+          const base = riskMap[latest.risk_level] || 3;
+          prob = Math.min(base, 10);
+          exp = Math.min(Math.ceil(base * 0.8), 10);
+          cons = Math.min(Math.ceil(base * 1.2), 10);
+          desc = `Preenchido automaticamente via análise postural. Risco: ${latest.risk_level}.`;
+        } else {
+          // Estimate from analysis score
+          const s = analysis.score;
+          if (s <= 3) { prob = 2; exp = 2; cons = 2; }
+          else if (s <= 7) { prob = 4; exp = 3; cons = 4; }
+          else { prob = 6; exp = 5; cons = 6; }
+          desc = `Preenchido automaticamente com base na análise ${analysis.method} (score: ${analysis.score}). Revise os valores.`;
+        }
+
+        const autoScore = calculateRiskScore(prob, exp, cons);
+        const autoLevel = classifyRisk(autoScore);
+
+        await addRiskAssessment({
+          analysis_id: analysis.id,
+          probability: prob,
+          exposure: exp,
+          consequence: cons,
+          risk_score: autoScore,
+          risk_level: autoLevel,
+          description: desc,
+        });
+      }
+      toast.success(`${analysesToAssess.length} avaliação(ões) de risco preenchida(s)!`);
+    } catch (err) {
+      toast.error("Erro ao preencher avaliações.");
+      console.error(err);
+    } finally {
+      setIsAutoFilling(false);
+    }
+  };
+
   const matrixColors: Record<RiskLevel, string> = {
     low: "bg-success/20 text-success",
     medium: "bg-warning/20 text-warning",
@@ -56,6 +114,18 @@ export default function RiscosPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <CompanySelector />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAutoFill}
+            disabled={isAutoFilling}
+          >
+            {isAutoFilling ? (
+              <><Loader2 className="h-4 w-4 mr-1 animate-spin" />Preenchendo...</>
+            ) : (
+              <><Wand2 className="h-4 w-4 mr-1" />Preencher com Dados</>
+            )}
+          </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm"><Plus className="h-4 w-4 mr-1" />Nova Avaliação</Button>

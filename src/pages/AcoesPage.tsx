@@ -7,9 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCompany } from "@/lib/company-context";
 import { statusLabel, type ActionStatus } from "@/lib/types";
-import { Plus, CheckCircle2, Clock, CircleDot, Hourglass } from "lucide-react";
+import { Plus, CheckCircle2, Clock, CircleDot, Hourglass, Wand2, Loader2 } from "lucide-react";
 import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
+import { calculateRiskScore, classifyRisk } from "@/lib/types";
+import { toast } from "sonner";
 
 const STATUS_OPTIONS: ActionStatus[] = ["pending", "approved", "in_progress", "completed"];
 
@@ -34,6 +36,7 @@ export default function AcoesPage() {
   const [description, setDescription] = useState("");
   const [responsible, setResponsible] = useState("");
   const [deadline, setDeadline] = useState("");
+  const [isAutoFilling, setIsAutoFilling] = useState(false);
 
   const companyRisks = riskAssessments.filter((r) => companyAnalyses.some((a) => a.id === r.analysis_id));
   const companyActions = actionPlans.filter((ap) => companyRisks.some((r) => r.id === ap.risk_assessment_id));
@@ -54,6 +57,50 @@ export default function AcoesPage() {
     await updateActionPlan(id, { status });
   };
 
+  const handleAutoFill = async () => {
+    const existingRiskIds = new Set(actionPlans.map((ap) => ap.risk_assessment_id));
+    const risksWithoutActions = companyRisks.filter((r) => !existingRiskIds.has(r.id));
+
+    if (risksWithoutActions.length === 0) {
+      toast.info("Todos os riscos já possuem plano de ação.");
+      return;
+    }
+
+    setIsAutoFilling(true);
+    try {
+      for (const risk of risksWithoutActions) {
+        const analysis = companyAnalyses.find((a) => a.id === risk.analysis_id);
+        const ws = analysis ? companyWorkstations.find((w) => w.id === analysis.workstation_id) : null;
+
+        const actionDescriptions: Record<string, string> = {
+          low: `Monitorar condições ergonômicas do posto ${ws?.name || ""}. Manter registros periódicos.`,
+          medium: `Implementar melhorias ergonômicas no posto ${ws?.name || ""}. Ajustar mobiliário e orientar colaboradores sobre postura.`,
+          high: `Ação corretiva urgente no posto ${ws?.name || ""}. Redesenhar layout, substituir equipamentos inadequados e treinar equipe.`,
+          critical: `Intervenção imediata no posto ${ws?.name || ""}. Interromper atividade até correção. Avaliar substituição completa do posto.`,
+        };
+
+        // Set deadline based on risk level
+        const deadlineDays: Record<string, number> = { low: 90, medium: 60, high: 30, critical: 7 };
+        const dl = new Date();
+        dl.setDate(dl.getDate() + (deadlineDays[risk.risk_level] || 30));
+
+        await addActionPlan({
+          risk_assessment_id: risk.id,
+          description: actionDescriptions[risk.risk_level] || `Ação corretiva para risco score ${risk.risk_score}.`,
+          responsible: "",
+          deadline: dl.toISOString().split("T")[0],
+          status: risk.risk_level === "critical" ? "approved" : "pending",
+        });
+      }
+      toast.success(`${risksWithoutActions.length} ação(ões) preenchida(s) automaticamente!`);
+    } catch (err) {
+      toast.error("Erro ao preencher ações.");
+      console.error(err);
+    } finally {
+      setIsAutoFilling(false);
+    }
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -63,6 +110,18 @@ export default function AcoesPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <CompanySelector />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAutoFill}
+            disabled={isAutoFilling}
+          >
+            {isAutoFilling ? (
+              <><Loader2 className="h-4 w-4 mr-1 animate-spin" />Preenchendo...</>
+            ) : (
+              <><Wand2 className="h-4 w-4 mr-1" />Preencher com Dados</>
+            )}
+          </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm"><Plus className="h-4 w-4 mr-1" />Nova Ação</Button>
