@@ -383,9 +383,9 @@ function getYear(): number {
 // Matches the HTML preview: dark gradient-like cover with white text
 function createCoverPage(title: string, subtitle: string, company: Company, consultant: string): Paragraph[] {
   const year = new Date().getFullYear().toString();
-  const coverShading = { type: ShadingType.SOLID as const, fill: COLORS.coverGradientTop, color: COLORS.coverGradientTop };
-  const coverShadingMid = { type: ShadingType.SOLID as const, fill: COLORS.secondary, color: COLORS.secondary };
-  const coverShadingAccent = { type: ShadingType.SOLID as const, fill: COLORS.accentBright, color: COLORS.accentBright };
+  const coverShading = { type: ShadingType.SOLID, fill: COLORS.coverGradientTop, color: COLORS.coverGradientTop };
+  const coverShadingMid = { type: ShadingType.SOLID, fill: COLORS.secondary, color: COLORS.secondary };
+  const coverShadingAccent = { type: ShadingType.SOLID, fill: COLORS.accentBright, color: COLORS.accentBright };
   return [
     // Top gradient bands
     new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 30 })] }),
