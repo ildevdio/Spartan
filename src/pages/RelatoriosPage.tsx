@@ -13,8 +13,7 @@ import { Progress } from "@/components/ui/progress";
 import { ReportPreviewDialog } from "@/components/ReportPreviewDialog";
 
 const REPORT_TYPES: { type: ReportType; label: string; description: string }[] = [
-  { type: "AEP", label: "AEP", description: "Avaliação Ergonômica Preliminar" },
-  { type: "AET", label: "AET", description: "Análise Ergonômica do Trabalho" },
+  { type: "AET", label: "AET", description: "Análise Ergonômica do Trabalho (inclui AEP como anexo)" },
   { type: "PGR", label: "PGR", description: "Programa de Gerenciamento de Riscos" },
   { type: "APR", label: "APR", description: "Avaliação Preliminar de Riscos Psicossociais" },
   { type: "PCMSO", label: "PCMSO", description: "Programa de Controle Médico de Saúde Ocupacional" },
