@@ -383,8 +383,8 @@ export default function ResponsavelTecnicoPage() {
                   </p>
                   {r.govbr_certificate_id && (
                     <div className="flex items-center justify-center gap-1 mb-1">
-                      <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                      <span className="text-[10px] font-medium text-emerald-600">ICP-Brasil</span>
+                      <ShieldCheck className="h-4 w-4 text-success" />
+                      <span className="text-[10px] font-medium text-success">ICP-Brasil</span>
                     </div>
                   )}
                   <div className="text-center">
