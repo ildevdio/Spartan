@@ -141,7 +141,7 @@ export default function RelatoriosPage() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">Relatórios</h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Visualize ou exporte documentos técnicos (.docx)
+            Visualize e baixe o mesmo arquivo da pré-visualização (HTML)
           </p>
         </div>
         <CompanySelector />
