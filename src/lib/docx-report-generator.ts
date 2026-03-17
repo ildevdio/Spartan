@@ -2069,7 +2069,7 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
         image: { type: "jpeg", quality: 0.95 },
         html2canvas: { scale: 2, useCORS: true, logging: false },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+        pagebreak: { mode: ["css", "legacy"], before: ".page-break", avoid: [".rpt-table", ".rpt-callout", ".rpt-cover", ".rpt-sig", "tr"] },
       })
       .from(container)
       .save();
