@@ -110,6 +110,18 @@ export default function AcoesPage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <CompanySelector />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleAutoFill}
+            disabled={isAutoFilling}
+          >
+            {isAutoFilling ? (
+              <><Loader2 className="h-4 w-4 mr-1 animate-spin" />Preenchendo...</>
+            ) : (
+              <><Wand2 className="h-4 w-4 mr-1" />Preencher com Dados</>
+            )}
+          </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button size="sm"><Plus className="h-4 w-4 mr-1" />Nova Ação</Button>
