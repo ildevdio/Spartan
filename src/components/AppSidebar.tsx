@@ -27,6 +27,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import spartanLogo from "@/assets/spartan-logo.png";
 import focusLogo from "@/assets/focus-logo.png";
@@ -69,6 +70,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const [focusDialogOpen, setFocusDialogOpen] = useState(false);
 
   // Determine which section is active based on current route
   const activeSectionIndex = sections.findIndex((s) =>
@@ -168,12 +170,39 @@ export function AppSidebar() {
 
       <SidebarFooter className="border-t border-sidebar-border px-2 py-1.5">
         {!collapsed && (
-          <div className="flex items-center justify-center gap-1.5 overflow-hidden">
+          <button
+            onClick={() => setFocusDialogOpen(true)}
+            className="flex items-center justify-center gap-1.5 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+          >
             <span className="text-[8px] text-sidebar-muted/70 tracking-wider uppercase whitespace-nowrap">Desenvolvido por:</span>
-            <img src={focusLogo} alt="Focus" className="h-3.5" />
-          </div>
+            <img src={focusLogo} alt="Focus" className="h-5" />
+          </button>
         )}
       </SidebarFooter>
+
+      <Dialog open={focusDialogOpen} onOpenChange={setFocusDialogOpen}>
+        <DialogContent className="sm:max-w-md border-0 bg-transparent shadow-none overflow-visible [&>button]:hidden">
+          <div className="relative flex items-center justify-center p-10">
+            {/* Glow rings */}
+            <div className="absolute inset-0 rounded-full bg-accent/20 blur-3xl animate-pulse" />
+            <div className="absolute inset-4 rounded-full bg-accent/10 blur-2xl animate-pulse [animation-delay:0.5s]" />
+            <div className="absolute inset-8 rounded-full bg-info/10 blur-xl animate-pulse [animation-delay:1s]" />
+            {/* Shimmer overlay */}
+            <div className="absolute inset-0 gradient-accent-animated opacity-20 rounded-3xl" />
+            {/* Logo */}
+            <div className="relative z-10 flex flex-col items-center gap-4">
+              <img
+                src={focusLogo}
+                alt="Focus"
+                className="h-20 drop-shadow-[0_0_30px_hsl(174,58%,42%,0.6)] animate-scale-in"
+              />
+              <p className="text-xs text-muted-foreground/80 tracking-widest uppercase animate-fade-in">
+                Tecnologia & Inovação
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Sidebar>
   );
 }
