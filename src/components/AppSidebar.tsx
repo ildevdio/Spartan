@@ -70,6 +70,7 @@ export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
+  const [focusDialogOpen, setFocusDialogOpen] = useState(false);
 
   // Determine which section is active based on current route
   const activeSectionIndex = sections.findIndex((s) =>
