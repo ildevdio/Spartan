@@ -35,6 +35,7 @@ export default function RelatoriosPage() {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState("");
   const [previewDownload, setPreviewDownload] = useState<(() => void) | null>(null);
+  const [previewPdfDownload, setPreviewPdfDownload] = useState<(() => Promise<void>) | null>(null);
 
   const wsReadyForReport = companyWorkstations.filter((ws) => {
     const photoCount = posturePhotos.filter((p) => p.workstation_id === ws.id).length;
