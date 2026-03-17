@@ -334,10 +334,11 @@ export default function RelatoriosPage() {
       {/* Preview dialog */}
       <ReportPreviewDialog
         open={!!previewHtml}
-        onOpenChange={(open) => { if (!open) { setPreviewHtml(null); setPreviewDownload(null); } }}
+        onOpenChange={(open) => { if (!open) { setPreviewHtml(null); setPreviewDownload(null); setPreviewPdfDownload(null); } }}
         html={previewHtml || ""}
         title={previewTitle}
         onDownloadDocx={previewDownload || undefined}
+        onDownloadPdf={previewPdfDownload || undefined}
       />
     </div>
   );
