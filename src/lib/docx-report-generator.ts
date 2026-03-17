@@ -239,7 +239,7 @@ function heading(text: string, level: typeof HeadingLevel[keyof typeof HeadingLe
   return new Paragraph({
     children: [
       new TextRun({
-        text: isH1 ? `■  ${text}` : text,
+        text,
         bold: true,
         size: isH1 ? 30 : isH2 ? 26 : 22,
         font: "Calibri",
