@@ -239,9 +239,60 @@ ${analyses.map(a => {
 <hr>
 
 <h2>9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA</h2>
-<p>Os trabalhadores foram agrupados por Grupos Homogêneos de Exposição (GHE), considerando as atividades realizadas, posturas adotadas e riscos identificados.</p>
+<p>A empresa <strong>${company.trade_name || company.name}</strong> atua no segmento de ${company.description.toLowerCase()}. Os trabalhadores são classificados em Grupos Homogêneos de Exposição (GHE), conforme metodologia adotada pelo Programa de Gerenciamento de Riscos (PGR). Essa classificação visa agrupar funções com condições de exposição semelhantes, possibilitando uma avaliação mais precisa dos riscos ergonômicos, biomecânicos e psicossociais presentes nas diferentes áreas da empresa.</p>
+<p>O enquadramento por GHE permite a integração entre os programas de gestão de riscos (GRO/PGR) e a Análise Ergonômica do Trabalho (AET), promovendo uma visão unificada da exposição ocupacional e das ações preventivas aplicáveis.</p>
+
+<h3>9.1 Grupo Homogêneo de Exposição – GHE</h3>
+<table style="width:100%; border-collapse: collapse;">
+<thead><tr style="background: #0A1F44; color: white;">
+  <th style="border: 1px solid #ddd; padding: 8px;">GHE</th>
+  <th style="border: 1px solid #ddd; padding: 8px;">Setor / Atividade</th>
+  <th style="border: 1px solid #ddd; padding: 8px;">Descrição das Atividades</th>
+</tr></thead>
+<tbody>
+${workstations.map((ws, i) => {
+  const sector = ctx.workstations.length > 0 ? (ctx.sector || { name: "Geral" }) : { name: "Geral" };
+  return '<tr>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">GHE ' + String(i + 1).padStart(2, '0') + ' - ' + ws.name + '</td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">' + (sector?.name || "—") + '</td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">' + (ws.activity_description || ws.description || ws.tasks_performed) + '</td>' +
+    '</tr>';
+}).join("")}
+</tbody></table>
+
+<h3>9.2 Matriz de Avaliação de Riscos</h3>
+<p>A análise dos riscos ergonômicos foi realizada com base na Matriz de Probabilidade × Severidade, metodologia utilizada no PGR da empresa e alinhada aos princípios da AIHA (1998) e da norma BS 8800 (1996):</p>
+<table style="width:100%; border-collapse: collapse;">
+<thead><tr style="background: #0A1F44; color: white;">
+  <th style="border: 1px solid #ddd; padding: 8px;">Severidade (S)</th>
+  <th style="border: 1px solid #ddd; padding: 8px;">Probabilidade (P)</th>
+  <th style="border: 1px solid #ddd; padding: 8px;">Resultado (Nível de Risco)</th>
+  <th style="border: 1px solid #ddd; padding: 8px;">Classificação / Ação Recomendada</th>
+</tr></thead>
+<tbody>
+  <tr>
+    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Leve / Reversível</strong> — desconfortos temporários, sem impacto funcional</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Baixa probabilidade — exposição eventual ou sob controle</td>
+    <td style="border: 1px solid #ddd; padding: 8px; background: #C8E6C9; font-weight: bold;">Baixo (Aceitável)</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Manter as condições atuais, reforçando boas práticas e pausas.</td>
+  </tr>
+  <tr>
+    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Moderada / Desconforto persistente</strong> — sintomas repetitivos ou leves</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Média probabilidade — exposição frequente, posturas mantidas</td>
+    <td style="border: 1px solid #ddd; padding: 8px; background: #FFF9C4; font-weight: bold;">Médio (Tolerável)</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Promover ajustes ergonômicos, pausas regulares e orientação postural.</td>
+  </tr>
+  <tr>
+    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Grave / Potencial de LER/DORT</strong> — dor crônica, limitação de movimento ou necessidade de afastamento</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Alta probabilidade — exposição contínua, sem pausas ou ajustes</td>
+    <td style="border: 1px solid #ddd; padding: 8px; background: #FFCDD2; font-weight: bold;">Alto (Crítico)</td>
+    <td style="border: 1px solid #ddd; padding: 8px;">Implementar medidas corretivas imediatas no posto de trabalho.</td>
+  </tr>
+</tbody></table>
+<p><em>Critério de interpretação: quanto maior a severidade e a probabilidade combinadas, mais urgente é a necessidade de intervenção.</em></p>
+
 ${risks.length > 0 ? `
-<h3>Matriz de Risco Ergonômico</h3>
+<h3>Riscos Identificados</h3>
 <table style="width:100%; border-collapse: collapse;">
 <thead><tr style="background: #f1f5f9;">
   <th style="border: 1px solid #ddd; padding: 8px;">GHE/Posto</th>
@@ -254,32 +305,15 @@ ${risks.length > 0 ? `
 ${risks.map((r, i) => {
   const analysis = analyses.find(a => a.id === r.analysis_id);
   const ws = analysis ? workstations.find(w => w.id === analysis.workstation_id) : null;
-  return `<tr>
-    <td style="border: 1px solid #ddd; padding: 8px;">${ws?.name || `GHE ${i + 1}`}</td>
-    <td style="border: 1px solid #ddd; padding: 8px;">${r.description}</td>
-    <td style="border: 1px solid #ddd; padding: 8px;">${r.probability} × ${r.exposure} × ${r.consequence}</td>
-    <td style="border: 1px solid #ddd; padding: 8px;"><strong>${r.risk_score}</strong></td>
-    <td style="border: 1px solid #ddd; padding: 8px;"><strong>${riskLevelLabel(r.risk_level)}</strong></td>
-  </tr>`;
+  return '<tr>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">' + (ws?.name || 'GHE ' + (i + 1)) + '</td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">' + r.description + '</td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;">' + r.probability + ' × ' + r.exposure + ' × ' + r.consequence + '</td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;"><strong>' + r.risk_score + '</strong></td>' +
+    '<td style="border: 1px solid #ddd; padding: 8px;"><strong>' + riskLevelLabel(r.risk_level) + '</strong></td>' +
+    '</tr>';
 }).join("")}
-</tbody></table>
-
-<h3>Plano de Ação</h3>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;">
-  <th style="border: 1px solid #ddd; padding: 8px;">Ação Corretiva</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Responsável</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Prazo</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Status</th>
-</tr></thead>
-<tbody>
-${actions.map(ap => `<tr>
-  <td style="border: 1px solid #ddd; padding: 8px;">${ap.description}</td>
-  <td style="border: 1px solid #ddd; padding: 8px;">${ap.responsible}</td>
-  <td style="border: 1px solid #ddd; padding: 8px;">${ap.deadline}</td>
-  <td style="border: 1px solid #ddd; padding: 8px;">${statusLabel(ap.status)}</td>
-</tr>`).join("")}
-</tbody></table>` : "<p>Nenhum risco avaliado.</p>"}
+</tbody></table>` : ""}
 <hr>
 
 <h2>10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</h2>
