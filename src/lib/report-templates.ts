@@ -339,13 +339,147 @@ ${signatureBlock(consultant, "M.Sc Eng. de Produção (Ergonomia) / Eng. de Segu
 <div class="page-break"></div>
 <div class="rpt-section">12. ANEXOS</div>
 <ul style="font-size:14px; line-height:2;">
-  <li>Análise Ergonômica dos Postos (AEP)</li>
-  <li>Ferramentas Aplicadas</li>
-  <li>Relatório Técnico Fatores Psicossociais</li>
-  <li>Plano de Ação</li>
+  <li>ANEXO I — Avaliação Ergonômica Preliminar (AEP)</li>
+  <li>ANEXO II — Ferramentas e Métodos Aplicados</li>
+  <li>ANEXO III — Relatório Técnico de Fatores Psicossociais</li>
+  <li>ANEXO IV — Plano de Ação Ergonômico</li>
+  <li>ANEXO V — Registro Fotográfico</li>
+  <li>ANEXO VI — Checklist de Conformidade NR-17</li>
 </ul>
-${actions.length > 0 ? `<table class="rpt-table"><tr><th>Ação Corretiva</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr>${actions.map(ap => `<tr><td>${ap.description}</td><td>${ap.responsible}</td><td>${ap.deadline}</td><td>${statusLabel(ap.status)}</td></tr>`).join("")}</table>` : ''}
-${footer()}`;
+
+<div class="page-break"></div>
+<div class="rpt-section">ANEXO I — AVALIAÇÃO ERGONÔMICA PRELIMINAR (AEP)</div>
+<p>A Avaliação Ergonômica Preliminar (AEP) tem como objetivo identificar os perigos ergonômicos de forma inicial, servindo como triagem para a AET detalhada. Conforme a NR-17, a AEP é obrigatória para todas as organizações.</p>
+${workstations.map((ws, idx) => {
+  const wsAnalyses = analyses.filter(a => a.workstation_id === ws.id);
+  const wsPhotos = photos.filter(p => p.workstation_id === ws.id);
+  const wsRisks = risks.filter(r => wsAnalyses.some(a => a.id === r.analysis_id));
+  const sectorObj = ws.sector || ctx.sector;
+  return `
+<div class="rpt-section2">AEP ${String(idx + 1).padStart(2, '0')} — ${ws.name}</div>
+<table class="rpt-table">
+  <tr><td class="label" style="width:200px;">Posto de Trabalho</td><td>${ws.name}</td></tr>
+  <tr><td class="label">Setor</td><td>${(sectorObj as any)?.name || "Geral"}</td></tr>
+  <tr><td class="label">Descrição da Atividade</td><td>${ws.activity_description || ws.description}</td></tr>
+  <tr><td class="label">Tarefas Executadas</td><td>${ws.tasks_performed || "—"}</td></tr>
+  <tr><td class="label">Fotos Capturadas</td><td>${wsPhotos.length}</td></tr>
+</table>
+${wsAnalyses.length > 0 ? `
+<div class="rpt-section3">Resultados da Avaliação</div>
+<table class="rpt-table">
+  <tr><th>Método</th><th>Score</th><th>Status</th><th>Observações</th></tr>
+  ${wsAnalyses.map(a => `<tr><td>${a.method}</td><td><strong>${a.score}</strong></td><td>${a.analysis_status}</td><td>${a.notes || "—"}</td></tr>`).join("")}
+</table>` : '<div class="rpt-callout warning">Nenhuma análise ergonômica realizada para este posto.</div>'}
+${wsRisks.length > 0 ? `
+<div class="rpt-section3">Riscos Ergonômicos Identificados</div>
+<table class="rpt-table">
+  <tr><th>Descrição</th><th>P×E×C</th><th>Score</th><th>Nível</th></tr>
+  ${wsRisks.map(r => `<tr><td>${r.description}</td><td>${r.probability}×${r.exposure}×${r.consequence}</td><td><strong>${r.risk_score}</strong></td><td><strong>${riskLevelLabel(r.risk_level)}</strong></td></tr>`).join("")}
+</table>` : ''}
+${wsPhotos.length > 0 ? `
+<div class="rpt-section3">Registro Postural</div>
+<table class="rpt-table">
+  <tr><th>Postura</th><th>Observações</th><th>Data</th></tr>
+  ${wsPhotos.map(p => `<tr><td><strong>${p.posture_type}</strong></td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`).join("")}
+</table>` : ''}`;
+}).join("")}
+
+<div class="page-break"></div>
+<div class="rpt-section">ANEXO II — FERRAMENTAS E MÉTODOS APLICADOS</div>
+<p>Os seguintes métodos ergonômicos validados internacionalmente foram empregados na avaliação:</p>
+<table class="rpt-table">
+  <tr><th>Método</th><th>Aplicação</th><th>Classificação de Risco</th></tr>
+  <tr><td class="label">REBA</td><td>Corpo inteiro — posturas dinâmicas</td><td>1-3 Baixo | 4-7 Médio | 8-10 Alto | 11+ Muito Alto</td></tr>
+  <tr><td class="label">RULA</td><td>Membros superiores</td><td>1-2 Aceitável | 3-4 Investigar | 5-6 Mudar breve | 7 Imediato</td></tr>
+  <tr><td class="label">ROSA</td><td>Postos administrativos</td><td>1-2 Desprezível | 3-4 Baixo | 5-6 Médio | 7+ Alto</td></tr>
+  <tr><td class="label">OWAS</td><td>Posturas de trabalho</td><td>1 Normal | 2 Leve | 3 Severo | 4 Muito severo</td></tr>
+  <tr><td class="label">OCRA</td><td>Movimentos repetitivos MMSS</td><td>≤2.2 Aceitável | 2.3-3.5 Incerto | >3.5 Inaceitável</td></tr>
+  <tr><td class="label">ANSI-365</td><td>Análise integrada de fatores ergonômicos</td><td>Classificação multifatorial</td></tr>
+</table>
+${equipmentTable()}
+
+<div class="page-break"></div>
+<div class="rpt-section">ANEXO III — RELATÓRIO TÉCNICO DE FATORES PSICOSSOCIAIS</div>
+${psychosocial.length > 0 ? `
+<p>Avaliações psicossociais realizadas: <strong>${psychosocial.length}</strong></p>
+${psychosocial.map((psa, idx) => {
+  let html = `<div class="rpt-section2">Avaliação ${idx + 1} — ${psa.evaluator_name}</div>`;
+  if (psa.nasa_tlx_details) {
+    const nasaClass = psa.nasa_tlx_score! <= 30 ? "green" : psa.nasa_tlx_score! <= 50 ? "yellow" : psa.nasa_tlx_score! <= 70 ? "orange" : "red";
+    html += `<div class="rpt-section3">NASA-TLX (Carga de Trabalho)</div>
+    <table class="rpt-table">
+      <tr><th class="alt">Dimensão</th><th class="alt">Score (0-100)</th></tr>
+      <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
+      <tr><td>Demanda Física</td><td>${psa.nasa_tlx_details.physical_demand}</td></tr>
+      <tr><td>Demanda Temporal</td><td>${psa.nasa_tlx_details.temporal_demand}</td></tr>
+      <tr><td>Performance</td><td>${psa.nasa_tlx_details.performance}</td></tr>
+      <tr><td>Esforço</td><td>${psa.nasa_tlx_details.effort}</td></tr>
+      <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
+      <tr><td class="label">Score Geral</td><td><span class="rpt-badge ${nasaClass}"><strong>${psa.nasa_tlx_score}</strong></span></td></tr>
+    </table>`;
+  }
+  if (psa.hse_it_details) {
+    const hseClass = psa.hse_it_score! >= 4 ? "green" : psa.hse_it_score! >= 3 ? "yellow" : psa.hse_it_score! >= 2 ? "orange" : "red";
+    html += `<div class="rpt-section3">HSE-IT (Estresse Ocupacional)</div>
+    <table class="rpt-table">
+      <tr><th class="teal">Dimensão</th><th class="teal">Score (1-5)</th></tr>
+      <tr><td>Demandas</td><td>${psa.hse_it_details.demands}</td></tr>
+      <tr><td>Controle</td><td>${psa.hse_it_details.control}</td></tr>
+      <tr><td>Suporte</td><td>${psa.hse_it_details.support}</td></tr>
+      <tr><td>Relacionamentos</td><td>${psa.hse_it_details.relationships}</td></tr>
+      <tr><td>Papel</td><td>${psa.hse_it_details.role}</td></tr>
+      <tr><td>Mudança</td><td>${psa.hse_it_details.change}</td></tr>
+      <tr><td class="label">Score Geral</td><td><span class="rpt-badge ${hseClass}"><strong>${psa.hse_it_score}</strong></span></td></tr>
+    </table>`;
+  }
+  if (psa.copenhagen_details) {
+    const cd = psa.copenhagen_details;
+    html += `<div class="rpt-section3">COPSOQ II (Copenhagen)</div>
+    <table class="rpt-table">
+      <tr><th class="teal">Dimensão</th><th class="teal">Score (0-100)</th></tr>
+      ${([["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support]] as [string, number][]).map(([d, v]) => `<tr><td>${d}</td><td><strong>${v}</strong></td></tr>`).join("")}
+      <tr><td class="label">Score Geral</td><td><strong>${psa.copenhagen_score}</strong></td></tr>
+    </table>`;
+  }
+  if (psa.observations) html += `<div class="rpt-callout">${psa.observations}</div>`;
+  return html;
+}).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial registrada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX, HSE-IT e JSS.</div>'}
+
+<div class="page-break"></div>
+<div class="rpt-section">ANEXO IV — PLANO DE AÇÃO ERGONÔMICO</div>
+${actions.length > 0 ? `
+<table class="rpt-table">
+  <tr><th>Nº</th><th>Ação Corretiva / Preventiva</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr>
+  ${actions.map((ap, i) => `<tr><td>${i + 1}</td><td>${ap.description}</td><td>${ap.responsible}</td><td>${ap.deadline}</td><td>${statusLabel(ap.status)}</td></tr>`).join("")}
+</table>` : '<div class="rpt-callout warning">Nenhum plano de ação registrado.</div>'}
+
+<div class="page-break"></div>
+<div class="rpt-section">ANEXO V — REGISTRO FOTOGRÁFICO</div>
+${photos.length > 0 ? `
+<p>Total de registros fotográficos: <strong>${photos.length}</strong></p>
+<table class="rpt-table">
+  <tr><th>Nº</th><th>Posto</th><th>Tipo de Postura</th><th>Observações</th><th>Data</th></tr>
+  ${photos.map((p, i) => {
+    const ws = workstations.find(w => w.id === p.workstation_id);
+    return `<tr><td>${i + 1}</td><td>${ws?.name || "—"}</td><td>${p.posture_type}</td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`;
+  }).join("")}
+</table>` : '<div class="rpt-callout warning">Nenhum registro fotográfico disponível.</div>'}
+
+<div class="page-break"></div>
+<div class="rpt-section">ANEXO VI — CHECKLIST DE CONFORMIDADE NR-17</div>
+<table class="rpt-table">
+  <tr><th>Item</th><th>Requisito NR-17</th><th>Conforme</th><th>Observações</th></tr>
+  <tr><td>17.1</td><td>AEP realizada para todos os postos</td><td>${workstations.length > 0 && analyses.length > 0 ? '✓ Sim' : '✗ Não'}</td><td>${analyses.length} análise(s) em ${workstations.length} posto(s)</td></tr>
+  <tr><td>17.2</td><td>Mobiliário adequado</td><td>A verificar</td><td>Avaliar in loco</td></tr>
+  <tr><td>17.3</td><td>Equipamentos adequados</td><td>A verificar</td><td>Avaliar in loco</td></tr>
+  <tr><td>17.4</td><td>Condições ambientais (iluminação, ruído, temperatura)</td><td>A verificar</td><td>Medições quantitativas recomendadas</td></tr>
+  <tr><td>17.5</td><td>Organização do trabalho</td><td>A verificar</td><td>Pausas, ritmo, jornada</td></tr>
+  <tr><td>17.6</td><td>Levantamento e transporte de cargas</td><td>A verificar</td><td>ISO 11228</td></tr>
+  <tr><td>17.7</td><td>Trabalho com máquinas e equipamentos</td><td>A verificar</td><td>NR-12</td></tr>
+  <tr><td>17.8</td><td>Fatores psicossociais avaliados</td><td>${psychosocial.length > 0 ? '✓ Sim' : '✗ Não'}</td><td>${psychosocial.length} avaliação(ões)</td></tr>
+</table>
+
+${footer()}
 }
 
 // ==================== PGR ====================
