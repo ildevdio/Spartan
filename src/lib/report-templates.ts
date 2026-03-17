@@ -16,371 +16,129 @@ interface ReportContext {
 function getToday(): string {
   return new Date().toLocaleDateString("pt-BR");
 }
+function getYear(): number {
+  return new Date().getFullYear();
+}
 
 export function generateReportHTML(ctx: ReportContext): string {
   const { reportType } = ctx;
-  if (reportType === "AET") return generateAETReport(ctx);
-  if (reportType === "PGR") return generatePGRReport(ctx);
-  if (reportType === "APR") return generateAPRReport(ctx);
-  if (reportType === "PCMSO") return generatePCMSOReport(ctx);
-  return generateGenericReport(ctx);
+  switch (reportType) {
+    case "AET": return generateAETReport(ctx);
+    case "PGR": return generatePGRReport(ctx);
+    case "APR": return generateAPRReport(ctx);
+    case "PCMSO": return generatePCMSOReport(ctx);
+    case "LTCAT": return generateLTCATReport(ctx);
+    case "Insalubridade": return generateInsalubridadeReport(ctx);
+    case "Periculosidade": return generatePericulosidadeReport(ctx);
+    case "PCA": return generatePCAReport(ctx);
+    case "PPR": return generatePPRReport(ctx);
+    default: return generateGenericReport(ctx);
+  }
 }
 
-function vividStyles() {
+// ==================== SHARED STYLES & HELPERS ====================
+
+function sharedStyles() {
+  return `<style>
+    body, .rpt-body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1e293b; line-height: 1.6; }
+    .rpt-cover { text-align:center; padding:60px 40px; background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%); color:white; border-radius:8px; margin-bottom:30px; }
+    .rpt-cover h1 { font-size:28px; margin-bottom:8px; color:white; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .rpt-cover h2 { font-size:20px; color:#B2EBF2; margin-bottom:30px; }
+    .rpt-cover .company { font-size:24px; font-weight:bold; color:white; }
+    .rpt-cover .meta { font-size:14px; color:#B2EBF2; }
+    .rpt-section { background: linear-gradient(90deg, #0A1F44, #1565C0); color:white; padding:12px 20px; margin:30px 0 15px 0; border-radius:6px; font-size:16px; font-weight:bold; }
+    .rpt-section2 { background: linear-gradient(90deg, #1565C0, #00838F); color:white; padding:10px 18px; margin:24px 0 12px 0; border-radius:5px; font-size:15px; font-weight:bold; }
+    .rpt-section3 { border-left:5px solid #00BCD4; padding:8px 14px; margin:20px 0 10px 0; font-size:14px; font-weight:bold; color:#0A1F44; background:#E1F5FE; border-radius:0 5px 5px 0; }
+    .rpt-callout { border-left:5px solid #1565C0; background:#E3F2FD; padding:12px 16px; margin:12px 0; border-radius:0 6px 6px 0; font-style:italic; color:#0A1F44; }
+    .rpt-callout.warning { border-left-color:#FF6F00; background:#FFF3E0; }
+    .rpt-callout.success { border-left-color:#43A047; background:#C8E6C9; }
+    .rpt-callout.danger { border-left-color:#D32F2F; background:#FFCDD2; }
+    .rpt-table { width:100%; border-collapse:collapse; margin:12px 0; border-radius:6px; overflow:hidden; }
+    .rpt-table th { background:#0A1F44; color:white; padding:10px 12px; font-size:12px; text-align:left; border:1px solid #0A1F44; }
+    .rpt-table th.alt { background:#1565C0; border-color:#1565C0; }
+    .rpt-table th.teal { background:#00838F; border-color:#00838F; }
+    .rpt-table td { padding:9px 12px; font-size:12px; border:1px solid #B0BEC5; }
+    .rpt-table tr:nth-child(even) td { background:#E3F2FD; }
+    .rpt-table td.label { background:#E1F5FE; font-weight:bold; color:#1565C0; }
+    .rpt-badge { display:inline-block; padding:4px 12px; border-radius:12px; font-size:11px; font-weight:bold; }
+    .rpt-badge.green { background:#C8E6C9; color:#1B5E20; }
+    .rpt-badge.yellow { background:#FFF9C4; color:#F57F17; }
+    .rpt-badge.orange { background:#FFE0B2; color:#E65100; }
+    .rpt-badge.red { background:#FFCDD2; color:#B71C1C; }
+    .rpt-divider { height:4px; background: linear-gradient(90deg, #00BCD4, #1565C0, #0A1F44); margin:20px 0; border-radius:2px; }
+    .rpt-sig { text-align:center; margin-top:50px; padding-top:20px; border-top:2px solid #B0BEC5; }
+    .rpt-header { display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0A1F44; padding-bottom:8px; margin-bottom:20px; font-size:11px; color:#64748b; }
+    .rpt-footer { text-align:center; font-size:10px; color:#94a3b8; margin-top:30px; border-top:1px solid #e2e8f0; padding-top:8px; }
+    .page-break { page-break-after: always; }
+  </style>`;
+}
+
+function coverPage(title: string, subtitle: string, company: Company, consultant: string) {
   return `
-    <style>
-      .rpt-cover { text-align:center; padding:60px 40px; background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%); color:white; border-radius:8px; margin-bottom:30px; }
-      .rpt-cover h1 { font-size:32px; margin-bottom:8px; color:white; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-      .rpt-cover h2 { font-size:22px; color:#B2EBF2; margin-bottom:30px; }
-      .rpt-cover .company { font-size:26px; font-weight:bold; color:white; }
-      .rpt-cover .meta { font-size:14px; color:#B2EBF2; }
-      .rpt-section { background: linear-gradient(90deg, #0A1F44, #1565C0); color:white; padding:12px 20px; margin:30px 0 15px 0; border-radius:6px; font-size:18px; font-weight:bold; }
-      .rpt-section2 { background: linear-gradient(90deg, #1565C0, #00838F); color:white; padding:10px 18px; margin:24px 0 12px 0; border-radius:5px; font-size:16px; font-weight:bold; }
-      .rpt-section3 { border-left:5px solid #00BCD4; padding:8px 14px; margin:20px 0 10px 0; font-size:15px; font-weight:bold; color:#0A1F44; background:#E1F5FE; border-radius:0 5px 5px 0; }
-      .rpt-callout { border-left:5px solid #1565C0; background:#E3F2FD; padding:12px 16px; margin:12px 0; border-radius:0 6px 6px 0; font-style:italic; color:#0A1F44; }
-      .rpt-callout.warning { border-left-color:#FF6F00; background:#FFF3E0; }
-      .rpt-callout.success { border-left-color:#43A047; background:#C8E6C9; }
-      .rpt-callout.danger { border-left-color:#D32F2F; background:#FFCDD2; }
-      .rpt-table { width:100%; border-collapse:collapse; margin:12px 0; border-radius:6px; overflow:hidden; }
-      .rpt-table th { background:#0A1F44; color:white; padding:10px 12px; font-size:13px; text-align:left; border:1px solid #0A1F44; }
-      .rpt-table th.alt { background:#1565C0; border-color:#1565C0; }
-      .rpt-table th.teal { background:#00838F; border-color:#00838F; }
-      .rpt-table td { padding:9px 12px; font-size:13px; border:1px solid #B0BEC5; }
-      .rpt-table tr:nth-child(even) td { background:#E3F2FD; }
-      .rpt-table td.label { background:#E1F5FE; font-weight:bold; color:#1565C0; }
-      .rpt-badge { display:inline-block; padding:4px 12px; border-radius:12px; font-size:12px; font-weight:bold; }
-      .rpt-badge.green { background:#C8E6C9; color:#1B5E20; }
-      .rpt-badge.yellow { background:#FFF9C4; color:#F57F17; }
-      .rpt-badge.orange { background:#FFE0B2; color:#E65100; }
-      .rpt-badge.red { background:#FFCDD2; color:#B71C1C; }
-      .rpt-divider { height:4px; background: linear-gradient(90deg, #00BCD4, #1565C0, #0A1F44); margin:20px 0; border-radius:2px; }
-      .rpt-sig { text-align:center; margin-top:50px; padding-top:20px; border-top:2px solid #B0BEC5; }
-    </style>
-  `;
+<div class="rpt-cover">
+  <img src="/mg-consult-logo.png" alt="MG Consult" style="height:50px; margin-bottom:20px;" onerror="this.style.display='none'" />
+  <h1>${title}</h1>
+  <h2>${subtitle}</h2>
+  <p class="company">${company.trade_name || company.name}</p>
+  <p class="meta">CNPJ: ${company.cnpj}</p>
+  <p class="meta">${company.address}${company.neighborhood ? ', ' + company.neighborhood : ''} — ${company.city}/${company.state}</p>
+  <p class="meta" style="margin-top:30px;">Emissão: ${getToday()} | Revisão: 00</p>
+  <p class="meta">Responsável Técnico: ${consultant}</p>
+  <p class="meta" style="font-size:12px; margin-top:15px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
+</div><div class="page-break"></div>`;
 }
 
-function generateAETReport(ctx: ReportContext): string {
-  const { company, sector, workstation, workstations, analyses, photos } = ctx;
+function companyDataTable(company: Company) {
+  return `
+<table class="rpt-table">
+  <tr><td class="label" style="width:200px;">Razão Social</td><td>${company.name}</td></tr>
+  <tr><td class="label">Nome Fantasia</td><td>${company.trade_name || company.name}</td></tr>
+  <tr><td class="label">CNPJ</td><td>${company.cnpj}</td></tr>
+  <tr><td class="label">CNAE Principal</td><td>${company.cnae_principal || "—"}</td></tr>
+  <tr><td class="label">CNAE Secundário</td><td>${company.cnae_secundario || "—"}</td></tr>
+  <tr><td class="label">Grau de Risco</td><td>${company.activity_risk || "—"}</td></tr>
+  <tr><td class="label">Endereço</td><td>${company.address}</td></tr>
+  <tr><td class="label">Bairro</td><td>${company.neighborhood || "—"}</td></tr>
+  <tr><td class="label">Cidade/UF</td><td>${company.city} — ${company.state}</td></tr>
+  <tr><td class="label">CEP</td><td>${company.cep || "—"}</td></tr>
+</table>`;
+}
+
+function revisionTable() {
+  return `
+<div class="rpt-section">CONTROLE DE REVISÕES</div>
+<table class="rpt-table">
+  <tr><th>Revisão</th><th>Data</th><th>Descrição</th></tr>
+  <tr><td>00</td><td>${getToday()}</td><td>Emissão do documento.</td></tr>
+</table>`;
+}
+
+function signatureBlock(consultant: string, title: string = "Engenheiro de Segurança do Trabalho", registration: string = "CREA/CONFEA: XXXXX") {
+  return `
+<div class="rpt-divider"></div>
+<div class="rpt-sig">
+  <p>_____________________________________________</p>
+  <p><strong>${consultant}</strong></p>
+  <p>${title}</p>
+  <p>${registration}</p>
+  <p style="font-size:11px; color:#90A4AE; margin-top:15px;"><em>Documento gerado pelo sistema Focus Spartan — MG Consultoria</em></p>
+</div>`;
+}
+
+function footer() {
+  return `<div class="rpt-footer">MG Consultoria — Ergonomia & Segurança do Trabalho | ${getToday()}</div>`;
+}
+
+function getCtxData(ctx: ReportContext) {
+  const { company, workstations, analyses } = ctx;
   const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
-  const wsIds = workstations.map(w => w.id);
   const analysisIds = analyses.map(a => a.id);
+  const wsIds = workstations.map(w => w.id);
   const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
   const actions = mockActionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
   const tasks = mockTasks.filter(t => wsIds.includes(t.workstation_id));
   const psychosocial = mockPsychosocialAnalyses.filter(p => p.company_id === company.id);
-  const methods = [...new Set(analyses.map(a => a.method))].join(", ") || "N/A";
-
-  const sectorName = sector?.name || "Geral";
-  const wsName = workstation?.name || workstations.map(w => w.name).join(", ");
-
-  return `
-<div style="text-align:center; padding: 60px 40px; border: 2px solid #1e293b;">
-  <img src="/mg-consult-logo.png" alt="MG Consult" style="height: 60px; margin-bottom: 20px;" onerror="this.style.display='none'" />
-  <h1 style="font-size: 28px; margin-bottom: 8px; color: #1e293b;">ANÁLISE ERGONÔMICA DO TRABALHO</h1>
-  <h2 style="font-size: 20px; color: #475569; margin-bottom: 40px;">AET</h2>
-  <p style="font-size: 24px; font-weight: bold; color: #1e293b;">${company.trade_name || company.name}</p>
-  <p style="font-size: 14px; color: #64748b;">CNPJ: ${company.cnpj}</p>
-  <p style="font-size: 16px; color: #64748b; margin-top: 30px;">${new Date().getFullYear()}</p>
-  <p style="font-size: 11px; color: #94a3b8; margin-top: 40px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
-</div>
-<div style="page-break-after: always;"></div>
-
-<h2>ÍNDICE</h2>
-<table style="width:100%; border-collapse: collapse; font-size: 14px;">
-  <tr><td style="padding: 6px 0;">1. Introdução</td><td style="text-align:right; padding: 6px 0;">2</td></tr>
-  <tr><td style="padding: 6px 0;">2. Dados da Empresa</td><td style="text-align:right; padding: 6px 0;">4</td></tr>
-  <tr><td style="padding: 6px 0;">3. Objetivos</td><td style="text-align:right; padding: 6px 0;">5</td></tr>
-  <tr><td style="padding: 6px 0;">4. Referências Normativas</td><td style="text-align:right; padding: 6px 0;">5</td></tr>
-  <tr><td style="padding: 6px 0;">5. Análise da Demanda e do Funcionamento da Organização</td><td style="text-align:right; padding: 6px 0;">6</td></tr>
-  <tr><td style="padding: 6px 0;">6. Referencial Teórico</td><td style="text-align:right; padding: 6px 0;">7</td></tr>
-  <tr><td style="padding: 6px 0;">7. Estudo Ergonômico do Trabalho</td><td style="text-align:right; padding: 6px 0;">9</td></tr>
-  <tr><td style="padding: 6px 0;">8. Definição de Métodos, Técnicas e Ferramentas</td><td style="text-align:right; padding: 6px 0;">10</td></tr>
-  <tr><td style="padding: 6px 0;">9. Agrupamento por GHE e Matriz de Avaliação Ergonômica</td><td style="text-align:right; padding: 6px 0;">12</td></tr>
-  <tr><td style="padding: 6px 0;">10. Análise dos Riscos Psicossociais</td><td style="text-align:right; padding: 6px 0;">14</td></tr>
-  <tr><td style="padding: 6px 0;">11. Responsabilidade Técnica</td><td style="text-align:right; padding: 6px 0;">15</td></tr>
-  <tr><td style="padding: 6px 0;">12. Anexos</td><td style="text-align:right; padding: 6px 0;">16</td></tr>
-</table>
-<div style="page-break-after: always;"></div>
-
-<h2>1. INTRODUÇÃO</h2>
-<p>Na busca por elevar a produtividade, a qualidade, a segurança e o conforto durante a execução das atividades — sejam elas rotineiras ou mais complexas — a ergonomia tem ganhado cada vez mais espaço dentro das organizações. Seu uso tornou-se essencial para reduzir falhas e otimizar processos nos setores produtivos, administrativos e, sobretudo, nos aspectos que envolvem comportamento e interação humana.</p>
-<p>A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa. Em qualquer ambiente industrial, pode-se compreender a atividade como um sistema que integra pessoas, máquinas e o meio ao redor. Quando esse sistema opera em condições inadequadas, surgem desconfortos imediatos, fadiga e até lesões ao longo do tempo.</p>
-<p>Locais de trabalho planejados de forma incorreta tendem a reduzir o desempenho, comprometer a qualidade, elevar o absenteísmo e aumentar custos operacionais. A ergonomia busca tornar a interação entre trabalhador, equipamentos e ambiente o mais segura, eficiente e confortável possível, priorizando inicialmente a preservação da saúde e o bem-estar do colaborador e, como consequência, contribuindo para melhores resultados empresariais.</p>
-<p>Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17, com o objetivo de subsidiar a elaboração da Análise Ergonômica do Trabalho.</p>
-<hr>
-
-<h2>2. DADOS DA EMPRESA</h2>
-<table style="width:100%; border-collapse: collapse;">
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 200px; background: #f1f5f9;">Razão Social</td><td style="border: 1px solid #ddd; padding: 8px;">${company.name}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Nome Fantasia</td><td style="border: 1px solid #ddd; padding: 8px;">${company.trade_name || company.name}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">CNPJ</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnpj}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">CNAE Principal</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnae_principal || "—"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">CNAE Secundário</td><td style="border: 1px solid #ddd; padding: 8px;">${company.cnae_secundario || "—"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Risco da Atividade</td><td style="border: 1px solid #ddd; padding: 8px;">${company.activity_risk ? `${company.activity_risk} (NR-04)` : "—"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;" rowspan="4">Endereço Completo</td><td style="border: 1px solid #ddd; padding: 8px;"><strong>Logradouro:</strong> ${company.address}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Bairro:</strong> ${company.neighborhood || "—"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Cidade/Estado:</strong> ${company.city} — ${company.state}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>CEP:</strong> ${company.cep || "—"}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Setor(es) Avaliado(s)</td><td style="border: 1px solid #ddd; padding: 8px;">${sectorName}</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; background: #f1f5f9;">Posto(s) de Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">${wsName}</td></tr>
-</table>
-<hr>
-
-<h2>3. OBJETIVOS</h2>
-<p>O presente documento tem por objetivo:</p>
-<ul>
-  <li>Realizar a Análise Ergonômica do Trabalho (AET) conforme as diretrizes da NR-17;</li>
-  <li>Identificar e avaliar os riscos ergonômicos nos postos de trabalho analisados;</li>
-  <li>Classificar os riscos utilizando métodos ergonômicos validados internacionalmente;</li>
-  <li>Propor recomendações de melhoria baseadas em evidências científicas;</li>
-  <li>Atender às exigências legais e normativas de segurança e saúde do trabalho;</li>
-  <li>Contribuir para a melhoria contínua das condições de trabalho na organização.</li>
-</ul>
-<hr>
-
-<h2>4. REFERÊNCIAS NORMATIVAS</h2>
-<p>Este trabalho foi elaborado com base nas seguintes normas e legislações:</p>
-<table style="width:100%; border-collapse: collapse;">
-  <thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Norma</th><th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Descrição</th></tr></thead>
-  <tbody>
-    <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>NR-17</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Ergonomia — Estabelece parâmetros que permitem a adaptação das condições de trabalho às características psicofisiológicas dos trabalhadores</td></tr>
-    <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>NR-01</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Disposições Gerais e Gerenciamento de Riscos Ocupacionais — Programa de Gerenciamento de Riscos (PGR)</td></tr>
-    <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>ISO 11228</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Ergonomia — Movimentação manual de cargas</td></tr>
-    <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>ISO 11226</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Ergonomia — Avaliação de posturas de trabalho estáticas</td></tr>
-    <tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>CLT Art. 157-158</strong></td><td style="border: 1px solid #ddd; padding: 8px;">Obrigações do empregador e empregados quanto à segurança do trabalho</td></tr>
-  </tbody>
-</table>
-<hr>
-
-<h2>5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO</h2>
-<p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description.toLowerCase()}. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
-${workstations.map(ws => {
-  const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
-  return `
-<h3>Posto: ${ws.name}</h3>
-<p><strong>Descrição da atividade:</strong> ${ws.activity_description || ws.description}</p>
-<p><strong>Tarefas executadas:</strong></p>
-<ul>${wsTasks.map(t => `<li>${t.description}</li>`).join("") || `<li>${ws.tasks_performed}</li>`}</ul>`;
-}).join("")}
-<hr>
-
-<h2>6. REFERENCIAL TEÓRICO</h2>
-<p>A Ergonomia, segundo a International Ergonomics Association (IEA), é a disciplina científica que trata da compreensão das interações entre seres humanos e outros elementos de um sistema, aplicando teorias, princípios, dados e métodos para otimizar o bem-estar humano e o desempenho global do sistema.</p>
-<p>A análise ergonômica do trabalho (AET) é uma metodologia que permite compreender o trabalho real, indo além da tarefa prescrita. Através da observação sistemática, registro fotográfico e utilização de ferramentas validadas, busca-se identificar as exigências biomecânicas, cognitivas e organizacionais impostas aos trabalhadores.</p>
-<h3>Principais conceitos aplicados:</h3>
-<ul>
-  <li><strong>Ergonomia Física:</strong> Características anatômicas, antropométricas, fisiológicas e biomecânicas relacionadas à atividade física</li>
-  <li><strong>Ergonomia Cognitiva:</strong> Processos mentais como percepção, memória, raciocínio e resposta motora</li>
-  <li><strong>Ergonomia Organizacional:</strong> Otimização de sistemas sociotécnicos, estruturas organizacionais, políticas e processos</li>
-</ul>
-<hr>
-
-<h2>7. ESTUDO ERGONÔMICO DO TRABALHO</h2>
-<p>A realização do Estudo Ergonômico do Trabalho é indispensável não apenas pelo cumprimento da NR17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral. Há diversas metodologias para conduzir esse estudo, e o presente trabalho foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT.</p>
-
-<h3>7.1 Registro Postural</h3>
-${photos.length > 0 ? `<p>Foram registradas <strong>${photos.length}</strong> posturas de trabalho para documentação e análise biomecânica:</p>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Postura</th><th style="border: 1px solid #ddd; padding: 8px;">Descrição</th><th style="border: 1px solid #ddd; padding: 8px;">Data</th></tr></thead>
-<tbody>
-${photos.map(p => `<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>${p.posture_type}</strong></td><td style="border: 1px solid #ddd; padding: 8px;">${p.notes}</td><td style="border: 1px solid #ddd; padding: 8px;">${p.created_at}</td></tr>`).join("")}
-</tbody></table>` : "<p>Nenhuma postura registrada.</p>"}
-
-<h3>7.2 Análises Ergonômicas</h3>
-${analyses.length > 0 ? `<p>As análises foram realizadas utilizando os métodos: <strong>${methods}</strong>.</p>
-${analyses.map(a => {
-  const ws = workstations.find(w => w.id === a.workstation_id);
-  const risk = risks.find(r => r.analysis_id === a.id);
-  return '<table style="width:100%; border-collapse: collapse; margin-bottom: 16px;">' +
-    '<tr style="background: #f1f5f9;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">' + (ws?.name || "—") + '</td></tr>' +
-    '<tr><td style="border: 1px solid #ddd; padding: 8px; width: 200px;"><strong>Método</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + a.method + '</td></tr>' +
-    '<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Score</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + a.score + '</td></tr>' +
-    '<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Nível de Risco</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + (risk ? riskLevelLabel(risk.risk_level) : "N/A") + '</td></tr>' +
-    '<tr><td style="border: 1px solid #ddd; padding: 8px;"><strong>Observações</strong></td><td style="border: 1px solid #ddd; padding: 8px;">' + a.notes + '</td></tr>' +
-    '</table>';
-}).join("")}` : "<p>Nenhuma análise realizada.</p>"}
-<hr>
-
-<h2>8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS</h2>
-<p>No âmbito do Programa de Análise Ergonômica do Trabalho da empresa, adotou-se a seguinte abordagem metodológica:</p>
-<ul>
-  <li><strong>Consultoria Inicial:</strong> Etapa destinada à coleta de informações sobre a empresa, seus colaboradores e as prioridades de avaliação, realizada em conjunto com os setores de Segurança e Medicina do Trabalho.</li>
-  <li><strong>Observação dos Postos e Postura de Trabalho Descritiva:</strong> Inspeção presencial minuciosa de cada posto, aliada a entrevistas e troca de informações com os trabalhadores.</li>
-  <li><strong>Aplicação de questionários:</strong> Utilizados para identificar a percepção dos colaboradores quanto às condições ergonômicas.</li>
-</ul>
-
-<h3>Ferramentas Ergonômicas:</h3>
-<p><strong>REBA (Rapid Entire Body Assessment):</strong> Criado por Hignett e McAtamney (2000), o método tem como finalidade estimar o risco de desenvolvimento de distúrbios musculoesqueléticos decorrentes das posturas adotadas no trabalho. Trata-se de uma ferramenta indicada para analisar tarefas que envolvem manipulação de pessoas ou cargas em movimento. O REBA considera fatores posturais estáticos e dinâmicos na interação trabalhador–carga e incorpora o conceito de "assistência gravitacional". Classificação: 1-3: Baixo | 4-7: Médio | 8-10: Alto | 11+: Muito Alto.</p>
-<p><strong>RULA (Rapid Upper Limb Assessment):</strong> Desenvolvido por McAtamney e Corlett (1993), avalia a exposição dos membros superiores a fatores de risco que contribuem para o desenvolvimento de distúrbios relacionados ao trabalho. Classificação: 1-2: Aceitável | 3-4: Investigar | 5-6: Mudar breve | 7: Mudar imediatamente.</p>
-<p><strong>OCRA (Occupational Repetitive Actions):</strong> Metodologia internacionalmente reconhecida para avaliação do risco de lesões musculoesqueléticas associadas a movimentos repetitivos dos membros superiores. Desenvolvido por Colombini, Occhipinti e colaboradores, é amplamente utilizado em ergonomia ocupacional, especialmente em setores que exigem repetição contínua de tarefas.</p>
-<p><strong>ROSA (Rapid Office Strain Assessment):</strong> Ferramenta ergonômica usada para identificar riscos musculoesqueléticos em postos administrativos, especialmente aqueles com uso contínuo de computador. O método avalia cadeira, mesa, monitor, teclado, mouse e telefone, considerando ajustes, postura e tempo de exposição. Classificação: 1-2: Desprezível | 3-4: Baixo | 5-6: Médio | 7+: Alto.</p>
-<p><strong>OWAS (Ovako Working Posture Analysing System):</strong> Sistema de análise postural que classifica posturas de trabalho quanto ao risco musculoesquelético. Classificação: 1: Normal | 2: Leve | 3: Severo | 4: Muito severo.</p>
-<p>A detecção de posturas foi realizada com auxílio de inteligência artificial (BlazePose/MediaPipe) para cálculo preciso dos ângulos articulares, com filtragem de confiança mínima de 0.35 e suavização temporal de 5 frames.</p>
-
-<h3>Norma Regulamentadora nº 17 – Ergonomia</h3>
-<p>Foram também considerados todos os requisitos da NR-17, incluindo: levantamento, transporte e descarga individual de materiais; mobiliário dos postos de trabalho; equipamentos dos postos de trabalho; condições ambientais de trabalho; pausas para descanso.</p>
-
-<h3>8.1 Equipamentos Utilizados para Medição no Ambiente de Trabalho</h3>
-<table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">
-  <tr style="background: #0A1F44; color: white;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">CALOR</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 150px;">Instrumento</td><td style="border: 1px solid #ddd; padding: 8px;">Medidor de stress térmico</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Método</td><td style="border: 1px solid #ddd; padding: 8px;">NR-15, Portaria 3214/78, do MTE</td></tr>
-</table>
-<table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">
-  <tr style="background: #0A1F44; color: white;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">RUÍDO</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 150px;">Instrumento</td><td style="border: 1px solid #ddd; padding: 8px;">Decibelímetro</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Método</td><td style="border: 1px solid #ddd; padding: 8px;">NHT-06, FUNDACENTRO / NR-15</td></tr>
-</table>
-<table style="width:100%; border-collapse: collapse; margin-bottom: 12px;">
-  <tr style="background: #0A1F44; color: white;"><td colspan="2" style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">ILUMINAÇÃO</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold; width: 150px;">Instrumento</td><td style="border: 1px solid #ddd; padding: 8px;">Luxímetro</td></tr>
-  <tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Método</td><td style="border: 1px solid #ddd; padding: 8px;">NHO 11</td></tr>
-</table>
-<hr>
-
-<h2>9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA</h2>
-<p>A empresa <strong>${company.trade_name || company.name}</strong> atua no segmento de ${company.description.toLowerCase()}. Os trabalhadores são classificados em Grupos Homogêneos de Exposição (GHE), conforme metodologia adotada pelo Programa de Gerenciamento de Riscos (PGR). Essa classificação visa agrupar funções com condições de exposição semelhantes, possibilitando uma avaliação mais precisa dos riscos ergonômicos, biomecânicos e psicossociais presentes nas diferentes áreas da empresa.</p>
-<p>O enquadramento por GHE permite a integração entre os programas de gestão de riscos (GRO/PGR) e a Análise Ergonômica do Trabalho (AET), promovendo uma visão unificada da exposição ocupacional e das ações preventivas aplicáveis.</p>
-
-<h3>9.1 Grupo Homogêneo de Exposição – GHE</h3>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #0A1F44; color: white;">
-  <th style="border: 1px solid #ddd; padding: 8px;">GHE</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Setor / Atividade</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Descrição das Atividades</th>
-</tr></thead>
-<tbody>
-${workstations.map((ws, i) => {
-  const sector = ctx.workstations.length > 0 ? (ctx.sector || { name: "Geral" }) : { name: "Geral" };
-  return '<tr>' +
-    '<td style="border: 1px solid #ddd; padding: 8px;">GHE ' + String(i + 1).padStart(2, '0') + ' - ' + ws.name + '</td>' +
-    '<td style="border: 1px solid #ddd; padding: 8px;">' + (sector?.name || "—") + '</td>' +
-    '<td style="border: 1px solid #ddd; padding: 8px;">' + (ws.activity_description || ws.description || ws.tasks_performed) + '</td>' +
-    '</tr>';
-}).join("")}
-</tbody></table>
-
-<h3>9.2 Matriz de Avaliação de Riscos</h3>
-<p>A análise dos riscos ergonômicos foi realizada com base na Matriz de Probabilidade × Severidade, metodologia utilizada no PGR da empresa e alinhada aos princípios da AIHA (1998) e da norma BS 8800 (1996):</p>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #0A1F44; color: white;">
-  <th style="border: 1px solid #ddd; padding: 8px;">Severidade (S)</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Probabilidade (P)</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Resultado (Nível de Risco)</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Classificação / Ação Recomendada</th>
-</tr></thead>
-<tbody>
-  <tr>
-    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Leve / Reversível</strong> — desconfortos temporários, sem impacto funcional</td>
-    <td style="border: 1px solid #ddd; padding: 8px;">Baixa probabilidade — exposição eventual ou sob controle</td>
-    <td style="border: 1px solid #ddd; padding: 8px; background: #C8E6C9; font-weight: bold;">Baixo (Aceitável)</td>
-    <td style="border: 1px solid #ddd; padding: 8px;">Manter as condições atuais, reforçando boas práticas e pausas.</td>
-  </tr>
-  <tr>
-    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Moderada / Desconforto persistente</strong> — sintomas repetitivos ou leves</td>
-    <td style="border: 1px solid #ddd; padding: 8px;">Média probabilidade — exposição frequente, posturas mantidas</td>
-    <td style="border: 1px solid #ddd; padding: 8px; background: #FFF9C4; font-weight: bold;">Médio (Tolerável)</td>
-    <td style="border: 1px solid #ddd; padding: 8px;">Promover ajustes ergonômicos, pausas regulares e orientação postural.</td>
-  </tr>
-  <tr>
-    <td style="border: 1px solid #ddd; padding: 8px;"><strong>Grave / Potencial de LER/DORT</strong> — dor crônica, limitação de movimento ou necessidade de afastamento</td>
-    <td style="border: 1px solid #ddd; padding: 8px;">Alta probabilidade — exposição contínua, sem pausas ou ajustes</td>
-    <td style="border: 1px solid #ddd; padding: 8px; background: #FFCDD2; font-weight: bold;">Alto (Crítico)</td>
-    <td style="border: 1px solid #ddd; padding: 8px;">Implementar medidas corretivas imediatas no posto de trabalho.</td>
-  </tr>
-</tbody></table>
-<p><em>Critério de interpretação: quanto maior a severidade e a probabilidade combinadas, mais urgente é a necessidade de intervenção.</em></p>
-
-${risks.length > 0 ? `
-<h3>Riscos Identificados</h3>
-<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;">
-  <th style="border: 1px solid #ddd; padding: 8px;">GHE/Posto</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Risco Identificado</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">P × E × C</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Score</th>
-  <th style="border: 1px solid #ddd; padding: 8px;">Nível</th>
-</tr></thead>
-<tbody>
-${risks.map((r, i) => {
-  const analysis = analyses.find(a => a.id === r.analysis_id);
-  const ws = analysis ? workstations.find(w => w.id === analysis.workstation_id) : null;
-  return '<tr>' +
-    '<td style="border: 1px solid #ddd; padding: 8px;">' + (ws?.name || 'GHE ' + (i + 1)) + '</td>' +
-    '<td style="border: 1px solid #ddd; padding: 8px;">' + r.description + '</td>' +
-    '<td style="border: 1px solid #ddd; padding: 8px;">' + r.probability + ' × ' + r.exposure + ' × ' + r.consequence + '</td>' +
-    '<td style="border: 1px solid #ddd; padding: 8px;"><strong>' + r.risk_score + '</strong></td>' +
-    '<td style="border: 1px solid #ddd; padding: 8px;"><strong>' + riskLevelLabel(r.risk_level) + '</strong></td>' +
-    '</tr>';
-}).join("")}
-</tbody></table>` : ""}
-<hr>
-
-<h2>10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</h2>
-<h3>10.1 Análise Complementar dos Riscos Psicossociais</h3>
-${psychosocial.length > 0 ? '<p>A validação dos resultados psicossociais foi realizada por meio da aplicação dos seguintes instrumentos: ' + (psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II (Copenhagen Psychosocial Questionnaire)</strong>, ' : '') + (psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : '') + (psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : '') + ' aplicados junto aos colaboradores da <strong>' + (company.trade_name || company.name) + '</strong>.</p>' + psychosocial.map(psa => {
-  let html = '<h4>Avaliação Psicossocial' + (psa.workstation_id ? ' — ' + (workstations.find(w => w.id === psa.workstation_id)?.name || "") : "") + '</h4>';
-  html += '<p><strong>Avaliador:</strong> ' + psa.evaluator_name + '</p>';
-  if (psa.nasa_tlx_details) {
-    html += '<h4>NASA-TLX (Índice de Carga de Trabalho)</h4><table style="width:100%; border-collapse: collapse;"><thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (0-100)</th></tr></thead><tbody>';
-    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Mental</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.mental_demand + '</td></tr>';
-    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Física</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.physical_demand + '</td></tr>';
-    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demanda Temporal</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.temporal_demand + '</td></tr>';
-    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Performance</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.performance + '</td></tr>';
-    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Esforço</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.effort + '</td></tr>';
-    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Frustração</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.nasa_tlx_details.frustration + '</td></tr>';
-    html += '<tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">' + psa.nasa_tlx_score + '</td></tr>';
-    html += '</tbody></table>';
-  }
-  if (psa.copenhagen_details) {
-    html += '<h4>COPSOQ II</h4><table style="width:100%; border-collapse: collapse;"><thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Dimensão</th><th style="border: 1px solid #ddd; padding: 8px;">Score (0-100)</th></tr></thead><tbody>';
-    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Demandas Quantitativas</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.copenhagen_details.quantitative_demands + '</td></tr>';
-    html += '<tr><td style="border: 1px solid #ddd; padding: 8px;">Ritmo de Trabalho</td><td style="border: 1px solid #ddd; padding: 8px;">' + psa.copenhagen_details.work_pace + '</td></tr>';
-    html += '<tr style="background: #f1f5f9;"><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Score Geral</td><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">' + psa.copenhagen_score + '</td></tr>';
-    html += '</tbody></table>';
-  }
-  html += '<p><strong>Observações:</strong> ' + psa.observations + '</p>';
-  return html;
-}).join("<hr>") : '<p>Nenhuma avaliação psicossocial realizada. Recomenda-se a aplicação dos questionários NASA-TLX, HSE-IT e Copenhagen Psychosocial Questionnaire (COPSOQ II) para uma avaliação completa dos fatores psicossociais do trabalho.</p>'}
-<hr>
-
-<h2>11. RESPONSABILIDADE TÉCNICA</h2>
-<p>O presente documento foi elaborado sob a responsabilidade técnica da MG CONSULT.</p>
-<p>Sendo de responsabilidade da empresa, programar, monitorar e assegurar o cumprimento desta Análise Ergonômica.</p>
-<p>${company.city}, ${getToday()}.</p>
-<div style="text-align: center; margin-top: 60px;">
-  <p>_____________________________________________</p>
-  <p><strong>${consultant}</strong></p>
-  <p>M.Sc Eng. de Produção (Ergonomia)</p>
-  <p>Eng. de Segurança do Trabalho</p>
-  <p>Especialista em Ergonomia</p>
-</div>
-<div style="page-break-after: always;"></div>
-
-<h2>12. ANEXOS</h2>
-<ul style="font-size: 14px; line-height: 2;">
-  <li>Análise Ergonômica dos Postos (AEP)</li>
-  <li>Ferramentas Aplicadas</li>
-  <li>Relatório Técnico Fatores Psicossociais</li>
-  <li>Plano de Ação</li>
-</ul>
-
-${actions.length > 0 ? '<h3>Plano de Ação</h3><table style="width:100%; border-collapse: collapse;"><thead><tr style="background: #0A1F44; color: white;"><th style="border: 1px solid #ddd; padding: 8px;">Ação Corretiva</th><th style="border: 1px solid #ddd; padding: 8px;">Responsável</th><th style="border: 1px solid #ddd; padding: 8px;">Prazo</th><th style="border: 1px solid #ddd; padding: 8px;">Status</th></tr></thead><tbody>' + actions.map(ap => '<tr><td style="border: 1px solid #ddd; padding: 8px;">' + ap.description + '</td><td style="border: 1px solid #ddd; padding: 8px;">' + ap.responsible + '</td><td style="border: 1px solid #ddd; padding: 8px;">' + ap.deadline + '</td><td style="border: 1px solid #ddd; padding: 8px;">' + statusLabel(ap.status) + '</td></tr>').join("") + '</tbody></table>' : ''}
-
-<br>
-<p style="text-align:center; font-size: 11px; color: #94a3b8;"><em>Documento gerado pelo sistema Focus Spartan — MG Consultoria</em></p>
-`;
-}
-
-function generatePGRReport(ctx: ReportContext): string {
-  const { company, workstations, analyses, photos } = ctx;
-  const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
-  const analysisIds = analyses.map(a => a.id);
-  const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
-  const actions = mockActionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
-  const tasks = mockTasks.filter(t => workstations.some(w => w.id === t.workstation_id));
-
-  // Group workstations by sector
+  const sectors = [...new Set(workstations.map(w => w.sector?.name || "Geral"))];
   const sectorMap = new Map<string, { sectorName: string; workstations: typeof workstations }>();
   workstations.forEach(ws => {
     const sectorId = ws.sector?.id || ws.sector_id || "unknown";
@@ -388,602 +146,461 @@ function generatePGRReport(ctx: ReportContext): string {
     if (!sectorMap.has(sectorId)) sectorMap.set(sectorId, { sectorName, workstations: [] });
     sectorMap.get(sectorId)!.workstations.push(ws);
   });
+  return { consultant, risks, actions, tasks, psychosocial, sectors, sectorMap };
+}
 
-  const today = getToday();
-  const td = `style="border: 1px solid #D1D5DB; padding: 8px; font-size: 13px;"`;
-  const th = `style="border: 1px solid #D1D5DB; padding: 8px; font-size: 13px; background: #f1f5f9; font-weight: bold;"`;
-
+function gheTable(workstations: Workstation[], ctx: ReportContext) {
   return `
-<!-- CAPA -->
-<div style="text-align:center; padding: 80px 40px; border: 2px solid #1e293b;">
-  <h1 style="font-size: 28px; margin-bottom: 8px; color: #1e293b;">PROGRAMA DE GERENCIAMENTO DE RISCOS</h1>
-  <h2 style="font-size: 20px; color: #475569; margin-bottom: 40px;">PGR</h2>
-  <p style="font-size: 24px; font-weight: bold; color: #1e293b;">${company.name}</p>
-  <p style="font-size: 14px; color: #64748b;">CNPJ: ${company.cnpj}</p>
-  <p style="font-size: 14px; color: #64748b;">${company.address} — ${company.city}/${company.state}</p>
-  <p style="font-size: 14px; color: #64748b; margin-top: 40px;">Emissão: ${today}</p>
-  <p style="font-size: 14px; color: #64748b;">Revisão: 00</p>
-  <p style="font-size: 14px; color: #475569; margin-top: 40px;"><strong>Responsável Técnico:</strong> ${consultant}</p>
-  <p style="font-size: 11px; color: #94a3b8; margin-top: 20px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
-</div>
-<div style="page-break-after: always;"></div>
+<table class="rpt-table">
+  <tr><th>GHE</th><th>Setor / Atividade</th><th>Descrição das Atividades</th></tr>
+  ${workstations.map((ws, i) => {
+    const sector = ctx.sector || ws.sector || { name: "Geral" };
+    return `<tr>
+      <td>GHE ${String(i + 1).padStart(2, '0')} — ${ws.name}</td>
+      <td>${(sector as any)?.name || "—"}</td>
+      <td>${ws.activity_description || ws.description || ws.tasks_performed}</td>
+    </tr>`;
+  }).join("")}
+</table>`;
+}
 
-<!-- SUMÁRIO -->
-<h2>SUMÁRIO</h2>
-<ol style="font-size: 14px; line-height: 2.2;">
-  <li>Definições e Abreviaturas</li>
-  <li>Referências</li>
-  <li>Identificação da Empresa</li>
-  <li>Responsabilidade Técnica</li>
-  <li>Aprovação, Distribuição e Implementação</li>
-  <li>Introdução</li>
-  <li>Objetivos</li>
-  <li>Campo de Aplicação</li>
-  <li>Metodologia Utilizada</li>
-  <li>Inventário de Risco</li>
-  <li>Implementação das Medidas de Prevenção</li>
-  <li>EPC — Equipamento de Proteção Coletiva</li>
-  <li>EPI — Equipamento de Proteção Individual</li>
-  <li>Responsabilidades</li>
-  <li>Meta e Objetivos</li>
-  <li>Referências Bibliográficas</li>
-</ol>
-<div style="page-break-after: always;"></div>
-
-<!-- CONTROLE DE REVISÕES -->
-<h2>CONTROLE DE REVISÕES</h2>
-<table style="width:100%; border-collapse: collapse;">
-  <thead><tr><th ${th}>Revisão</th><th ${th}>Data</th><th ${th}>Página</th><th ${th}>Descrição das Alterações</th></tr></thead>
-  <tbody>
-    <tr><td ${td}>00</td><td ${td}>${today}</td><td ${td}>TODAS</td><td ${td}>PRIMEIRA APLICAÇÃO</td></tr>
-  </tbody>
+function riskMatrix() {
+  return `
+<div class="rpt-section3">Matriz de Avaliação de Riscos (P × G)</div>
+<table class="rpt-table" style="text-align:center;">
+  <tr><th>P \\ G</th><th>1 — Baixo</th><th>2 — Moderado</th><th>3 — Alto</th><th>4 — Excessivo</th></tr>
+  <tr><td class="label">1 — Baixo</td><td style="background:#C8E6C9;">Irrelevante</td><td style="background:#C8E6C9;">Baixo</td><td style="background:#FFF9C4;">Baixo</td><td style="background:#FFF9C4;">Médio</td></tr>
+  <tr><td class="label">2 — Moderado</td><td style="background:#C8E6C9;">Baixo</td><td style="background:#FFF9C4;">Baixo</td><td style="background:#FFF9C4;">Médio</td><td style="background:#FFE0B2;">Alto</td></tr>
+  <tr><td class="label">3 — Alto</td><td style="background:#FFF9C4;">Baixo</td><td style="background:#FFF9C4;">Médio</td><td style="background:#FFE0B2;">Alto</td><td style="background:#FFE0B2;">Alto</td></tr>
+  <tr><td class="label">4 — Excessivo</td><td style="background:#FFF9C4;">Médio</td><td style="background:#FFE0B2;">Alto</td><td style="background:#FFE0B2;">Alto</td><td style="background:#FFCDD2;">Crítico</td></tr>
 </table>
-<div style="page-break-after: always;"></div>
+<p style="font-size:10px; color:#64748b;">Fonte: Matriz elaborada a partir de MULHAUSEN & DAMIANO (1998) e BS 8800 (BSI, 1996).</p>`;
+}
 
-<!-- 1. DEFINIÇÕES E ABREVIATURAS -->
-<h2>1. DEFINIÇÕES E ABREVIATURAS</h2>
-<table style="width:100%; border-collapse: collapse;">
-  <thead><tr><th ${th}>Termo</th><th ${th}>Definição</th></tr></thead>
-  <tbody>
-    <tr><td ${td}><strong>ART</strong></td><td ${td}>Anotação de Responsabilidade Técnica</td></tr>
-    <tr><td ${td}><strong>CIPA</strong></td><td ${td}>Comissão Interna de Prevenção de Acidentes</td></tr>
-    <tr><td ${td}><strong>CLT</strong></td><td ${td}>Consolidação das Leis do Trabalho</td></tr>
-    <tr><td ${td}><strong>CNAE</strong></td><td ${td}>Classificação Nacional de Atividade Econômica</td></tr>
-    <tr><td ${td}><strong>EPC</strong></td><td ${td}>Equipamento de Proteção Coletiva</td></tr>
-    <tr><td ${td}><strong>EPI</strong></td><td ${td}>Equipamento de Proteção Individual</td></tr>
-    <tr><td ${td}><strong>GHE</strong></td><td ${td}>Grupos Homogêneos de Exposição — Perfis de exposição similares para agrupamento de colaboradores</td></tr>
-    <tr><td ${td}><strong>NHO</strong></td><td ${td}>Norma de Higiene Ocupacional</td></tr>
-    <tr><td ${td}><strong>NR</strong></td><td ${td}>Norma Regulamentadora</td></tr>
-    <tr><td ${td}><strong>PCMSO</strong></td><td ${td}>Programa de Controle Médico de Saúde Ocupacional</td></tr>
-    <tr><td ${td}><strong>PGR</strong></td><td ${td}>Programa de Gerenciamento de Riscos</td></tr>
-    <tr><td ${td}><strong>SESMT</strong></td><td ${td}>Serviços Especializados em Engenharia de Segurança e em Medicina do Trabalho</td></tr>
-    <tr><td ${td}><strong>Risco Ocupacional</strong></td><td ${td}>Combinação da probabilidade de ocorrer lesão ou agravo à saúde causada por um evento perigoso e da severidade dessa lesão</td></tr>
-    <tr><td ${td}><strong>Perigo</strong></td><td ${td}>Fonte com o potencial de causar lesões ou agravos à saúde</td></tr>
-    <tr><td ${td}><strong>Limite de Tolerância</strong></td><td ${td}>Concentração ou intensidade máxima ou mínima que poderá causar dano à saúde do trabalhador durante sua vida laboral</td></tr>
-  </tbody>
+function equipmentTable() {
+  return `
+<div class="rpt-section3">Equipamentos Utilizados para Medição</div>
+<table class="rpt-table">
+  <tr><th>Agente</th><th>Instrumento</th><th>Método</th></tr>
+  <tr><td class="label">Calor</td><td>Medidor de Stress Térmico (IBUTG)</td><td>NR-15, Portaria 3214/78 / NHO-06</td></tr>
+  <tr><td class="label">Ruído</td><td>Decibelímetro / Dosímetro</td><td>NHO-01 FUNDACENTRO / NR-15 Anexo I</td></tr>
+  <tr><td class="label">Iluminação</td><td>Luxímetro</td><td>NHO-11</td></tr>
+  <tr><td class="label">Agentes Químicos</td><td>Bomba de amostragem gravimétrica</td><td>NHO-08 / NIOSH / ACGIH</td></tr>
+  <tr><td class="label">Vibração</td><td>Acelerômetro triaxial</td><td>NHO-09 / NHO-10</td></tr>
+</table>`;
+}
+
+// ==================== AET ====================
+function generateAETReport(ctx: ReportContext): string {
+  const { company, sector, workstation, workstations, analyses, photos } = ctx;
+  const { consultant, risks, actions, tasks, psychosocial } = getCtxData(ctx);
+  const methods = [...new Set(analyses.map(a => a.method))].join(", ") || "N/A";
+  const sectorName = sector?.name || "Geral";
+  const wsName = workstation?.name || workstations.map(w => w.name).join(", ");
+
+  return `${sharedStyles()}
+${coverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant)}
+
+<div class="rpt-section">ÍNDICE</div>
+<table class="rpt-table">
+  <tr><td>1. Introdução</td><td style="text-align:right;">3</td></tr>
+  <tr><td>2. Dados da Empresa</td><td style="text-align:right;">4</td></tr>
+  <tr><td>3. Objetivos</td><td style="text-align:right;">5</td></tr>
+  <tr><td>4. Referências Normativas</td><td style="text-align:right;">5</td></tr>
+  <tr><td>5. Análise da Demanda e do Funcionamento da Organização</td><td style="text-align:right;">6</td></tr>
+  <tr><td>6. Referencial Teórico</td><td style="text-align:right;">7</td></tr>
+  <tr><td>7. Estudo Ergonômico do Trabalho</td><td style="text-align:right;">9</td></tr>
+  <tr><td>8. Definição de Métodos, Técnicas e Ferramentas</td><td style="text-align:right;">10</td></tr>
+  <tr><td>9. Agrupamento por GHE e Matriz de Avaliação Ergonômica</td><td style="text-align:right;">12</td></tr>
+  <tr><td>10. Análise dos Riscos Psicossociais</td><td style="text-align:right;">14</td></tr>
+  <tr><td>11. Responsabilidade Técnica</td><td style="text-align:right;">15</td></tr>
+  <tr><td>12. Anexos</td><td style="text-align:right;">16</td></tr>
 </table>
-<hr>
+<div class="page-break"></div>
 
-<!-- 2. REFERÊNCIAS -->
-<h2>2. REFERÊNCIAS</h2>
-<ul style="font-size: 13px; line-height: 1.8;">
-  <li>NR 1 — Disposições Gerais e Gerenciamento de Riscos Ocupacionais</li>
-  <li>NR 4 — Serviços Especializados em Engenharia de Segurança e em Medicina do Trabalho</li>
-  <li>NR 5 — Comissão Interna de Prevenção de Acidentes — CIPA</li>
-  <li>NR 6 — Equipamentos de Proteção Individual — EPI</li>
-  <li>NR 7 — Programa de Controle Médico de Saúde Ocupacional — PCMSO</li>
-  <li>NR 9 — Avaliação e Controle das Exposições Ocupacionais a Agentes Físicos, Químicos e Biológicos</li>
-  <li>NR 10 — Segurança em Instalações e Serviços em Eletricidade</li>
-  <li>NR 11 — Transporte, Movimentação, Armazenagem e Manuseio de Materiais</li>
-  <li>NR 12 — Segurança no Trabalho em Máquinas e Equipamentos</li>
-  <li>NR 15 — Atividades e Operações Insalubres</li>
-  <li>NR 16 — Atividades e Operações Perigosas</li>
-  <li>NR 17 — Ergonomia</li>
-  <li>NR 23 — Proteção contra Incêndios</li>
-  <li>NR 24 — Condições Sanitárias e de Conforto nos Locais de Trabalho</li>
-  <li>NR 26 — Sinalização de Segurança</li>
-  <li>NR 35 — Trabalho em Altura</li>
-</ul>
-<hr>
+<div class="rpt-section">1. INTRODUÇÃO</div>
+<p>Na busca por elevar a produtividade, a qualidade, a segurança e o conforto durante a execução das atividades — sejam elas rotineiras ou mais complexas — a ergonomia tem ganhado cada vez mais espaço dentro das organizações. Seu uso tornou-se essencial para reduzir falhas e otimizar processos nos setores produtivos, administrativos e, sobretudo, nos aspectos que envolvem comportamento e interação humana.</p>
+<p>A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa.</p>
+<p>Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17, com o objetivo de subsidiar a elaboração da Análise Ergonômica do Trabalho.</p>
 
-<!-- 3. IDENTIFICAÇÃO DA EMPRESA -->
-<h2>3. IDENTIFICAÇÃO DA EMPRESA</h2>
-<table style="width:100%; border-collapse: collapse;">
-  <tr><td ${th} style="width:200px;">Razão Social</td><td ${td}>${company.name}</td></tr>
-  <tr><td ${th}>CNPJ</td><td ${td}>${company.cnpj}</td></tr>
-  <tr><td ${th}>Endereço</td><td ${td}>${company.address}</td></tr>
-  <tr><td ${th}>Município / UF</td><td ${td}>${company.city} / ${company.state}</td></tr>
-  <tr><td ${th}>Descrição da Atividade</td><td ${td}>${company.description}</td></tr>
-</table>
-<hr>
+<div class="rpt-section">2. DADOS DA EMPRESA</div>
+${companyDataTable(company)}
 
-<!-- 4. RESPONSABILIDADE TÉCNICA -->
-<h2>4. RESPONSABILIDADE TÉCNICA</h2>
-<p>Profissional legalmente habilitado e responsável pela elaboração deste programa.</p>
-<table style="width:100%; border-collapse: collapse;">
-  <tr><td ${th} style="width:200px;">Responsável Técnico</td><td ${td}>${consultant}</td></tr>
-  <tr><td ${th}>Título Profissional</td><td ${td}>Engenheiro de Segurança do Trabalho</td></tr>
-  <tr><td ${th}>Registro</td><td ${td}>CREA/CONFEA: XXXXX</td></tr>
-  <tr><td ${th}>Período de Avaliação</td><td ${td}>${today}</td></tr>
-</table>
-<hr>
-
-<!-- 5. APROVAÇÃO, DISTRIBUIÇÃO E IMPLEMENTAÇÃO -->
-<h2>5. APROVAÇÃO, DISTRIBUIÇÃO E IMPLEMENTAÇÃO</h2>
-<p>Ao aprovar o Programa de Gerenciamento de Riscos, no qual todas as informações estão dentro dos parâmetros legais das normas vigentes, a empresa, através de seu representante legal, compromete-se a cumprir rigorosamente o que nele consta, sua efetiva implementação, bem como zelar pela sua eficácia.</p>
-<table style="width:100%; border-collapse: collapse;">
-  <thead><tr><th ${th}>Função</th><th ${th}>Nome</th><th ${th}>Assinatura</th></tr></thead>
-  <tbody>
-    <tr><td ${td}>Responsável Técnico</td><td ${td}>${consultant}</td><td ${td}></td></tr>
-    <tr><td ${td}>Representante Legal</td><td ${td}></td><td ${td}></td></tr>
-  </tbody>
-</table>
-<hr>
-
-<!-- 6. INTRODUÇÃO -->
-<h2>6. INTRODUÇÃO</h2>
-<p>A elaboração deste Programa de Gerenciamento de Riscos tem como propósito um estudo das condições ambientais atuais existentes nesta empresa, a fim de identificar os agentes de riscos e caracterizar as atividades e operações desenvolvidas pela empresa. Tal programa está direcionado no reconhecimento e avaliação dos fatores ambientais ou de locais de trabalho que possam causar prejuízos à saúde e ao bem-estar dos colaboradores.</p>
-<p>Sempre que houver modificação nas condições de trabalho, o levantamento deverá ser refeito, pois as medidas propostas para melhorar as condições de trabalho podem ser alteradas.</p>
-<hr>
-
-<!-- 7. OBJETIVOS -->
-<h2>7. OBJETIVOS</h2>
-<h3>7.1 Objetivo Geral</h3>
-<p>Preservar a saúde e a integridade dos trabalhadores através da antecipação, reconhecimento, avaliação e consequente controle da ocorrência de riscos ambientais existentes ou que venham a existir nos locais de trabalho.</p>
-<p>O PGR é parte integrante do conjunto mais amplo de iniciativas da empresa no campo da prevenção de acidentes e doenças do trabalho, devendo estar articulado com o disposto nas demais NR, membros da CIPA, PCMSO e demais programas de segurança.</p>
-
-<h3>7.2 Objetivos Específicos</h3>
+<div class="rpt-section">3. OBJETIVOS</div>
 <ul>
-  <li>Seguir a política da empresa relacionada à saúde e segurança dos colaboradores;</li>
+  <li>Realizar a Análise Ergonômica do Trabalho (AET) conforme as diretrizes da NR-17;</li>
+  <li>Identificar e avaliar os riscos ergonômicos nos postos de trabalho analisados;</li>
+  <li>Classificar os riscos utilizando métodos ergonômicos validados internacionalmente;</li>
+  <li>Propor recomendações de melhoria baseadas em evidências científicas;</li>
+  <li>Contribuir para a melhoria contínua das condições de trabalho na organização.</li>
+</ul>
+
+<div class="rpt-section">4. REFERÊNCIAS NORMATIVAS</div>
+<table class="rpt-table">
+  <tr><th>Norma</th><th>Descrição</th></tr>
+  <tr><td class="label">NR-17</td><td>Ergonomia — Parâmetros de adaptação das condições de trabalho</td></tr>
+  <tr><td class="label">NR-01</td><td>Disposições Gerais e Gerenciamento de Riscos Ocupacionais (PGR)</td></tr>
+  <tr><td class="label">ISO 11228</td><td>Ergonomia — Movimentação manual de cargas</td></tr>
+  <tr><td class="label">ISO 11226</td><td>Ergonomia — Avaliação de posturas de trabalho estáticas</td></tr>
+  <tr><td class="label">CLT Art. 157-158</td><td>Obrigações do empregador e empregados quanto à segurança</td></tr>
+</table>
+
+<div class="rpt-section">5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO</div>
+<p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description.toLowerCase() || "atividades comerciais/industriais"}. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
+${workstations.map(ws => {
+  const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
+  return `<div class="rpt-section3">Posto: ${ws.name}</div>
+<p><strong>Descrição da atividade:</strong> ${ws.activity_description || ws.description}</p>
+<p><strong>Tarefas executadas:</strong></p>
+<ul>${wsTasks.map(t => `<li>${t.description}</li>`).join("") || `<li>${ws.tasks_performed || "Atividades gerais do posto"}</li>`}</ul>`;
+}).join("")}
+
+<div class="rpt-section">6. REFERENCIAL TEÓRICO</div>
+<p>A Ergonomia, segundo a International Ergonomics Association (IEA), é a disciplina científica que trata da compreensão das interações entre seres humanos e outros elementos de um sistema, aplicando teorias, princípios, dados e métodos para otimizar o bem-estar humano e o desempenho global do sistema.</p>
+<ul>
+  <li><strong>Ergonomia Física:</strong> Características anatômicas, antropométricas, fisiológicas e biomecânicas</li>
+  <li><strong>Ergonomia Cognitiva:</strong> Processos mentais como percepção, memória, raciocínio e resposta motora</li>
+  <li><strong>Ergonomia Organizacional:</strong> Otimização de sistemas sociotécnicos, estruturas organizacionais e processos</li>
+</ul>
+
+<div class="rpt-section">7. ESTUDO ERGONÔMICO DO TRABALHO</div>
+<p>A realização do Estudo Ergonômico do Trabalho é indispensável não apenas pelo cumprimento da NR17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral. O presente trabalho foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT.</p>
+
+${photos.length > 0 ? `<div class="rpt-section3">Registro Postural</div>
+<p>Foram registradas <strong>${photos.length}</strong> posturas de trabalho:</p>
+<table class="rpt-table">
+  <tr><th>Postura</th><th>Descrição</th><th>Data</th></tr>
+  ${photos.map(p => `<tr><td><strong>${p.posture_type}</strong></td><td>${p.notes}</td><td>${p.created_at}</td></tr>`).join("")}
+</table>` : ""}
+
+${analyses.length > 0 ? `<div class="rpt-section3">Análises Ergonômicas</div>
+<p>Métodos utilizados: <strong>${methods}</strong></p>
+${analyses.map(a => {
+  const ws = workstations.find(w => w.id === a.workstation_id);
+  const risk = risks.find(r => r.analysis_id === a.id);
+  return `<table class="rpt-table"><tr><td class="label" colspan="2">${ws?.name || "—"}</td></tr>
+    <tr><td class="label" style="width:200px;">Método</td><td>${a.method}</td></tr>
+    <tr><td class="label">Score</td><td>${a.score}</td></tr>
+    <tr><td class="label">Nível de Risco</td><td>${risk ? riskLevelLabel(risk.risk_level) : "N/A"}</td></tr>
+    <tr><td class="label">Observações</td><td>${a.notes}</td></tr></table>`;
+}).join("")}` : "<p>Nenhuma análise realizada.</p>"}
+
+<div class="rpt-section">8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS</div>
+<p><strong>REBA</strong> — Rapid Entire Body Assessment: Estima o risco de distúrbios musculoesqueléticos. Classificação: 1-3 Baixo | 4-7 Médio | 8-10 Alto | 11+ Muito Alto.</p>
+<p><strong>RULA</strong> — Rapid Upper Limb Assessment: Avalia exposição dos membros superiores. Classificação: 1-2 Aceitável | 3-4 Investigar | 5-6 Mudar breve | 7 Mudar imediatamente.</p>
+<p><strong>OCRA</strong> — Occupational Repetitive Actions: Avaliação de movimentos repetitivos dos membros superiores.</p>
+<p><strong>ROSA</strong> — Rapid Office Strain Assessment: Riscos musculoesqueléticos em postos administrativos. Classificação: 1-2 Desprezível | 3-4 Baixo | 5-6 Médio | 7+ Alto.</p>
+<p><strong>OWAS</strong> — Ovako Working Posture Analysing System: Classificação postural. 1: Normal | 2: Leve | 3: Severo | 4: Muito severo.</p>
+${equipmentTable()}
+
+<div class="rpt-section">9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA</div>
+<p>A empresa <strong>${company.trade_name || company.name}</strong> tem seus trabalhadores classificados em Grupos Homogêneos de Exposição (GHE), conforme metodologia do PGR.</p>
+${gheTable(workstations, ctx)}
+${riskMatrix()}
+
+${risks.length > 0 ? `<div class="rpt-section3">Riscos Identificados</div>
+<table class="rpt-table">
+  <tr><th>GHE/Posto</th><th>Risco</th><th>P × E × C</th><th>Score</th><th>Nível</th></tr>
+  ${risks.map((r, i) => {
+    const analysis = analyses.find(a => a.id === r.analysis_id);
+    const ws = analysis ? workstations.find(w => w.id === analysis.workstation_id) : null;
+    return `<tr><td>${ws?.name || 'GHE ' + (i + 1)}</td><td>${r.description}</td><td>${r.probability}×${r.exposure}×${r.consequence}</td><td><strong>${r.risk_score}</strong></td><td><strong>${riskLevelLabel(r.risk_level)}</strong></td></tr>`;
+  }).join("")}
+</table>` : ""}
+
+<div class="rpt-section">10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</div>
+${psychosocial.length > 0 ? `<p>Instrumentos aplicados: ${psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II</strong>, ' : ''}${psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : ''}${psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : ''}</p>
+${psychosocial.map(psa => {
+  let html = '';
+  if (psa.copenhagen_details) {
+    const cd = psa.copenhagen_details;
+    html += `<table class="rpt-table"><tr><th class="teal">Dimensão COPSOQ II</th><th class="teal">Score (0-100)</th></tr>
+      ${([ ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support] ] as [string, number][]).map(([d, v]) => `<tr><td>${d}</td><td><strong>${v}</strong></td></tr>`).join("")}
+      <tr><td class="label">Score Geral</td><td><strong>${psa.copenhagen_score}</strong></td></tr></table>`;
+  }
+  if (psa.nasa_tlx_details) {
+    html += `<table class="rpt-table"><tr><th class="alt">NASA-TLX</th><th class="alt">Score</th></tr>
+      <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
+      <tr><td>Demanda Física</td><td>${psa.nasa_tlx_details.physical_demand}</td></tr>
+      <tr><td>Demanda Temporal</td><td>${psa.nasa_tlx_details.temporal_demand}</td></tr>
+      <tr><td>Performance</td><td>${psa.nasa_tlx_details.performance}</td></tr>
+      <tr><td>Esforço</td><td>${psa.nasa_tlx_details.effort}</td></tr>
+      <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
+      <tr><td class="label">Score Geral</td><td><strong>${psa.nasa_tlx_score}</strong></td></tr></table>`;
+  }
+  return html;
+}).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial realizada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX e HSE-IT.</div>'}
+
+<div class="rpt-section">11. RESPONSABILIDADE TÉCNICA</div>
+<p>O presente documento foi elaborado sob a responsabilidade técnica da MG CONSULT.</p>
+<p>${company.city}, ${getToday()}.</p>
+${signatureBlock(consultant, "M.Sc Eng. de Produção (Ergonomia) / Eng. de Segurança do Trabalho")}
+
+<div class="page-break"></div>
+<div class="rpt-section">12. ANEXOS</div>
+<ul style="font-size:14px; line-height:2;">
+  <li>Análise Ergonômica dos Postos (AEP)</li>
+  <li>Ferramentas Aplicadas</li>
+  <li>Relatório Técnico Fatores Psicossociais</li>
+  <li>Plano de Ação</li>
+</ul>
+${actions.length > 0 ? `<table class="rpt-table"><tr><th>Ação Corretiva</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr>${actions.map(ap => `<tr><td>${ap.description}</td><td>${ap.responsible}</td><td>${ap.deadline}</td><td>${statusLabel(ap.status)}</td></tr>`).join("")}</table>` : ''}
+${footer()}`;
+}
+
+// ==================== PGR ====================
+function generatePGRReport(ctx: ReportContext): string {
+  const { company, workstations, analyses } = ctx;
+  const { consultant, risks, actions, tasks, sectorMap } = getCtxData(ctx);
+
+  return `${sharedStyles()}
+${coverPage("PROGRAMA DE GERENCIAMENTO DE RISCOS", "PGR", company, consultant)}
+
+${revisionTable()}
+
+<div class="rpt-section">1. DEFINIÇÕES E ABREVIATURAS</div>
+<table class="rpt-table">
+  <tr><th>Termo</th><th>Definição</th></tr>
+  <tr><td class="label">GHE</td><td>Grupo Homogêneo de Exposição</td></tr>
+  <tr><td class="label">GRO</td><td>Gerenciamento de Riscos Ocupacionais</td></tr>
+  <tr><td class="label">PGR</td><td>Programa de Gerenciamento de Riscos</td></tr>
+  <tr><td class="label">EPC</td><td>Equipamento de Proteção Coletiva</td></tr>
+  <tr><td class="label">EPI</td><td>Equipamento de Proteção Individual</td></tr>
+  <tr><td class="label">SESMT</td><td>Serviço Especializado em Segurança e Medicina do Trabalho</td></tr>
+  <tr><td class="label">CIPA</td><td>Comissão Interna de Prevenção de Acidentes</td></tr>
+</table>
+
+<div class="rpt-section">2. REFERÊNCIAS</div>
+<ul>
+  <li>NR-01 — Disposições Gerais e Gerenciamento de Riscos Ocupacionais</li>
+  <li>NR-09 — Avaliação e Controle das Exposições Ocupacionais</li>
+  <li>NR-15 — Atividades e Operações Insalubres</li>
+  <li>NR-17 — Ergonomia</li>
+  <li>ABNT NBR ISO 31000:2009 — Gestão de Riscos</li>
+  <li>FUNDACENTRO — NHO 01, NHO 06, NHO 11</li>
+</ul>
+
+<div class="rpt-section">3. IDENTIFICAÇÃO DA EMPRESA</div>
+${companyDataTable(company)}
+
+<div class="rpt-section">4. RESPONSABILIDADE TÉCNICA</div>
+<table class="rpt-table">
+  <tr><td class="label">Responsável Técnico</td><td>${consultant}</td></tr>
+  <tr><td class="label">Título Profissional</td><td>Engenheiro de Segurança do Trabalho</td></tr>
+  <tr><td class="label">Registro</td><td>CREA/CONFEA: XXXXX</td></tr>
+  <tr><td class="label">Período de Avaliação</td><td>${getToday()}</td></tr>
+</table>
+
+<div class="rpt-section">5. APROVAÇÃO, DISTRIBUIÇÃO E IMPLEMENTAÇÃO</div>
+<p>Ao aprovar o PGR, a empresa compromete-se a cumprir rigorosamente o que nele consta, sua efetiva implementação, bem como zelar pela sua eficácia.</p>
+
+<div class="rpt-section">6. INTRODUÇÃO</div>
+<p>A elaboração deste Programa de Gerenciamento de Riscos tem como propósito um estudo das condições ambientais atuais existentes nesta empresa, a fim de identificar os agentes de riscos e caracterizar as atividades e operações desenvolvidas.</p>
+
+<div class="rpt-section">7. OBJETIVOS</div>
+<div class="rpt-section3">7.1 Objetivo Geral</div>
+<p>Preservar a saúde e a integridade dos trabalhadores através da antecipação, reconhecimento, avaliação e controle dos riscos ambientais.</p>
+<div class="rpt-section3">7.2 Objetivos Específicos</div>
+<ul>
+  <li>Seguir a política da empresa relacionada à saúde e segurança;</li>
   <li>Proteção do meio ambiente e dos recursos naturais;</li>
   <li>Tratar os riscos ambientais existentes ou que venham a existir;</li>
   <li>Planejar ações para preservar a saúde e a segurança dos trabalhadores.</li>
 </ul>
 
-<h3>7.3 Antecipação</h3>
-<p>Consiste na análise dos setores de trabalho, funções e horários de trabalho, formação dos grupos homogêneos de exposição, análise das descrições das atividades por função, verificação do ambiente de trabalho, visando identificar os riscos potenciais e introduzir medidas de proteção para sua redução ou eliminação.</p>
+<div class="rpt-section">8. CAMPO DE APLICAÇÃO</div>
+<p>Este programa é aplicado a toda organização, estabelecimentos, canteiros de obras e/ou frentes de serviços.</p>
 
-<h3>7.4 Reconhecimento</h3>
-<p>É o início do trabalho de campo para identificar as atividades, tarefas, fontes e tipos de riscos ambientais. Constituído por:</p>
-<ol>
-  <li>Identificação dos riscos ambientais;</li>
-  <li>Determinação e localização das possíveis fontes geradoras;</li>
-  <li>Identificação das possíveis trajetórias e dos meios de propagação dos agentes;</li>
-  <li>Identificação das funções e determinação do número de trabalhadores expostos;</li>
-  <li>Caracterização das atividades e do tipo de exposição;</li>
-  <li>Obtenção de dados indicativos de possíveis comprometimentos da saúde;</li>
-  <li>Possíveis danos à saúde relacionados aos riscos identificados.</li>
-</ol>
+<div class="rpt-section">9. METODOLOGIA UTILIZADA</div>
+<div class="rpt-section3">9.1 Análise Qualitativa</div>
+<p>Análise preliminar e reconhecimento dos riscos ambientais, identificando perigos, fontes geradoras, exposição e medidas de controle existentes.</p>
+<div class="rpt-section3">9.2 Análise Quantitativa</div>
+${equipmentTable()}
+<div class="rpt-section3">9.3 Critérios de Risco — Probabilidade (P) × Gravidade (G)</div>
+${riskMatrix()}
 
-<h3>7.5 Controle</h3>
-<p>Consiste em adotar medidas de controle administrativas, de engenharia, equipamentos de proteção coletiva (EPC's), equipamentos de proteção individual (EPI's) e intervenções sobre operações, reorientando-as para procedimentos que possam eliminar, neutralizar ou reduzir a exposição a um determinado risco.</p>
-
-<h3>7.6 Monitoramento</h3>
-<p>Tem o objetivo de mensurar a exposição ou a inexistência dos riscos identificados na etapa de reconhecimento, além de acompanhar se as medidas de controle estão sendo eficazes.</p>
-
-<h3>7.7 Divulgação dos Dados</h3>
-<p>Os registros, manutenção e divulgação dos dados serão arquivados em meio eletrônico e físico, estando sempre à disposição dos empregados, sindicatos e autoridades de fiscalização.</p>
-<hr>
-
-<!-- 8. CAMPO DE APLICAÇÃO -->
-<h2>8. CAMPO DE APLICAÇÃO</h2>
-<p>Este programa é aplicado a toda organização, estabelecimentos, canteiros de obras e/ou frentes de serviços. A avaliação de riscos deve constituir um processo contínuo e ser revista a cada dois anos ou quando da ocorrência das seguintes situações:</p>
-<ul>
-  <li>Após implementação das medidas de prevenção, para avaliação de riscos residuais;</li>
-  <li>Após inovações e modificações nas tecnologias, ambientes, processos, condições e organização do trabalho;</li>
-  <li>Quando identificadas inadequações, insuficiências ou ineficácias das medidas de prevenção;</li>
-  <li>Na ocorrência de acidentes ou doenças relacionadas ao trabalho;</li>
-  <li>Quando houver mudança nos requisitos legais aplicáveis.</li>
-</ul>
-<hr>
-
-<!-- 9. METODOLOGIA UTILIZADA -->
-<h2>9. METODOLOGIA UTILIZADA</h2>
-
-<h3>9.1 Análise Qualitativa — Análise Preliminar dos Riscos</h3>
-<p>A análise preliminar e reconhecimento dos riscos ambientais envolve a análise de instalações, métodos ou processos de trabalho, visando identificar os riscos potenciais e introduzir medidas de proteção para sua redução ou eliminação:</p>
-<ul>
-  <li>Identificação dos riscos ambientais existentes nas atividades da empresa;</li>
-  <li>Identificação dos perigos causados pelos riscos ambientais;</li>
-  <li>Indicação dos níveis de risco, quando aplicáveis;</li>
-  <li>Determinação e localização das possíveis fontes geradoras;</li>
-  <li>Identificação das funções e número de trabalhadores expostos;</li>
-  <li>Caracterização das atividades e do tipo da exposição;</li>
-  <li>Identificação de possíveis lesões, agravos ou comprometimento da saúde;</li>
-  <li>Descrição das medidas de controle já existentes.</li>
-</ul>
-
-<h3>9.2 Análise Quantitativa</h3>
-<p>Após a análise preliminar dos riscos, o monitoramento ambiental mensura a exposição dos trabalhadores aos riscos ocupacionais, comprovando o controle da exposição ou a inexistência dos riscos identificados. Para o monitoramento quantitativo são utilizadas as seguintes metodologias:</p>
-<ul>
-  <li><strong>Exposição ao Ruído:</strong> Avaliação conforme NHO 01, com medidores calibrados na zona auditiva do colaborador. Parâmetros de acordo com NR-15 Anexo I.</li>
-  <li><strong>Exposição à Luminosidade:</strong> Medições de iluminamento no campo de trabalho com luxímetro, conforme NHO 11.</li>
-  <li><strong>Exposição ao Calor:</strong> Mensuração pelo Índice de Bulbo Úmido – Termômetro de Globo (IBUTG), conforme NHO-06.</li>
-</ul>
-
-<h3>9.3 Análise e Avaliação do Risco</h3>
-<p>A análise e avaliação de risco consistem em verificar até que ponto os riscos potenciais podem impactar na realização dos objetivos. A primeira etapa é a análise preliminar e reconhecimento dos riscos. A segunda etapa é a análise dos setores, funções e atividades, utilizando a metodologia de Grupo Homogêneo de Exposição (GHE).</p>
-
-<h3>9.4 Definição dos Critérios de Risco</h3>
-<p>Conforme ABNT NBR ISO 31000:2009, os critérios utilizados refletem os valores, objetivos e recursos da organização, sendo compatíveis com a política de gestão de riscos.</p>
-
-<h3>9.5 Probabilidade (P)</h3>
-<p>A gradação da probabilidade da ocorrência de danos é feita atribuindo-se um índice (P) variando de 1 a 4:</p>
-<table style="width:100%; border-collapse: collapse;">
-  <thead><tr><th ${th}>Índice (P)</th><th ${th}>Exposição</th><th ${th}>Fator de Proteção</th></tr></thead>
-  <tbody>
-    <tr><td ${td}><strong>1 — Baixo</strong></td><td ${td}>Exposição/contato baixo ou eventual, em tempo muito curto</td><td ${td}>Medidas adequadas, eficientes, com garantia de manutenção a longo prazo</td></tr>
-    <tr><td ${td}><strong>2 — Moderado</strong></td><td ${td}>Exposição/contato moderado ou intermitente</td><td ${td}>Medidas adequadas e eficientes, sem garantia de manutenção a longo prazo</td></tr>
-    <tr><td ${td}><strong>3 — Alto</strong></td><td ${td}>Exposição/contato alto ou permanente</td><td ${td}>Medidas existentes com desvios significativos; eficiência duvidosa</td></tr>
-    <tr><td ${td}><strong>4 — Excessivo</strong></td><td ${td}>Exposição excessiva ou permanente a intensidade elevada</td><td ${td}>Medidas inexistentes ou reconhecidamente inadequadas</td></tr>
-  </tbody>
+<table class="rpt-table">
+  <tr><th>Nível de Risco</th><th>Ação Requerida</th><th>Prazo</th></tr>
+  <tr><td style="color:#dc2626;"><strong>Crítico</strong></td><td>Ações corretivas imediatas</td><td>Imediato</td></tr>
+  <tr><td style="color:#ea580c;"><strong>Alto</strong></td><td>Planejamento a curto prazo</td><td>3 meses</td></tr>
+  <tr><td style="color:#d97706;"><strong>Médio</strong></td><td>Planejamento a médio/longo prazo</td><td>6 meses</td></tr>
+  <tr><td style="color:#16a34a;"><strong>Baixo</strong></td><td>Manter controle existente</td><td>1 ano</td></tr>
+  <tr><td><strong>Irrelevante</strong></td><td>Não requer nova ação</td><td>N/A</td></tr>
 </table>
+<div class="page-break"></div>
 
-<h3>9.6 Gravidade (G)</h3>
-<p>A gradação da gravidade (G) das possíveis lesões é atribuída com índice de 1 a 4:</p>
-<table style="width:100%; border-collapse: collapse;">
-  <thead><tr><th ${th}>Índice (G)</th><th ${th}>Critério</th><th ${th}>Exemplos</th><th ${th}>Pessoas Expostas</th></tr></thead>
-  <tbody>
-    <tr><td ${td}><strong>1 — Baixo</strong></td><td ${td}>Lesão ou doença leve, efeitos reversíveis</td><td ${td}>Ferimentos leves, afastamento ≤15 dias</td><td ${td}>Até 10%</td></tr>
-    <tr><td ${td}><strong>2 — Moderado</strong></td><td ${td}>Lesão ou doença séria, efeitos reversíveis severos</td><td ${td}>Irritações sérias, afastamento >15 dias</td><td ${td}>10% a 30%</td></tr>
-    <tr><td ${td}><strong>3 — Alto</strong></td><td ${td}>Lesão crítica, efeitos irreversíveis</td><td ${td}>PAIR, danos ao SNC, afastamento longo</td><td ${td}>30% a 60%</td></tr>
-    <tr><td ${td}><strong>4 — Excessivo</strong></td><td ${td}>Lesão incapacitante ou fatal</td><td ${td}>Perda de membros, doenças fatais</td><td ${td}>Acima de 60%</td></tr>
-  </tbody>
-</table>
-
-<h3>9.7 Determinação do Nível de Risco (N)</h3>
-<p>A determinação do nível de risco (N) é realizada pela combinação da Probabilidade (P) e Gravidade (G):</p>
-<table style="width:100%; border-collapse: collapse; text-align:center;">
-  <thead><tr><th ${th}>P \\ G</th><th ${th}>1 — Baixo</th><th ${th}>2 — Moderado</th><th ${th}>3 — Alto</th><th ${th}>4 — Excessivo</th></tr></thead>
-  <tbody>
-    <tr><td ${th}>1 — Baixo</td><td ${td}>Irrelevante</td><td ${td}>Baixo</td><td ${td}>Baixo</td><td ${td}>Médio</td></tr>
-    <tr><td ${th}>2 — Moderado</td><td ${td}>Baixo</td><td ${td}>Baixo</td><td ${td}>Médio</td><td ${td}>Alto</td></tr>
-    <tr><td ${th}>3 — Alto</td><td ${td}>Baixo</td><td ${td}>Médio</td><td ${td}>Alto</td><td ${td}>Alto</td></tr>
-    <tr><td ${th}>4 — Excessivo</td><td ${td}>Médio</td><td ${td}>Alto</td><td ${td}>Alto</td><td ${td}>Crítico</td></tr>
-  </tbody>
-</table>
-<p style="font-size:11px; color:#64748b;">Fonte: Matriz elaborada a partir de MULHAUSEN & DAMIANO (1998) e BS 8800 (BSI, 1996).</p>
-
-<h3>9.8 Critérios de Controle para Priorização das Ações</h3>
-<table style="width:100%; border-collapse: collapse;">
-  <thead><tr><th ${th}>Nível de Risco</th><th ${th}>Ação Requerida</th><th ${th}>Prazo de Implementação</th></tr></thead>
-  <tbody>
-    <tr><td ${td} style="color:#dc2626;"><strong>Crítico</strong></td><td ${td}>Ações corretivas devem ser adotadas imediatamente</td><td ${td}>Implementação imediata</td></tr>
-    <tr><td ${td} style="color:#ea580c;"><strong>Alto</strong></td><td ${td}>Planejamento a curto prazo; rotinas e controles devem ser reavaliados</td><td ${td}>Prazo máximo de 3 meses</td></tr>
-    <tr><td ${td} style="color:#d97706;"><strong>Médio</strong></td><td ${td}>Planejamento a médio/longo prazo; controles existentes monitorados</td><td ${td}>Prazo máximo de 6 meses</td></tr>
-    <tr><td ${td} style="color:#16a34a;"><strong>Baixo</strong></td><td ${td}>Manter controle existente e avaliar necessidade de medidas adicionais</td><td ${td}>Prazo máximo de 1 ano</td></tr>
-    <tr><td ${td}><strong>Irrelevante</strong></td><td ${td}>Não há necessidade de nova ação. Manter controles existentes</td><td ${td}>N/A</td></tr>
-  </tbody>
-</table>
-<div style="page-break-after: always;"></div>
-
-<!-- 10. INVENTÁRIO DE RISCO -->
-<h2>10. INVENTÁRIO DE RISCO</h2>
+<div class="rpt-section">10. INVENTÁRIO DE RISCO</div>
 ${Array.from(sectorMap.entries()).map(([sectorId, { sectorName, workstations: sectorWs }], gheIndex) => {
   const wsRisks = risks.filter(r => {
     const analysis = analyses.find(a => a.id === r.analysis_id);
     return analysis && sectorWs.some(w => w.id === analysis.workstation_id);
   });
-  const wsTasks = tasks.filter(t => sectorWs.some(w => w.id === t.workstation_id));
-
   return `
-<h3>GHE ${String(gheIndex + 1).padStart(2, '0')} / SETOR — ${sectorName.toUpperCase()}</h3>
-<p><strong>Caracterização dos processos:</strong> ${sectorWs.map(w => w.activity_description || w.description).join(". ")}.</p>
-<p><strong>Postos de trabalho:</strong> ${sectorWs.map(w => w.name).join(", ")}.</p>
-
-<h4>Descrição das Atividades Exercidas</h4>
-<table style="width:100%; border-collapse: collapse;">
-  <thead><tr><th ${th}>Posto/Função</th><th ${th}>Descrição das Atividades</th></tr></thead>
-  <tbody>
-    ${sectorWs.map(ws => {
-      const wt = tasks.filter(t => t.workstation_id === ws.id);
-      return `<tr><td ${td}><strong>${ws.name}</strong></td><td ${td}>${wt.map(t => t.description).join("; ") || ws.tasks_performed}</td></tr>`;
-    }).join("")}
-  </tbody>
+<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} / SETOR — ${sectorName.toUpperCase()}</div>
+<p><strong>Postos:</strong> ${sectorWs.map(w => w.name).join(", ")}</p>
+<table class="rpt-table">
+  <tr><th>Posto/Função</th><th>Descrição das Atividades</th></tr>
+  ${sectorWs.map(ws => {
+    const wt = tasks.filter(t => t.workstation_id === ws.id);
+    return `<tr><td><strong>${ws.name}</strong></td><td>${wt.map(t => t.description).join("; ") || ws.tasks_performed || ws.activity_description}</td></tr>`;
+  }).join("")}
 </table>
-
-<h4>Inventário de Riscos Ocupacionais</h4>
-<table style="width:100%; border-collapse: collapse;">
-  <thead><tr>
-    <th ${th}>Agente/Perigo</th>
-    <th ${th}>Possíveis Danos</th>
-    <th ${th}>Fonte Geradora</th>
-    <th ${th}>P</th>
-    <th ${th}>G</th>
-    <th ${th}>NR</th>
-    <th ${th}>Medidas de Controle</th>
-  </tr></thead>
-  <tbody>
-    ${wsRisks.length > 0 ? wsRisks.map(r => {
-      const analysis = analyses.find(a => a.id === r.analysis_id);
-      const ws = analysis ? sectorWs.find(w => w.id === analysis.workstation_id) : null;
-      const pLabel = r.probability <= 1 ? "B" : r.probability <= 2 ? "M" : r.probability <= 3 ? "A" : "E";
-      const gLabel = r.consequence <= 1 ? "B" : r.consequence <= 2 ? "M" : r.consequence <= 3 ? "A" : "E";
-      return `<tr>
-        <td ${td}>${r.description}</td>
-        <td ${td}>${ws?.name || "—"}</td>
-        <td ${td}>${ws?.activity_description || "—"}</td>
-        <td ${td} style="text-align:center;">${pLabel}</td>
-        <td ${td} style="text-align:center;">${gLabel}</td>
-        <td ${td} style="text-align:center;">${riskLevelLabel(r.risk_level).charAt(0)}</td>
-        <td ${td}>${mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I."}</td>
-      </tr>`;
-    }).join("") : `<tr><td ${td} colspan="7" style="text-align:center;">Nenhum risco identificado para este setor</td></tr>`}
-  </tbody>
-</table>
-<p style="font-size:11px; color:#64748b;">Legenda: P: Probabilidade / G: Gravidade / B: Baixa / M: Moderada / A: Alta / E: Excessivo / NR: Nível de Risco / N.I: Não Identificado</p>
-<p><strong>Recomendação:</strong> Realizar Análise Ergonômica do Trabalho (AET).</p>
-<hr>`;
+<table class="rpt-table">
+  <tr><th>Agente/Perigo</th><th>Possíveis Danos</th><th>P</th><th>G</th><th>NR</th><th>Medidas de Controle</th></tr>
+  ${wsRisks.length > 0 ? wsRisks.map(r => {
+    const analysis = analyses.find(a => a.id === r.analysis_id);
+    const ws = analysis ? sectorWs.find(w => w.id === analysis.workstation_id) : null;
+    return `<tr><td>${r.description}</td><td>${ws?.name || "—"}</td><td style="text-align:center;">${r.probability}</td><td style="text-align:center;">${r.consequence}</td><td style="text-align:center;">${riskLevelLabel(r.risk_level).charAt(0)}</td><td>${mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I."}</td></tr>`;
+  }).join("") : `<tr><td colspan="6" style="text-align:center;">Nenhum risco identificado para este setor</td></tr>`}
+</table>`;
 }).join("")}
 
-<div style="page-break-after: always;"></div>
-
-<!-- 11. IMPLEMENTAÇÃO DAS MEDIDAS DE PREVENÇÃO -->
-<h2>11. IMPLEMENTAÇÃO DAS MEDIDAS DE PREVENÇÃO</h2>
-<p>A implementação das medidas de prevenção e respectivos ajustes são registrados no PLANO DE AÇÃO, com a indicação clara do que deve ser realizado, as responsabilidades e prazo para atingir os objetivos planejados, de modo a reduzir, eliminar ou controlar os riscos ocupacionais.</p>
-
-<h3>11.1 Plano de Ação</h3>
-<p>O Ciclo PDCA (Plan, Do, Check, Act) é o modelo de gestão utilizado para acompanhamento das ações:</p>
-<ol>
-  <li><strong>Plan (Planejamento):</strong> Estabelecer objetivos, metas, atividades e prazos;</li>
-  <li><strong>Do (Execução):</strong> Executar as atividades conforme planejamento;</li>
-  <li><strong>Check (Verificação):</strong> Verificar resultados e identificar desvios;</li>
-  <li><strong>Act (Ação):</strong> Tomar ações corretivas para eliminar ou minimizar causas dos desvios.</li>
-</ol>
-
-${actions.length > 0 ? `
-<table style="width:100%; border-collapse: collapse;">
-  <thead><tr><th ${th}>Meta / Ação</th><th ${th}>Estratégia</th><th ${th}>Responsável</th><th ${th}>Prioridade</th><th ${th}>Prazo</th><th ${th}>Status</th></tr></thead>
-  <tbody>
-    ${actions.map(ap => `<tr>
-      <td ${td}>${ap.description}</td>
-      <td ${td}>Implementar medidas de controle conforme PGR</td>
-      <td ${td}>${ap.responsible}</td>
-      <td ${td}>Média</td>
-      <td ${td}>${ap.deadline}</td>
-      <td ${td}>${statusLabel(ap.status)}</td>
-    </tr>`).join("")}
-  </tbody>
+<div class="rpt-section">11. IMPLEMENTAÇÃO DAS MEDIDAS DE PREVENÇÃO</div>
+${actions.length > 0 ? `<table class="rpt-table">
+  <tr><th>Meta / Ação</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr>
+  ${actions.map(ap => `<tr><td>${ap.description}</td><td>${ap.responsible}</td><td>${ap.deadline}</td><td>${statusLabel(ap.status)}</td></tr>`).join("")}
 </table>` : "<p>Nenhuma ação registrada.</p>"}
 
-<h3>11.2 Acompanhamento das Medidas de Prevenção</h3>
-<ul>
-  <li>Verificação da execução das ações planejadas;</li>
-  <li>Inspeções dos locais e equipamentos de trabalho;</li>
-  <li>Monitoramento das condições ambientais e exposições a agentes nocivos.</li>
-</ul>
-<hr>
+<div class="rpt-section">12. EPC — EQUIPAMENTO DE PROTEÇÃO COLETIVA</div>
+<p>Medidas que eliminam ou reduzam a utilização ou a formação de agentes prejudiciais, previnam a liberação e reduzam os níveis no ambiente de trabalho.</p>
 
-<!-- 12. EPC -->
-<h2>12. EPC — EQUIPAMENTO DE PROTEÇÃO COLETIVA</h2>
-<p>O estudo, desenvolvimento e implantação de medidas de proteção coletiva deverá obedecer à seguinte hierarquia:</p>
-<ol>
-  <li>Medidas que eliminam ou reduzam a utilização ou a formação de agentes prejudiciais à saúde;</li>
-  <li>Medidas que previnam a liberação ou disseminação desses agentes no ambiente de trabalho;</li>
-  <li>Medidas que reduzam os níveis ou a concentração desses agentes no ambiente de trabalho.</li>
-</ol>
-<hr>
+<div class="rpt-section">13. EPI — EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL</div>
+<p>Dispositivo de uso individual destinado à proteção de riscos suscetíveis de ameaçar a segurança e a saúde no trabalho, conforme NR-06.</p>
 
-<!-- 13. EPI -->
-<h2>13. EPI — EQUIPAMENTO DE PROTEÇÃO INDIVIDUAL</h2>
-<p>O Equipamento de Proteção Individual (EPI) é todo dispositivo de uso individual utilizado pelo trabalhador, destinado à proteção de riscos suscetíveis de ameaçar a segurança e a saúde no trabalho.</p>
-<p><strong>Cabe ao empregador:</strong></p>
-<ul>
-  <li>Adquirir o EPI adequado ao risco de cada atividade;</li>
-  <li>Exigir seu uso;</li>
-  <li>Fornecer ao trabalhador somente o aprovado pelo órgão competente;</li>
-  <li>Orientar e treinar o trabalhador sobre o uso adequado, guarda e conservação;</li>
-  <li>Substituir imediatamente quando danificado ou extraviado;</li>
-  <li>Responsabilizar-se pela higienização e manutenção periódica;</li>
-  <li>Registrar o fornecimento ao trabalhador.</li>
-</ul>
-<p><strong>Cabe ao trabalhador:</strong></p>
-<ul>
-  <li>Usar o EPI apenas para a finalidade a que se destina;</li>
-  <li>Responsabilizar-se pela guarda e conservação;</li>
-  <li>Comunicar ao empregador qualquer alteração que o torne impróprio para uso;</li>
-  <li>Cumprir as determinações do empregador sobre o uso adequado.</li>
-</ul>
-<hr>
+<div class="rpt-section">14. RESPONSABILIDADES</div>
+<p><strong>Empregador:</strong> Estabelecer, implantar e assegurar o cumprimento do PGR. Informar os trabalhadores sobre os riscos.</p>
+<p><strong>SESMT:</strong> Executar, coordenar e monitorar as etapas do programa. Manter arquivado por 20 anos.</p>
 
-<!-- 14. RESPONSABILIDADES -->
-<h2>14. RESPONSABILIDADES</h2>
-<h3>Responsabilidades do Empregador</h3>
+<div class="rpt-section">15. META E OBJETIVOS</div>
 <ul>
-  <li>Estabelecer, implantar e assegurar o cumprimento do PGR como atividade permanente;</li>
-  <li>Informar aos trabalhadores sobre os Riscos Ambientais em seus locais de trabalho;</li>
-  <li>Garantir a interrupção de atividades em caso de risco grave e iminente;</li>
-  <li>Executar ações integradas com outros empregados para proteção coletiva;</li>
-  <li>Incentivar a participação dos trabalhadores na elaboração do PGR.</li>
+  <li>Reduzir em 20% os riscos classificados como "Alto" ou "Crítico"</li>
+  <li>Garantir treinamento a 100% dos trabalhadores expostos</li>
+  <li>Implementar todas as ações do Plano de Ação dentro dos prazos</li>
 </ul>
-<h3>Responsabilidades do SESMT</h3>
-<ul>
-  <li>Executar, coordenar e monitorar as etapas do programa;</li>
-  <li>Programar e aplicar treinamentos com o objetivo de instruir os trabalhadores expostos;</li>
-  <li>Propor soluções para eliminar/reduzir a exposição;</li>
-  <li>Manter arquivado por 20 anos os relatórios das avaliações ambientais.</li>
-</ul>
-<hr>
 
-<!-- 15. META E OBJETIVOS -->
-<h2>15. META E OBJETIVOS</h2>
-<p>A empresa se compromete com as seguintes metas para o período vigente:</p>
-<ul>
-  <li>Reduzir em pelo menos 20% os riscos classificados como "Alto" ou "Crítico";</li>
-  <li>Garantir treinamento adequado a 100% dos trabalhadores expostos a riscos;</li>
-  <li>Realizar monitoramento ambiental contínuo conforme cronograma;</li>
-  <li>Implementar todas as ações do Plano de Ação dentro dos prazos estabelecidos.</li>
+<div class="rpt-section">16. REFERÊNCIAS BIBLIOGRÁFICAS</div>
+<ul style="font-size:12px;">
+  <li>BRASIL. Normas Regulamentadoras (NR) — MTE</li>
+  <li>ABNT NBR ISO 31000:2009 — Gestão de Riscos</li>
+  <li>BS 8800:1996 — Guide to OHS Management Systems</li>
+  <li>MULHAUSEN & DAMIANO (1998) — AIHA Strategy for Exposure Assessment</li>
+  <li>FUNDACENTRO — NHO 01, NHO 06, NHO 11</li>
 </ul>
-<hr>
 
-<!-- 16. REFERÊNCIAS BIBLIOGRÁFICAS -->
-<h2>16. REFERÊNCIAS BIBLIOGRÁFICAS</h2>
-<ul style="font-size:13px;">
-  <li>BRASIL. Normas Regulamentadoras (NR) — Ministério do Trabalho e Emprego.</li>
-  <li>ABNT NBR ISO 31000:2009 — Gestão de Riscos — Princípios e Diretrizes.</li>
-  <li>BS 8800:1996 — Guide to Occupational Health and Safety Management Systems.</li>
-  <li>MULHAUSEN, J.R.; DAMIANO, J. A Strategy for Assessing and Managing Occupational Exposures. AIHA, 1998.</li>
-  <li>FUNDACENTRO — Normas de Higiene Ocupacional (NHO 01, NHO 06, NHO 11).</li>
-</ul>
-<hr>
-
-<!-- ENCERRAMENTO -->
-<div style="text-align: center; margin-top: 60px;">
-  <p>_____________________________________________</p>
-  <p><strong>${consultant}</strong></p>
-  <p>Engenheiro de Segurança do Trabalho</p>
-  <p>CREA/CONFEA: XXXXX</p>
-</div>
-<br>
-<p style="text-align:center; font-size: 11px; color: #94a3b8;"><em>Documento gerado pelo sistema Spartan — MG Consultoria</em></p>
-<p style="text-align:center; font-size: 11px; color: #94a3b8;"><em>Este relatório deve ser revisado e assinado pelo profissional responsável antes da validação.</em></p>
-`;
+${signatureBlock(consultant)}
+${footer()}`;
 }
 
-function generateGenericReport(ctx: ReportContext): string {
-  const { company, sector, workstation, workstations, analyses, photos, reportType } = ctx;
-  const wsIds = workstations.map(w => w.id);
-  const analysisIds = analyses.map(a => a.id);
-  const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
-  const actions = mockActionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
-  const title = `${reportType} — ${company.name}`;
-
-  return `
-<h1 style="text-align:center">${title}</h1>
-<p style="text-align:center"><strong>${reportType}</strong> — Emitido em ${getToday()}</p>
-<hr>
-<h2>Identificação da Empresa</h2>
-<p><strong>Razão Social:</strong> ${company.name}</p>
-<p><strong>CNPJ:</strong> ${company.cnpj}</p>
-<p><strong>Endereço:</strong> ${company.address} — ${company.city}/${company.state}</p>
-${sector ? `<p><strong>Setor:</strong> ${sector.name}</p>` : ""}
-${workstation ? `<p><strong>Posto de Trabalho:</strong> ${workstation.name}</p>` : ""}
-<hr>
-<h2>Análises Realizadas</h2>
-${analyses.map(a => {
-  const ws = workstations.find(w => w.id === a.workstation_id);
-  return `<p><strong>${ws?.name || "—"}</strong> — ${a.method}, Score: ${a.score}. ${a.notes}</p>`;
-}).join("") || "<p>Nenhuma análise.</p>"}
-<hr>
-<h2>Riscos Identificados</h2>
-${risks.length > 0 ? `<table style="width:100%; border-collapse: collapse;">
-<thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ddd; padding: 8px;">Descrição</th><th style="border: 1px solid #ddd; padding: 8px;">Score</th><th style="border: 1px solid #ddd; padding: 8px;">Nível</th></tr></thead>
-<tbody>${risks.map(r => `<tr><td style="border: 1px solid #ddd; padding: 8px;">${r.description}</td><td style="border: 1px solid #ddd; padding: 8px;">${r.risk_score}</td><td style="border: 1px solid #ddd; padding: 8px;">${riskLevelLabel(r.risk_level)}</td></tr>`).join("")}</tbody></table>` : "<p>Nenhum risco.</p>"}
-<hr>
-<h2>Recomendações</h2>
-${actions.length > 0 ? actions.map(ap => `<p>• ${ap.description} (${ap.responsible} — ${ap.deadline})</p>`).join("") : "<p>Sem recomendações.</p>"}
-<hr>
-<p style="text-align:center"><em>Documento gerado pelo sistema Spartan — MG Consultoria</em></p>
-`;
-}
-
+// ==================== APR (Avaliação Preliminar de Riscos Psicossociais) ====================
 function generateAPRReport(ctx: ReportContext): string {
-  const { company, workstations, analyses } = ctx;
-  const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
-  const psychosocial = mockPsychosocialAnalyses.filter(p => p.company_id === company.id);
-  const sectors = [...new Set(workstations.map(w => w.sector?.name || "Geral"))];
-
+  const { company, workstations } = ctx;
+  const { consultant, psychosocial, sectors } = getCtxData(ctx);
   const classifyRisk = (v: number) => v >= 75 ? `<span class="rpt-badge green">Baixo risco</span>` : v >= 50 ? `<span class="rpt-badge yellow">Moderado</span>` : `<span class="rpt-badge red">Alto risco</span>`;
 
-  return `${vividStyles()}
-<div class="rpt-cover">
-  <h1>AVALIAÇÃO PRELIMINAR DE RISCOS PSICOSSOCIAIS</h1>
-  <h2>APR — FRPRT</h2>
-  <p class="company">${company.name}</p>
-  <p class="meta">CNPJ: ${company.cnpj}</p>
-  <p class="meta">${company.address} — ${company.city}/${company.state}</p>
-  <p class="meta" style="margin-top:30px;">Emissão: ${getToday()} | Responsável: ${consultant}</p>
-  <p class="meta" style="font-size:12px; margin-top:15px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
-</div>
+  return `${sharedStyles()}
+${coverPage("AVALIAÇÃO PRELIMINAR DE RISCOS PSICOSSOCIAIS", "APR — FRPRT", company, consultant)}
 
-<div class="rpt-section">1. OBJETIVO</div>
+${revisionTable()}
+
+<div class="rpt-section">1. INFORMAÇÕES CADASTRAIS DA ORGANIZAÇÃO</div>
+${companyDataTable(company)}
+
+<div class="rpt-section">2. OBJETIVO</div>
 <div class="rpt-callout">A avaliação dos fatores de risco psicossociais é fundamental para a promoção da saúde mental no trabalho e cumprimento da NR-01.</div>
-<p>O presente relatório apresenta os resultados da Avaliação Preliminar de Fatores de Risco Psicossociais Relacionados ao Trabalho (FRPRT), conforme NR-01.</p>
+<p>Apresentar os resultados da Avaliação Preliminar de Fatores de Risco Psicossociais Relacionados ao Trabalho (FRPRT), conforme NR-01, articulada com o PGR e PCMSO da empresa.</p>
 
-<div class="rpt-section">2. METODOLOGIA</div>
-<p>Metodologia baseada no <strong>COPSOQ II</strong> (Copenhagen Psychosocial Questionnaire).</p>
+<div class="rpt-section">3. METODOLOGIA</div>
+<div class="rpt-section3">3.1 Metodologia de Avaliação</div>
+<p>Metodologia baseada no <strong>COPSOQ II</strong> (Copenhagen Psychosocial Questionnaire), <strong>NASA-TLX</strong> (Índice de Carga de Trabalho) e <strong>HSE-IT</strong> (Health and Safety Executive).</p>
 <table class="rpt-table">
-  <tr><th>Faixa</th><th>Classificação</th><th>Ação</th></tr>
-  <tr><td><span class="rpt-badge red">0 a 49</span></td><td>Alto Risco</td><td>Intervenção imediata</td></tr>
+  <tr><th class="teal">Faixa de Score</th><th class="teal">Classificação</th><th class="teal">Ação Recomendada</th></tr>
+  <tr><td><span class="rpt-badge red">0 a 49</span></td><td>Alto Risco</td><td>Intervenção imediata requerida</td></tr>
   <tr><td><span class="rpt-badge yellow">50 a 74</span></td><td>Moderado</td><td>Monitoramento e ações preventivas</td></tr>
   <tr><td><span class="rpt-badge green">75 a 100</span></td><td>Baixo Risco</td><td>Manter práticas existentes</td></tr>
 </table>
 
-<div class="rpt-section">3. AMOSTRA</div>
+<div class="rpt-section3">3.2 Critérios de Avaliação de Risco (PGR)</div>
+${riskMatrix()}
+
+<div class="rpt-section">4. AMOSTRA</div>
 <table class="rpt-table">
-  <tr><td class="label">Setores</td><td>${sectors.join(", ")}</td></tr>
-  <tr><td class="label">Postos de trabalho</td><td>${workstations.length}</td></tr>
-  <tr><td class="label">Avaliações psicossociais</td><td>${psychosocial.length}</td></tr>
+  <tr><td class="label">Setores Avaliados</td><td>${sectors.join(", ")}</td></tr>
+  <tr><td class="label">Postos de Trabalho</td><td>${workstations.length}</td></tr>
+  <tr><td class="label">Avaliações Realizadas</td><td>${psychosocial.length}</td></tr>
   <tr><td class="label">Período</td><td>${getToday()}</td></tr>
 </table>
 
-<div class="rpt-section">5. RESULTADO DA AVALIAÇÃO</div>
+<div class="rpt-section">5. RESULTADOS</div>
 ${psychosocial.length > 0 ? psychosocial.map(psa => {
-  if (!psa.copenhagen_details) return "";
-  const cd = psa.copenhagen_details;
-  return `
-<div class="rpt-section2">COPSOQ II — Resultados por Domínio</div>
-<table class="rpt-table">
-  <tr><th class="teal">Domínio</th><th class="teal">Score</th><th class="teal">Classificação</th></tr>
-  ${([
-    ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace],
-    ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands],
-    ["Influência no Trabalho", cd.influence], ["Desenvolvimento", cd.possibilities_development],
-    ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment],
-    ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support],
-  ] as [string, number][]).map(([dim, val]) => `<tr><td>${dim}</td><td><strong>${val}</strong></td><td>${classifyRisk(val)}</td></tr>`).join("")}
-</table>
-${psa.nasa_tlx_details ? `
-<div class="rpt-section2">NASA-TLX — Carga de Trabalho</div>
-<table class="rpt-table">
-  <tr><th class="alt">Dimensão</th><th class="alt">Score (0-100)</th></tr>
-  <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
-  <tr><td>Demanda Física</td><td>${psa.nasa_tlx_details.physical_demand}</td></tr>
-  <tr><td>Demanda Temporal</td><td>${psa.nasa_tlx_details.temporal_demand}</td></tr>
-  <tr><td>Performance</td><td>${psa.nasa_tlx_details.performance}</td></tr>
-  <tr><td>Esforço</td><td>${psa.nasa_tlx_details.effort}</td></tr>
-  <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
-  <tr><td class="label"><strong>Score Geral</strong></td><td><strong>${psa.nasa_tlx_score}</strong></td></tr>
-</table>` : ""}
-<p><strong>Observações:</strong> ${psa.observations}</p>`;
-}).join("") : `<div class="rpt-callout danger">Nenhuma avaliação psicossocial encontrada. Recomenda-se aplicação urgente dos questionários.</div>`}
+  let html = '';
+  if (psa.copenhagen_details) {
+    const cd = psa.copenhagen_details;
+    html += `<div class="rpt-section2">COPSOQ II — Resultados por Domínio</div>
+    <table class="rpt-table">
+      <tr><th class="teal">Domínio Psicossocial</th><th class="teal">Score</th><th class="teal">Classificação</th></tr>
+      ${([ ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência no Trabalho", cd.influence], ["Possibilidades de Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support] ] as [string, number][]).map(([dim, val]) => `<tr><td>${dim}</td><td><strong>${val}</strong></td><td>${classifyRisk(val)}</td></tr>`).join("")}
+      <tr><td class="label"><strong>Score Global</strong></td><td><strong>${psa.copenhagen_score}</strong></td><td>${classifyRisk(psa.copenhagen_score || 0)}</td></tr>
+    </table>`;
+  }
+  if (psa.nasa_tlx_details) {
+    html += `<div class="rpt-section2">NASA-TLX — Índice de Carga de Trabalho</div>
+    <table class="rpt-table">
+      <tr><th class="alt">Dimensão</th><th class="alt">Score (0-100)</th></tr>
+      <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
+      <tr><td>Demanda Física</td><td>${psa.nasa_tlx_details.physical_demand}</td></tr>
+      <tr><td>Demanda Temporal</td><td>${psa.nasa_tlx_details.temporal_demand}</td></tr>
+      <tr><td>Performance</td><td>${psa.nasa_tlx_details.performance}</td></tr>
+      <tr><td>Esforço</td><td>${psa.nasa_tlx_details.effort}</td></tr>
+      <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
+      <tr><td class="label"><strong>Score Geral</strong></td><td><strong>${psa.nasa_tlx_score}</strong></td></tr>
+    </table>`;
+  }
+  if (psa.hse_it_details) {
+    html += `<div class="rpt-section2">HSE-IT — Indicadores de Estresse Ocupacional</div>
+    <table class="rpt-table">
+      <tr><th class="alt">Dimensão</th><th class="alt">Score</th></tr>
+      <tr><td>Demandas</td><td>${psa.hse_it_details.demands}</td></tr>
+      <tr><td>Controle</td><td>${psa.hse_it_details.control}</td></tr>
+      <tr><td>Suporte</td><td>${psa.hse_it_details.support}</td></tr>
+      <tr><td>Relacionamentos</td><td>${psa.hse_it_details.relationships}</td></tr>
+      <tr><td>Papel</td><td>${psa.hse_it_details.role}</td></tr>
+      <tr><td>Mudança</td><td>${psa.hse_it_details.change}</td></tr>
+      <tr><td class="label"><strong>Score Geral</strong></td><td><strong>${psa.hse_it_score}</strong></td></tr>
+    </table>`;
+  }
+  html += `<p><strong>Observações:</strong> ${psa.observations}</p>`;
+  return html;
+}).join("<hr>") : '<div class="rpt-callout danger">Nenhuma avaliação psicossocial encontrada. Recomenda-se aplicação urgente dos questionários COPSOQ II, NASA-TLX e HSE-IT.</div>'}
 
-<div class="rpt-section">6. RECOMENDAÇÕES</div>
+<div class="rpt-section">6. RECOMENDAÇÕES TÉCNICAS</div>
 <table class="rpt-table">
   <tr><th class="teal">Ação</th><th class="teal">Detalhamento</th><th class="teal">Prazo</th><th class="teal">Prioridade</th></tr>
-  <tr><td><strong>Gestão de Estresse</strong></td><td>Capacitação sobre técnicas de manejo do estresse</td><td>60 dias</td><td><span class="rpt-badge yellow">Média</span></td></tr>
-  <tr><td><strong>Adequação da Carga</strong></td><td>Reorganizar tarefas nos setores com alto risco</td><td>45 dias</td><td><span class="rpt-badge orange">Alta</span></td></tr>
-  <tr><td><strong>Canal de Feedback</strong></td><td>Canais contínuos de relato de condições</td><td>30 dias</td><td><span class="rpt-badge orange">Alta</span></td></tr>
-  <tr><td><strong>Avaliações Periódicas</strong></td><td>Novas avaliações semestrais</td><td>6 meses</td><td><span class="rpt-badge yellow">Média</span></td></tr>
+  <tr><td><strong>Gestão de Estresse</strong></td><td>Capacitação sobre técnicas de manejo do estresse ocupacional</td><td>60 dias</td><td><span class="rpt-badge yellow">Média</span></td></tr>
+  <tr><td><strong>Adequação da Carga</strong></td><td>Reorganizar tarefas nos setores com alto risco psicossocial</td><td>45 dias</td><td><span class="rpt-badge orange">Alta</span></td></tr>
+  <tr><td><strong>Canal de Feedback</strong></td><td>Implantar canais contínuos de relato de condições</td><td>30 dias</td><td><span class="rpt-badge orange">Alta</span></td></tr>
+  <tr><td><strong>Avaliações Periódicas</strong></td><td>Novas avaliações semestrais conforme NR-01</td><td>6 meses</td><td><span class="rpt-badge yellow">Média</span></td></tr>
 </table>
 
-<div class="rpt-section">7. CONSIDERAÇÕES FINAIS</div>
-<p>A implementação das ações recomendadas pode contribuir significativamente para a redução dos riscos psicossociais.</p>
-<div class="rpt-callout">A avaliação deve ser revisada periodicamente conforme NR-01.</div>
-<div class="rpt-divider"></div>
-<div class="rpt-sig">
-  <p>_____________________________________________</p>
-  <p><strong>${consultant}</strong></p>
-  <p>Engenheiro de Segurança do Trabalho — CREA/CONFEA: XXXXX</p>
-  <p style="font-size:11px; color:#90A4AE; margin-top:15px;"><em>Documento gerado pelo sistema Spartan — MG Consultoria</em></p>
-</div>`;
+<div class="rpt-section">7. PLANO DE AÇÃO E MELHORIA</div>
+<div class="rpt-callout">O plano de ação deve ser revisado periodicamente conforme NR-01 e integrado ao PGR da empresa.</div>
+
+<div class="rpt-section">8. CONSIDERAÇÕES FINAIS</div>
+<p>A implementação das ações recomendadas contribuirá significativamente para a redução dos riscos psicossociais e promoção da saúde mental no ambiente de trabalho da <strong>${company.trade_name || company.name}</strong>.</p>
+
+${signatureBlock(consultant)}
+${footer()}`;
 }
 
+// ==================== PCMSO ====================
 function generatePCMSOReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const consultant = ctx.consultantName || "Médico do Trabalho";
-  const sectors = [...new Set(workstations.map(w => w.sector?.name || "Geral"))];
+  const { consultant, sectors, risks, sectorMap } = getCtxData(ctx);
+  const medico = ctx.consultantName || "Médico do Trabalho";
 
-  return `${vividStyles()}
-<div class="rpt-cover">
-  <h1>PROGRAMA DE CONTROLE MÉDICO DE SAÚDE OCUPACIONAL</h1>
-  <h2>PCMSO</h2>
-  <p class="company">${company.name}</p>
-  <p class="meta">CNPJ: ${company.cnpj}</p>
-  <p class="meta">${company.address} — ${company.city}/${company.state}</p>
-  <p class="meta" style="margin-top:30px;">Emissão: ${getToday()} | Médico Responsável: ${consultant}</p>
-  <p class="meta" style="font-size:12px; margin-top:15px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
-</div>
+  return `${sharedStyles()}
+${coverPage("PROGRAMA DE CONTROLE MÉDICO DE SAÚDE OCUPACIONAL", "PCMSO", company, medico)}
+
+${revisionTable()}
 
 <div class="rpt-section">1. DEFINIÇÕES E ABREVIATURAS</div>
 <table class="rpt-table">
@@ -992,77 +609,583 @@ function generatePCMSOReport(ctx: ReportContext): string {
   <tr><td class="label">PCMSO</td><td>Programa de Controle Médico de Saúde Ocupacional</td></tr>
   <tr><td class="label">PGR</td><td>Programa de Gerenciamento de Riscos</td></tr>
   <tr><td class="label">GHE</td><td>Grupos Homogêneos de Exposição</td></tr>
-  <tr><td class="label">NR</td><td>Norma Regulamentadora</td></tr>
+  <tr><td class="label">PAIR</td><td>Perda Auditiva Induzida por Ruído</td></tr>
+  <tr><td class="label">LER/DORT</td><td>Lesão por Esforço Repetitivo / Distúrbio Osteomuscular</td></tr>
 </table>
 
+<div class="rpt-section">2. REFERÊNCIAS</div>
+<ul>
+  <li>NR-07 — Programa de Controle Médico de Saúde Ocupacional</li>
+  <li>NR-09 — Avaliação e Controle das Exposições Ocupacionais</li>
+  <li>NR-01 — Disposições Gerais e Gerenciamento de Riscos Ocupacionais</li>
+  <li>Portaria nº 19/1998 — Diretrizes e parâmetros para audiometria</li>
+</ul>
+
 <div class="rpt-section">3. IDENTIFICAÇÃO DA EMPRESA</div>
-<table class="rpt-table">
-  <tr><td class="label">Razão Social</td><td>${company.name}</td></tr>
-  <tr><td class="label">CNPJ</td><td>${company.cnpj}</td></tr>
-  <tr><td class="label">Endereço</td><td>${company.address}</td></tr>
-  <tr><td class="label">Cidade/UF</td><td>${company.city}/${company.state}</td></tr>
-  <tr><td class="label">Setores</td><td>${sectors.join(", ")}</td></tr>
-</table>
+${companyDataTable(company)}
 
 <div class="rpt-section">4. INTRODUÇÃO</div>
 <div class="rpt-callout">O PCMSO é um programa de caráter preventivo, rastreamento e diagnóstico precoce dos agravos à saúde relacionados ao trabalho.</div>
-<p>O Programa tem como finalidade a promoção e preservação da saúde do conjunto dos trabalhadores da empresa, planejado com base nos riscos identificados no PGR.</p>
+<p>Tem como finalidade a promoção e preservação da saúde do conjunto dos trabalhadores, planejado com base nos riscos identificados no PGR.</p>
 
 <div class="rpt-section">5. OBJETIVOS</div>
 <div class="rpt-section3">5.1 Objetivo Geral</div>
 <p>Promoção e preservação da saúde dos trabalhadores, através da prevenção, rastreamento e diagnóstico precoce dos agravos à saúde relacionados ao trabalho.</p>
 <div class="rpt-section3">5.2 Objetivos Específicos</div>
 <ul>
-  <li>Definir exames médicos ocupacionais obrigatórios</li>
-  <li>Estabelecer critérios para exames complementares conforme riscos</li>
-  <li>Monitorar a saúde dos trabalhadores expostos</li>
+  <li>Definir exames médicos ocupacionais obrigatórios por função/risco</li>
+  <li>Estabelecer critérios para exames complementares</li>
+  <li>Monitorar a saúde dos trabalhadores expostos a riscos ocupacionais</li>
   <li>Subsidiar ações de prevenção e promoção da saúde</li>
 </ul>
 
-<div class="rpt-section">8. MÉDICO RESPONSÁVEL</div>
+<div class="rpt-section">6. MÉDICO RESPONSÁVEL</div>
 <table class="rpt-table">
-  <tr><td class="label">Médico Coordenador</td><td>${consultant}</td></tr>
+  <tr><td class="label">Médico Coordenador</td><td>${medico}</td></tr>
   <tr><td class="label">Especialidade</td><td>Medicina do Trabalho</td></tr>
   <tr><td class="label">CRM</td><td>XXXXX</td></tr>
   <tr><td class="label">Vigência</td><td>${getToday()} a ${new Date(Date.now() + 365*24*60*60*1000).toLocaleDateString("pt-BR")}</td></tr>
 </table>
 
-<div class="rpt-section">10. EXAMES MÉDICOS OCUPACIONAIS</div>
+<div class="rpt-section">7. RESPONSABILIDADES</div>
+<div class="rpt-section3">7.1 Do Empregador</div>
+<ul>
+  <li>Garantir a elaboração e efetiva implementação do PCMSO</li>
+  <li>Custear todos os procedimentos relacionados ao PCMSO</li>
+  <li>Indicar médico do trabalho responsável</li>
+</ul>
+<div class="rpt-section3">7.2 Dos Empregados</div>
+<ul>
+  <li>Submeter-se aos exames médicos previstos</li>
+  <li>Colaborar com a empresa na aplicação do PCMSO</li>
+</ul>
+
+<div class="rpt-section">8. EXAMES MÉDICOS OCUPACIONAIS</div>
 <table class="rpt-table">
   <tr><th class="alt">Tipo de Exame</th><th class="alt">Momento</th><th class="alt">Prazo</th></tr>
   <tr><td><strong>Admissional</strong></td><td>Antes do início das atividades</td><td>Antes da admissão</td></tr>
-  <tr><td><strong>Periódico</strong></td><td>Durante a vigência do contrato</td><td>Anual ou semestral</td></tr>
+  <tr><td><strong>Periódico</strong></td><td>Durante a vigência do contrato</td><td>Anual ou semestral conforme risco</td></tr>
   <tr><td><strong>Retorno ao Trabalho</strong></td><td>Após afastamento ≥30 dias</td><td>No 1º dia de retorno</td></tr>
-  <tr><td><strong>Mudança de Risco</strong></td><td>Ao mudar de função/setor</td><td>Antes da mudança</td></tr>
-  <tr><td><strong>Demissional</strong></td><td>No desligamento</td><td>Até 10 dias antes</td></tr>
+  <tr><td><strong>Mudança de Risco</strong></td><td>Ao mudar de função/setor com risco diferente</td><td>Antes da mudança</td></tr>
+  <tr><td><strong>Demissional</strong></td><td>No desligamento do empregado</td><td>Até 10 dias antes do desligamento</td></tr>
 </table>
 
-<div class="rpt-section">14. AVALIAÇÃO DOS RISCOS E EXAMES RECOMENDADOS</div>
+<div class="rpt-section">9. AVALIAÇÃO DOS RISCOS E EXAMES RECOMENDADOS</div>
 <table class="rpt-table">
-  <tr><th class="teal">Risco</th><th class="teal">Exames Complementares</th><th class="teal">Periodicidade</th></tr>
-  <tr><td><strong>Ruído</strong></td><td>Audiometria tonal e vocal</td><td>Semestral</td></tr>
+  <tr><th class="teal">Risco Ocupacional</th><th class="teal">Exames Complementares</th><th class="teal">Periodicidade</th></tr>
+  <tr><td><strong>Ruído (≥80 dB)</strong></td><td>Audiometria tonal e vocal</td><td>Semestral</td></tr>
   <tr><td><strong>Ergonômico</strong></td><td>Avaliação clínica osteomuscular</td><td>Anual</td></tr>
   <tr><td><strong>Químico</strong></td><td>Hemograma, função hepática e renal</td><td>Semestral</td></tr>
   <tr><td><strong>Biológico</strong></td><td>Hemograma completo, sorologia</td><td>Anual</td></tr>
+  <tr><td><strong>Calor</strong></td><td>Avaliação clínica, função renal</td><td>Anual</td></tr>
+  <tr><td><strong>Poeira/Partículas</strong></td><td>Espirometria, Rx de tórax</td><td>Anual</td></tr>
 </table>
 
-<div class="rpt-section">17. AÇÕES MÉDICAS PREVENTIVAS — VACINAÇÃO</div>
+<div class="rpt-section">10. AÇÕES MÉDICAS PREVENTIVAS — VACINAÇÃO</div>
 <table class="rpt-table">
   <tr><th>Vacina</th><th>Esquema</th><th>Indicação</th></tr>
-  <tr><td><strong>Hepatite B</strong></td><td>3 doses (0, 1 e 6 meses)</td><td>Todos</td></tr>
-  <tr><td><strong>Tétano/Difteria</strong></td><td>3 doses + reforço 10 anos</td><td>Todos</td></tr>
+  <tr><td><strong>Hepatite B</strong></td><td>3 doses (0, 1 e 6 meses)</td><td>Todos os trabalhadores</td></tr>
+  <tr><td><strong>Tétano/Difteria (dT)</strong></td><td>3 doses + reforço a cada 10 anos</td><td>Todos</td></tr>
   <tr><td><strong>Influenza</strong></td><td>Dose anual</td><td>Todos</td></tr>
-  <tr><td><strong>COVID-19</strong></td><td>Conforme orientação</td><td>Todos</td></tr>
+  <tr><td><strong>COVID-19</strong></td><td>Conforme orientação vigente</td><td>Todos</td></tr>
+  <tr><td><strong>Febre Amarela</strong></td><td>Dose única</td><td>Áreas endêmicas</td></tr>
 </table>
 
-<div class="rpt-section">21. CONCLUSÃO</div>
-<p>O presente PCMSO foi elaborado com base nos riscos ocupacionais identificados no PGR. Sua implementação contribuirá para a promoção e preservação da saúde dos colaboradores.</p>
+<div class="rpt-section">11. CRONOGRAMA ANUAL</div>
+<table class="rpt-table">
+  <tr><th>Ação</th><th>Jan-Mar</th><th>Abr-Jun</th><th>Jul-Set</th><th>Out-Dez</th></tr>
+  <tr><td>Exames Periódicos</td><td style="background:#C8E6C9;">✓</td><td style="background:#C8E6C9;">✓</td><td style="background:#C8E6C9;">✓</td><td style="background:#C8E6C9;">✓</td></tr>
+  <tr><td>Campanha de Vacinação</td><td style="background:#C8E6C9;">✓</td><td></td><td></td><td style="background:#C8E6C9;">✓</td></tr>
+  <tr><td>Avaliação Audiométrica</td><td style="background:#C8E6C9;">✓</td><td></td><td style="background:#C8E6C9;">✓</td><td></td></tr>
+  <tr><td>Relatório Anual PCMSO</td><td></td><td></td><td></td><td style="background:#C8E6C9;">✓</td></tr>
+</table>
+
+<div class="rpt-section">12. CONCLUSÃO</div>
+<p>O presente PCMSO foi elaborado com base nos riscos ocupacionais identificados no PGR da empresa <strong>${company.trade_name || company.name}</strong>.</p>
 <div class="rpt-callout">O PCMSO deve ser revisado anualmente ou sempre que houver alteração nos riscos ocupacionais.</div>
-<div class="rpt-divider"></div>
-<div class="rpt-sig">
-  <p>_____________________________________________</p>
-  <p><strong>${consultant}</strong></p>
-  <p>Médico do Trabalho — CRM: XXXXX</p>
-  <p style="font-size:11px; color:#90A4AE; margin-top:15px;"><em>Documento gerado pelo sistema Spartan — MG Consultoria</em></p>
-</div>`;
+
+${signatureBlock(medico, "Médico do Trabalho", "CRM: XXXXX")}
+${footer()}`;
+}
+
+// ==================== LTCAT ====================
+function generateLTCATReport(ctx: ReportContext): string {
+  const { company, workstations, analyses } = ctx;
+  const { consultant, risks, sectorMap } = getCtxData(ctx);
+
+  return `${sharedStyles()}
+${coverPage("LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DO TRABALHO", "LTCAT", company, consultant)}
+
+${revisionTable()}
+
+<div class="rpt-section">1. LISTA DE ABREVIATURAS</div>
+<table class="rpt-table">
+  <tr><th>Abreviatura</th><th>Significado</th></tr>
+  <tr><td class="label">LTCAT</td><td>Laudo Técnico das Condições Ambientais do Trabalho</td></tr>
+  <tr><td class="label">INSS</td><td>Instituto Nacional do Seguro Social</td></tr>
+  <tr><td class="label">PPP</td><td>Perfil Profissiográfico Previdenciário</td></tr>
+  <tr><td class="label">SAT</td><td>Seguro Acidente de Trabalho</td></tr>
+  <tr><td class="label">RAT</td><td>Risco Ambiental do Trabalho</td></tr>
+  <tr><td class="label">FAP</td><td>Fator Acidentário de Prevenção</td></tr>
+  <tr><td class="label">GHE</td><td>Grupo Homogêneo de Exposição</td></tr>
+</table>
+
+<div class="rpt-section">2. IDENTIFICAÇÃO DA EMPRESA</div>
+${companyDataTable(company)}
+
+<div class="rpt-section">3. TERMO DE RESPONSABILIDADE</div>
+<p>A empresa compromete-se a informar imediatamente ao responsável técnico qualquer alteração nas condições de trabalho que possam modificar as exposições identificadas neste laudo.</p>
+
+<div class="rpt-section">4. RESPONSÁVEL TÉCNICO</div>
+<table class="rpt-table">
+  <tr><td class="label">Nome</td><td>${consultant}</td></tr>
+  <tr><td class="label">Registro</td><td>CREA/CONFEA: XXXXX</td></tr>
+  <tr><td class="label">Período de Avaliação</td><td>${getToday()}</td></tr>
+</table>
+
+<div class="rpt-section">5. INTRODUÇÃO</div>
+<p>O Laudo Técnico das Condições Ambientais do Trabalho (LTCAT) é um documento previsto na legislação previdenciária (Lei nº 8.213/91, Decreto nº 3.048/99 e IN INSS/PRES 77/2015), com a finalidade de documentar os agentes nocivos presentes no ambiente de trabalho e a exposição dos trabalhadores a estes agentes.</p>
+<p>O LTCAT serve de base para o preenchimento do PPP (Perfil Profissiográfico Previdenciário) e para a determinação do enquadramento em aposentadoria especial (15, 20 ou 25 anos).</p>
+
+<div class="rpt-section">6. OBJETIVOS</div>
+<div class="rpt-section3">6.1 Objetivo Geral</div>
+<p>Identificar, qualificar e quantificar os agentes nocivos presentes nos ambientes de trabalho e as condições de exposição dos trabalhadores, para fins previdenciários.</p>
+<div class="rpt-section3">6.2 Objetivos Específicos</div>
+<ul>
+  <li>Subsidiar o preenchimento do PPP</li>
+  <li>Determinar o enquadramento ou não em aposentadoria especial</li>
+  <li>Atender à legislação previdenciária vigente (Decreto 3048/99)</li>
+  <li>Documentar medidas de proteção existentes</li>
+</ul>
+
+<div class="rpt-section">7. FUNDAMENTAÇÃO LEGAL</div>
+<ul>
+  <li>Lei nº 8.213/91 — Planos de Benefícios da Previdência Social</li>
+  <li>Decreto nº 3.048/99 — Regulamento da Previdência Social</li>
+  <li>IN INSS/PRES 77/2015</li>
+  <li>NR-15 — Atividades e Operações Insalubres</li>
+  <li>NR-09 — Avaliação e Controle das Exposições Ocupacionais</li>
+</ul>
+
+<div class="rpt-section">8. METODOLOGIA</div>
+<div class="rpt-section3">8.1 Análise Qualitativa</div>
+<p>Inspeção visual e entrevistas com trabalhadores para identificação dos agentes nocivos e condições de exposição.</p>
+<div class="rpt-section3">8.2 Análise Quantitativa</div>
+${equipmentTable()}
+
+<div class="rpt-section">9. AVALIAÇÕES DAS CONDIÇÕES AMBIENTAIS</div>
+${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs }], gheIndex) => {
+  return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
+<table class="rpt-table">
+  <tr><th>Função/Posto</th><th>Agente Nocivo</th><th>Intensidade/Concentração</th><th>LT (NR-15)</th><th>Tempo Exposição</th><th>EPI Eficaz</th><th>Aposentadoria Especial</th></tr>
+  ${sectorWs.map(ws => {
+    const wsRisks = risks.filter(r => {
+      const a = analyses.find(a2 => a2.id === r.analysis_id);
+      return a && a.workstation_id === ws.id;
+    });
+    if (wsRisks.length === 0) {
+      return `<tr><td>${ws.name}</td><td colspan="6" style="text-align:center;">Sem exposição a agentes nocivos acima dos limites de tolerância</td></tr>`;
+    }
+    return wsRisks.map(r => `<tr><td>${ws.name}</td><td>${r.description}</td><td>A avaliar</td><td>NR-15</td><td>Habitual e permanente</td><td>Sim</td><td>Não enquadrado</td></tr>`).join("");
+  }).join("")}
+</table>`;
+}).join("")}
+
+<div class="rpt-section">10. CONCLUSÃO</div>
+<p>Com base nas avaliações realizadas, os trabalhadores da empresa <strong>${company.trade_name || company.name}</strong> estão expostos aos agentes descritos nas tabelas acima. As medidas de controle existentes são adequadas para neutralizar/reduzir a exposição aos agentes nocivos identificados.</p>
+<div class="rpt-callout">O LTCAT deve ser atualizado sempre que houver mudança nas condições ambientais de trabalho ou nos processos produtivos.</div>
+
+<div class="rpt-section">ANEXOS</div>
+<ul>
+  <li>Anexo I — Equipamentos de Medição e Certificados de Calibração</li>
+  <li>Anexo II — Avaliações de Ruído/Químico</li>
+  <li>Anexo III — Habilitação do Responsável Técnico e ART</li>
+</ul>
+
+${signatureBlock(consultant)}
+${footer()}`;
+}
+
+// ==================== LAUDO DE INSALUBRIDADE ====================
+function generateInsalubridadeReport(ctx: ReportContext): string {
+  const { company, workstations, analyses } = ctx;
+  const { consultant, risks, sectorMap } = getCtxData(ctx);
+
+  return `${sharedStyles()}
+${coverPage("LAUDO TÉCNICO DE INSALUBRIDADE", "NR-15", company, consultant)}
+
+${revisionTable()}
+
+<div class="rpt-section">1. DADOS DA EMPRESA</div>
+${companyDataTable(company)}
+
+<div class="rpt-section">2. INTRODUÇÃO</div>
+<p>O presente Laudo Técnico de Insalubridade tem por objetivo avaliar as condições de trabalho da empresa <strong>${company.trade_name || company.name}</strong>, verificando a existência ou não de agentes insalubres nos ambientes laborais, conforme preceitos da Norma Regulamentadora NR-15 (Portaria 3.214/78 do MTE) e legislação pertinente (CLT, artigos 189 a 197).</p>
+
+<div class="rpt-section">3. FUNDAMENTAÇÃO LEGAL</div>
+<ul>
+  <li><strong>CLT — Art. 189:</strong> Consideram-se insalubres as atividades que expõem os trabalhadores a agentes nocivos à saúde, acima dos limites de tolerância.</li>
+  <li><strong>CLT — Art. 192:</strong> Adicional de insalubridade de 40%, 20% ou 10% sobre o salário mínimo, conforme grau máximo, médio ou mínimo.</li>
+  <li><strong>NR-15:</strong> Atividades e operações insalubres — Limites de tolerância para ruído, calor, agentes químicos, poeiras, etc.</li>
+  <li><strong>NR-09:</strong> Avaliação e controle das exposições ocupacionais a agentes físicos, químicos e biológicos.</li>
+</ul>
+
+<div class="rpt-section">4. CONCEITOS E DEFINIÇÕES</div>
+<table class="rpt-table">
+  <tr><th>Conceito</th><th>Definição</th></tr>
+  <tr><td class="label">Insalubridade</td><td>Condição de trabalho que expõe o trabalhador a agentes nocivos à saúde acima dos limites de tolerância (NR-15)</td></tr>
+  <tr><td class="label">Limite de Tolerância</td><td>Concentração ou intensidade máxima de agente nocivo permitida sem causar dano à saúde do trabalhador</td></tr>
+  <tr><td class="label">Adicional 40%</td><td>Grau Máximo — agentes com maior potencial de dano</td></tr>
+  <tr><td class="label">Adicional 20%</td><td>Grau Médio — exposição moderada</td></tr>
+  <tr><td class="label">Adicional 10%</td><td>Grau Mínimo — exposição controlada mas acima do LT</td></tr>
+</table>
+
+<div class="rpt-section">5. METODOLOGIA</div>
+${equipmentTable()}
+<p>As medições foram realizadas conforme metodologias da FUNDACENTRO (NHO 01, NHO 06, NHO 08, NHO 11) e critérios da NR-15 e ACGIH.</p>
+
+<div class="rpt-section">6. AVALIAÇÃO DOS RISCOS OCUPACIONAIS</div>
+${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs }], gheIndex) => {
+  return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
+<table class="rpt-table">
+  <tr><th>Função/Posto</th><th>Agente</th><th>Classificação NR-15</th><th>Intensidade Medida</th><th>Limite Tolerância</th><th>Insalubridade</th><th>Grau</th></tr>
+  ${sectorWs.map(ws => {
+    const wsRisks = risks.filter(r => {
+      const a = analyses.find(a2 => a2.id === r.analysis_id);
+      return a && a.workstation_id === ws.id;
+    });
+    if (wsRisks.length === 0) {
+      return `<tr><td>${ws.name}</td><td colspan="6" style="text-align:center;">Sem exposição insalubre identificada</td></tr>`;
+    }
+    return wsRisks.map(r => `<tr><td>${ws.name}</td><td>${r.description}</td><td>Anexo NR-15</td><td>A avaliar</td><td>NR-15</td><td>${r.risk_level === 'high' || r.risk_level === 'critical' ? '<span class="rpt-badge red">SIM</span>' : '<span class="rpt-badge green">NÃO</span>'}</td><td>${r.risk_level === 'critical' ? '40% (Máximo)' : r.risk_level === 'high' ? '20% (Médio)' : '—'}</td></tr>`).join("");
+  }).join("")}
+</table>`;
+}).join("")}
+
+<div class="rpt-section">7. CONCLUSÃO</div>
+<p>Com base nas avaliações quantitativas e qualitativas realizadas nos ambientes de trabalho da empresa <strong>${company.trade_name || company.name}</strong>, conclui-se:</p>
+<div class="rpt-callout">As atividades e condições de exposição foram avaliadas conforme NR-15 e os resultados estão detalhados nas tabelas acima. A empresa deve adotar as medidas de controle necessárias para eliminação ou neutralização dos agentes insalubres identificados.</div>
+<p>A eliminação ou neutralização da insalubridade poderá ocorrer com a adoção de medidas de proteção coletiva (EPC) ou individual (EPI) que reduzam a intensidade do agente a níveis abaixo dos limites de tolerância.</p>
+
+<div class="rpt-section">ANEXOS</div>
+<ul>
+  <li>Anexo I — Certificados de Calibração dos Equipamentos</li>
+  <li>Anexo II — Resultados das Medições Ambientais</li>
+  <li>Anexo III — ART do Responsável Técnico</li>
+</ul>
+
+${signatureBlock(consultant)}
+${footer()}`;
+}
+
+// ==================== LAUDO DE PERICULOSIDADE ====================
+function generatePericulosidadeReport(ctx: ReportContext): string {
+  const { company, workstations } = ctx;
+  const { consultant, risks, sectorMap } = getCtxData(ctx);
+
+  return `${sharedStyles()}
+${coverPage("LAUDO TÉCNICO DE PERICULOSIDADE", "NR-16", company, consultant)}
+
+${revisionTable()}
+
+<div class="rpt-section">1. DADOS DA EMPRESA</div>
+${companyDataTable(company)}
+
+<div class="rpt-section">2. INTRODUÇÃO</div>
+<p>O presente Laudo Técnico de Periculosidade tem por objetivo avaliar as atividades e operações realizadas pelos trabalhadores da empresa <strong>${company.trade_name || company.name}</strong>, com a finalidade de verificar a caracterização ou não de condições de periculosidade, nos termos da CLT (artigos 193 a 197) e NR-16.</p>
+
+<div class="rpt-section">3. FUNDAMENTAÇÃO LEGAL</div>
+<ul>
+  <li><strong>CLT — Art. 193:</strong> São consideradas atividades ou operações perigosas aquelas que, por sua natureza ou métodos de trabalho, impliquem risco acentuado em virtude de exposição permanente a: inflamáveis, explosivos, energia elétrica, roubos ou outras espécies de violência física.</li>
+  <li><strong>NR-16:</strong> Atividades e Operações Perigosas — Estabelece os critérios para caracterização da periculosidade.</li>
+  <li><strong>Adicional de 30%:</strong> sobre o salário-base, sem os acréscimos resultantes de gratificações, prêmios ou participações nos lucros.</li>
+</ul>
+
+<div class="rpt-section">4. ATIVIDADES PERIGOSAS — CLASSIFICAÇÃO NR-16</div>
+<table class="rpt-table">
+  <tr><th class="teal">Anexo NR-16</th><th class="teal">Descrição</th></tr>
+  <tr><td class="label">Anexo 1</td><td>Atividades com explosivos</td></tr>
+  <tr><td class="label">Anexo 2</td><td>Atividades com inflamáveis</td></tr>
+  <tr><td class="label">Anexo 3</td><td>Atividades com radiações ionizantes ou substâncias radioativas</td></tr>
+  <tr><td class="label">Anexo 4</td><td>Atividades com exposição a roubos ou violência física (segurança)</td></tr>
+  <tr><td class="label">Anexo 5</td><td>Atividades com energia elétrica</td></tr>
+  <tr><td class="label">Anexo 6</td><td>Atividades com motocicleta</td></tr>
+</table>
+
+<div class="rpt-section">5. DESCRIÇÃO DAS ATIVIDADES</div>
+${workstations.map(ws => `<div class="rpt-section3">${ws.name}</div>
+<p>${ws.activity_description || ws.description || ws.tasks_performed || "Atividades operacionais"}</p>`).join("")}
+
+<div class="rpt-section">6. CONCEITOS DAS FORMAS DE EXPOSIÇÃO</div>
+<table class="rpt-table">
+  <tr><th>Forma de Exposição</th><th>Definição</th></tr>
+  <tr><td class="label">Permanente</td><td>Exposição diária, contínua e habitual ao agente perigoso</td></tr>
+  <tr><td class="label">Intermitente</td><td>Exposição em períodos alternados, com interrupções durante a jornada</td></tr>
+  <tr><td class="label">Eventual</td><td>Exposição fortuita, sem regularidade ou previsibilidade</td></tr>
+</table>
+
+<div class="rpt-section">7. FICHA DE PERÍCIA TÉCNICA</div>
+${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs }], gheIndex) => {
+  return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
+<table class="rpt-table">
+  <tr><th>Função/Posto</th><th>Agente Perigoso</th><th>Enquadramento NR-16</th><th>Forma de Exposição</th><th>Periculosidade</th></tr>
+  ${sectorWs.map(ws => {
+    const wsRisks = risks.filter(r => {
+      const a = ctx.analyses.find(a2 => a2.id === r.analysis_id);
+      return a && a.workstation_id === ws.id;
+    });
+    if (wsRisks.length === 0) {
+      return `<tr><td>${ws.name}</td><td colspan="4" style="text-align:center;">Atividades não enquadradas como perigosas</td></tr>`;
+    }
+    return wsRisks.map(r => `<tr><td>${ws.name}</td><td>${r.description}</td><td>A avaliar</td><td>Habitual</td><td>${r.risk_level === 'critical' ? '<span class="rpt-badge red">CARACTERIZADA (30%)</span>' : '<span class="rpt-badge green">NÃO CARACTERIZADA</span>'}</td></tr>`).join("");
+  }).join("")}
+</table>`;
+}).join("")}
+
+<div class="rpt-section">8. CONCLUSÃO E TERMO DE RESPONSABILIDADE</div>
+<p>Com base na análise técnica realizada, conclui-se que as atividades e operações desenvolvidas na empresa <strong>${company.trade_name || company.name}</strong> foram avaliadas conforme NR-16 e legislação pertinente.</p>
+<div class="rpt-callout">O laudo deve ser atualizado sempre que houver alteração nas condições de trabalho, processos ou introdução de novos agentes perigosos.</div>
+
+${signatureBlock(consultant)}
+${footer()}`;
+}
+
+// ==================== PCA ====================
+function generatePCAReport(ctx: ReportContext): string {
+  const { company, workstations } = ctx;
+  const { consultant, sectorMap } = getCtxData(ctx);
+
+  return `${sharedStyles()}
+${coverPage("PROGRAMA DE CONSERVAÇÃO AUDITIVA", "PCA", company, consultant)}
+
+${revisionTable()}
+
+<div class="rpt-section">1. DADOS DA EMPRESA</div>
+${companyDataTable(company)}
+
+<div class="rpt-section">2. INTRODUÇÃO</div>
+<p>O Programa de Conservação Auditiva (PCA) é um conjunto de medidas coordenadas que visam prevenir ou estabilizar as perdas auditivas ocupacionais. Constitui-se em uma das medidas de controle dos riscos à saúde mais importantes para trabalhadores expostos a Níveis de Pressão Sonora Elevados (NPSE), em conformidade com a NR-07, NR-09 e NR-15.</p>
+
+<div class="rpt-section">3. OBJETIVOS ESPECÍFICOS DO PCA</div>
+<ul>
+  <li>Identificar trabalhadores expostos a NPSE acima do nível de ação (80 dB(A))</li>
+  <li>Estabelecer critérios audiométricos para monitoramento da audição</li>
+  <li>Selecionar e controlar o uso adequado de Equipamentos de Proteção Auditiva (EPA)</li>
+  <li>Reduzir ou eliminar a exposição a NPSE por meio de medidas de engenharia e administrativas</li>
+  <li>Conscientizar os trabalhadores sobre os riscos e prevenção da PAIR</li>
+</ul>
+
+<div class="rpt-section">4. MECANISMO DA AUDIÇÃO</div>
+<p>O aparelho auditivo humano é composto por ouvido externo (pavilhão auricular e canal auditivo), ouvido médio (tímpano e ossículos) e ouvido interno (cóclea). A exposição prolongada a níveis sonoros elevados pode causar danos irreversíveis às células ciliadas da cóclea, resultando em Perda Auditiva Induzida por Ruído (PAIR).</p>
+
+<div class="rpt-section">5. DANOS PROVOCADOS PELO RUÍDO</div>
+<table class="rpt-table">
+  <tr><th class="teal">Tipo de Dano</th><th class="teal">Descrição</th></tr>
+  <tr><td class="label">PAIR</td><td>Perda auditiva sensorioneural, bilateral, irreversível e progressiva</td></tr>
+  <tr><td class="label">Zumbido (Tinnitus)</td><td>Percepção de som sem estímulo externo</td></tr>
+  <tr><td class="label">Efeitos Extra-auditivos</td><td>Estresse, irritabilidade, distúrbios do sono, hipertensão, dificuldade de concentração</td></tr>
+  <tr><td class="label">Trauma Acústico</td><td>Perda auditiva súbita por exposição a ruído de impacto (≥130 dB)</td></tr>
+</table>
+
+<div class="rpt-section">6. AVALIAÇÕES DA ÁREA DE TRABALHO</div>
+${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs }], gheIndex) => {
+  return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
+<table class="rpt-table">
+  <tr><th>Função/Posto</th><th>Nível Ruído (dB(A))</th><th>LT NR-15</th><th>Nível Ação</th><th>EPA Recomendado</th><th>NRRsf (dB)</th></tr>
+  ${sectorWs.map(ws => `<tr><td>${ws.name}</td><td>A avaliar</td><td>85 dB(A) / 8h</td><td>80 dB(A)</td><td>Protetor tipo concha/plug</td><td>A calcular</td></tr>`).join("")}
+</table>`;
+}).join("")}
+
+<div class="rpt-section">7. PROTEÇÃO AUDITIVA INDIVIDUAL</div>
+<div class="rpt-section3">Cálculo de Atenuação — NRRsf</div>
+<p>O Nível de Ruído com Proteção (NRP) é calculado pela fórmula: <strong>NRP = NPS — NRRsf</strong>, onde NPS é o Nível de Pressão Sonora e NRRsf é o Nível de Redução de Ruído (simplificado) do protetor.</p>
+
+<div class="rpt-section">8. CRITÉRIOS AUDIOMÉTRICOS</div>
+<p>Conforme Portaria nº 19/1998, os exames audiométricos devem seguir os seguintes critérios:</p>
+<table class="rpt-table">
+  <tr><th>Critério</th><th>Descrição</th></tr>
+  <tr><td class="label">Audiometria de Referência</td><td>Realizada na admissão, após repouso auditivo mínimo de 14 horas</td></tr>
+  <tr><td class="label">Audiometria Sequencial</td><td>Semestral para expostos a ruído ≥ nível de ação</td></tr>
+  <tr><td class="label">Desencadeamento de PAIR</td><td>Piora ≥10 dB na média (3000, 4000 e 6000 Hz) em relação à referência</td></tr>
+  <tr><td class="label">Agravamento</td><td>Piora adicional ≥10 dB após diagnóstico de PAIR</td></tr>
+</table>
+
+<div class="rpt-section">9. AÇÕES EDUCATIVAS</div>
+<ul>
+  <li>Palestras de conscientização sobre riscos do ruído e uso correto de EPA</li>
+  <li>Treinamento para colocação e retirada dos protetores auriculares</li>
+  <li>Material informativo sobre prevenção de PAIR</li>
+  <li>DDS (Diálogo Diário de Segurança) periódico sobre conservação auditiva</li>
+</ul>
+
+<div class="rpt-section">10. CRONOGRAMA DE ATIVIDADES</div>
+<table class="rpt-table">
+  <tr><th>Atividade</th><th>Jan-Mar</th><th>Abr-Jun</th><th>Jul-Set</th><th>Out-Dez</th></tr>
+  <tr><td>Monitoramento Ambiental</td><td style="background:#C8E6C9;">✓</td><td></td><td style="background:#C8E6C9;">✓</td><td></td></tr>
+  <tr><td>Audiometria Ocupacional</td><td style="background:#C8E6C9;">✓</td><td></td><td style="background:#C8E6C9;">✓</td><td></td></tr>
+  <tr><td>Treinamento EPA</td><td style="background:#C8E6C9;">✓</td><td></td><td></td><td style="background:#C8E6C9;">✓</td></tr>
+  <tr><td>Inspeção de EPAs</td><td style="background:#C8E6C9;">✓</td><td style="background:#C8E6C9;">✓</td><td style="background:#C8E6C9;">✓</td><td style="background:#C8E6C9;">✓</td></tr>
+</table>
+
+<div class="rpt-section">11. CONCLUSÃO</div>
+<p>O PCA da empresa <strong>${company.trade_name || company.name}</strong> visa garantir a preservação da saúde auditiva dos trabalhadores expostos a NPSE, através de ações integradas de monitoramento, proteção e conscientização.</p>
+
+<div class="rpt-section">ANEXOS</div>
+<ul>
+  <li>Anexo I — Certificados de Calibração (Dosímetro/Decibelímetro)</li>
+  <li>Anexo II — Laudos de Audiometria</li>
+  <li>Anexo III — Fichas de Entrega de EPA</li>
+</ul>
+
+${signatureBlock(consultant)}
+${footer()}`;
+}
+
+// ==================== PPR ====================
+function generatePPRReport(ctx: ReportContext): string {
+  const { company, workstations } = ctx;
+  const { consultant, sectorMap } = getCtxData(ctx);
+
+  return `${sharedStyles()}
+${coverPage("PROGRAMA DE PROTEÇÃO RESPIRATÓRIA", "PPR", company, consultant)}
+
+${revisionTable()}
+
+<div class="rpt-section">1. DADOS DA EMPRESA</div>
+${companyDataTable(company)}
+
+<div class="rpt-section">2. OBJETIVO</div>
+<p>Estabelecer diretrizes e procedimentos para a seleção, utilização, manutenção e controle de Equipamentos de Proteção Respiratória (EPR) na empresa <strong>${company.trade_name || company.name}</strong>, em conformidade com a IN SSST/MTE nº 01/1994, Portaria nº 672/2021 e NR-09.</p>
+
+<div class="rpt-section">3. APLICAÇÃO</div>
+<p>Este programa é aplicável a todas as atividades que exponham os trabalhadores a contaminantes atmosféricos (poeiras, fumos, névoas, gases e vapores) ou a atmosferas com deficiência de oxigênio.</p>
+
+<div class="rpt-section">4. RESPONSABILIDADES</div>
+<table class="rpt-table">
+  <tr><th>Responsável</th><th>Atribuições</th></tr>
+  <tr><td class="label">Administrador do PPR</td><td>Coordenar as atividades do programa, selecionar EPR adequados, manter registros</td></tr>
+  <tr><td class="label">Empregador</td><td>Garantir implementação, fornecer EPR aprovados, treinar trabalhadores</td></tr>
+  <tr><td class="label">Trabalhador</td><td>Usar EPR conforme orientação, inspecionar antes do uso, comunicar defeitos</td></tr>
+  <tr><td class="label">SESMT</td><td>Monitorar exposições, avaliar eficácia dos EPR, acompanhar saúde respiratória</td></tr>
+</table>
+
+<div class="rpt-section">5. DOCUMENTOS DE REFERÊNCIA</div>
+<ul>
+  <li>IN SSST/MTE nº 01/1994 — Programa de Proteção Respiratória</li>
+  <li>Portaria nº 672/2021 — Normas sobre EPR</li>
+  <li>NR-06 — Equipamento de Proteção Individual</li>
+  <li>NR-09 — Avaliação e Controle das Exposições Ocupacionais</li>
+  <li>NR-15 — Atividades e Operações Insalubres</li>
+  <li>ABNT/NBR 12543 — Equipamentos de Proteção Respiratória</li>
+</ul>
+
+<div class="rpt-section">6. DEFINIÇÕES</div>
+<table class="rpt-table">
+  <tr><th>Termo</th><th>Definição</th></tr>
+  <tr><td class="label">EPR</td><td>Equipamento de Proteção Respiratória</td></tr>
+  <tr><td class="label">FPA</td><td>Fator de Proteção Atribuído</td></tr>
+  <tr><td class="label">IPVS</td><td>Imediatamente Perigoso à Vida ou à Saúde</td></tr>
+  <tr><td class="label">PFF</td><td>Peça Facial Filtrante</td></tr>
+  <tr><td class="label">LT</td><td>Limite de Tolerância</td></tr>
+</table>
+
+<div class="rpt-section">7. SELEÇÃO DE RESPIRADORES</div>
+<div class="rpt-section3">7.1 Critérios de Seleção</div>
+<p>A seleção do tipo de EPR deve considerar: natureza do contaminante (partículas, gases/vapores), concentração do contaminante, Limite de Tolerância (NR-15 ou ACGIH), Fator de Proteção necessário e condições de uso.</p>
+
+<table class="rpt-table">
+  <tr><th class="teal">Tipo de Contaminante</th><th class="teal">Tipo de EPR Recomendado</th><th class="teal">FPA Mínimo</th></tr>
+  <tr><td>Poeiras e Névoas</td><td>PFF2 ou Peça facial + filtro P2</td><td>10</td></tr>
+  <tr><td>Fumos Metálicos</td><td>PFF2/PFF3 ou Peça facial + filtro P3</td><td>10-50</td></tr>
+  <tr><td>Gases e Vapores Orgânicos</td><td>Peça facial + filtro químico VO</td><td>10-50</td></tr>
+  <tr><td>Gases Ácidos</td><td>Peça facial + filtro químico GA</td><td>10-50</td></tr>
+  <tr><td>Atmosfera IPVS</td><td>Máscara autônoma ou linha de ar</td><td>1000+</td></tr>
+</table>
+
+<div class="rpt-section">8. DESCRIÇÃO DAS ATIVIDADES E RISCOS RESPIRATÓRIOS</div>
+${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs }], gheIndex) => {
+  return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
+<table class="rpt-table">
+  <tr><th>Função/Posto</th><th>Contaminante</th><th>Concentração</th><th>LT</th><th>EPR Recomendado</th><th>FPA</th></tr>
+  ${sectorWs.map(ws => `<tr><td>${ws.name}</td><td>A avaliar</td><td>A avaliar</td><td>NR-15/ACGIH</td><td>A definir conforme exposição</td><td>—</td></tr>`).join("")}
+</table>`;
+}).join("")}
+
+<div class="rpt-section">9. TREINAMENTOS</div>
+<ul>
+  <li>Natureza dos contaminantes e riscos à saúde respiratória</li>
+  <li>Seleção, uso, colocação e retirada correta do EPR</li>
+  <li>Ensaio de vedação (qualitativo e quantitativo)</li>
+  <li>Inspeção, higienização, manutenção e guarda do EPR</li>
+  <li>Situações de emergência e procedimentos de fuga</li>
+</ul>
+
+<div class="rpt-section">10. MANUTENÇÃO, INSPEÇÃO E GUARDA</div>
+<table class="rpt-table">
+  <tr><th>Ação</th><th>Frequência</th><th>Responsável</th></tr>
+  <tr><td>Inspeção Visual</td><td>Antes de cada uso</td><td>Trabalhador</td></tr>
+  <tr><td>Higienização</td><td>Após cada uso</td><td>Trabalhador/SESMT</td></tr>
+  <tr><td>Troca de Filtros</td><td>Conforme saturação ou prazo</td><td>SESMT</td></tr>
+  <tr><td>Ensaio de Vedação</td><td>Anual ou na troca de modelo</td><td>SESMT</td></tr>
+</table>
+
+<div class="rpt-section">11. PREVENÇÃO DE PNEUMOCONIOSE</div>
+<p>Especial atenção deve ser dada à prevenção de pneumoconioses (silicose, asbestose, siderose), através do monitoramento contínuo da exposição, uso adequado de EPR e exames periódicos (espirometria e Rx de tórax).</p>
+
+<div class="rpt-section">12. CRONOGRAMA DE AÇÃO</div>
+<table class="rpt-table">
+  <tr><th>Atividade</th><th>Jan-Mar</th><th>Abr-Jun</th><th>Jul-Set</th><th>Out-Dez</th></tr>
+  <tr><td>Avaliação Ambiental</td><td style="background:#C8E6C9;">✓</td><td></td><td style="background:#C8E6C9;">✓</td><td></td></tr>
+  <tr><td>Treinamento EPR</td><td style="background:#C8E6C9;">✓</td><td></td><td></td><td style="background:#C8E6C9;">✓</td></tr>
+  <tr><td>Ensaio de Vedação</td><td style="background:#C8E6C9;">✓</td><td></td><td></td><td></td></tr>
+  <tr><td>Exames Complementares</td><td style="background:#C8E6C9;">✓</td><td></td><td style="background:#C8E6C9;">✓</td><td></td></tr>
+</table>
+
+<div class="rpt-section">13. ENCERRAMENTO</div>
+<p>O presente PPR da empresa <strong>${company.trade_name || company.name}</strong> estabelece as diretrizes para proteção respiratória dos trabalhadores, devendo ser revisado anualmente ou sempre que houver alteração nas condições de exposição.</p>
+
+<div class="rpt-section">ANEXOS</div>
+<ul>
+  <li>Anexo 1 — Avaliação dos Riscos Respiratórios</li>
+  <li>Anexo 2 — Tipos de Respiradores</li>
+  <li>Anexo 3 — Fatores de Proteção Atribuídos</li>
+  <li>Anexo 4 — Ensaio de Vedação da Máscara</li>
+  <li>Anexo 5 — Certificados de Aprovação (CA) dos EPRs</li>
+</ul>
+
+${signatureBlock(consultant)}
+${footer()}`;
+}
+
+// ==================== GENERIC FALLBACK ====================
+function generateGenericReport(ctx: ReportContext): string {
+  const { company, workstations, analyses, reportType } = ctx;
+  const { consultant, risks, actions } = getCtxData(ctx);
+
+  return `${sharedStyles()}
+${coverPage(reportType, reportType, company, consultant)}
+
+<div class="rpt-section">1. IDENTIFICAÇÃO DA EMPRESA</div>
+${companyDataTable(company)}
+
+<div class="rpt-section">2. ANÁLISES REALIZADAS</div>
+${analyses.length > 0 ? `<table class="rpt-table">
+  <tr><th>Posto</th><th>Método</th><th>Score</th><th>Observações</th></tr>
+  ${analyses.map(a => {
+    const ws = workstations.find(w => w.id === a.workstation_id);
+    return `<tr><td>${ws?.name || "—"}</td><td>${a.method}</td><td>${a.score}</td><td>${a.notes}</td></tr>`;
+  }).join("")}
+</table>` : "<p>Nenhuma análise realizada.</p>"}
+
+<div class="rpt-section">3. RISCOS IDENTIFICADOS</div>
+${risks.length > 0 ? `<table class="rpt-table">
+  <tr><th>Descrição</th><th>Score</th><th>Nível</th></tr>
+  ${risks.map(r => `<tr><td>${r.description}</td><td>${r.risk_score}</td><td>${riskLevelLabel(r.risk_level)}</td></tr>`).join("")}
+</table>` : "<p>Nenhum risco identificado.</p>"}
+
+<div class="rpt-section">4. RECOMENDAÇÕES</div>
+${actions.length > 0 ? actions.map(ap => `<p>• ${ap.description} (${ap.responsible} — ${ap.deadline})</p>`).join("") : "<p>Sem recomendações.</p>"}
+
+${signatureBlock(consultant)}
+${footer()}`;
 }
