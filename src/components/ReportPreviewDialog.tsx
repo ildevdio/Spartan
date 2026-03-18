@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Printer, FileText, Loader2, ShieldCheck } from "lucide-react";
 import { useRef, useState } from "react";
 import { ReportSignatureDialog, type SignatureResult } from "./ReportSignatureDialog";
+import { toast } from "sonner";
 
 interface ReportPreviewDialogProps {
   open: boolean;
