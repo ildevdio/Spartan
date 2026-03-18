@@ -592,7 +592,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
         <div style="font-size:18px; font-weight:bold; padding:4px;">${coupling}</div>
       </td>
       <td style="width:25%; vertical-align:top; padding:4px;">
-        <img src="/reba/ombro.png" alt="Ombro" style="height:80px; margin-bottom:4px;" onerror="this.style.display='none'" />
+        <img src="/reba/ombro.png" alt="Ombro" style="width:130px; height:auto; margin-bottom:6px; border:1px solid #ccc; border-radius:4px; padding:4px; background:#fafafa;" onerror="this.style.display='none'" />
         <div style="background:#757575; color:white; font-weight:bold; padding:6px; margin-bottom:2px;">Ombro</div>
         <div style="font-size:18px; font-weight:bold; padding:4px;">${upperArm}</div>
         <div style="font-size:9px; color:#555;">Add + 1 se em abdução ou rotação</div>
