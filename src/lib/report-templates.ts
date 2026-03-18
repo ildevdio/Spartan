@@ -650,7 +650,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
     <!-- Row 5: Pernas | Resultado | Punho -->
     <tr>
       <td style="vertical-align:top; padding:4px;">
-        <img src="/reba/pernas.png" alt="Pernas" style="height:70px; margin-bottom:4px;" onerror="this.style.display='none'" />
+        <img src="/reba/pernas.png" alt="Pernas" style="width:120px; height:auto; margin-bottom:6px; border:1px solid #ccc; border-radius:4px; padding:4px; background:#fafafa;" onerror="this.style.display='none'" />
         <div style="background:#DAA520; color:white; font-weight:bold; padding:6px; margin-bottom:2px;">Pernas</div>
         <div style="font-size:18px; font-weight:bold; padding:4px;">${legs}</div>
       </td>
