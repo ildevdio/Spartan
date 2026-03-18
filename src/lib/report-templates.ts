@@ -1,6 +1,6 @@
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, ReportType, Task, PsychosocialAnalysis } from "./types";
 import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses } from "./mock-data";
-import { riskLevelLabel, statusLabel } from "./types";
+import { riskLevelLabel, statusLabel, analysisStatusLabel } from "./types";
 
 interface ReportContext {
   company: Company;
