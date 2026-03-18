@@ -528,47 +528,47 @@ function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportC
 </div>
 
 <div style="background:#333; color:white; padding:6px 12px; font-weight:bold; font-size:12px; text-align:center; margin-top:2px;">DESCRIÇÃO DOS RISCOS ERGONÔMICOS</div>
-<table class="rpt-table" style="font-size:11px;">
+<table style="width:100%; border-collapse:collapse; font-size:11px; border:1px solid #000;">
   <tr>
-    <th rowspan="2" style="width:100px;"></th>
-    <th colspan="2">Identificação</th>
-    <th>Perfil de Exposição Existente</th>
-    <th colspan="4">Avaliação do Risco¹</th>
+    <td rowspan="2" style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px; width:90px;"></td>
+    <td colspan="2" style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">Identificação</td>
+    <td colspan="2" style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">Perfil de Exposição Existente</td>
+    <td colspan="3" style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">Avaliação do Risco¹</td>
   </tr>
   <tr>
-    <th>Tipos</th>
-    <th>Identificação de perigos</th>
-    <th>Possíveis Danos</th>
-    <th>Fonte Geradora</th>
-    <th>Tempo de exposição</th>
-    <th>P</th>
-    <th>S</th>
-    <th>NR</th>
+    <td style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">Tipos</td>
+    <td style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">Identificação de perigos</td>
+    <td style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">Possíves Danos</td>
+    <td style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">Fonte Geradora</td>
+    <td style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">Tempo de exposição</td>
+    <td style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">P</td>
+    <td style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">S</td>
+    <td style="border:1px solid #000; background:#c6efce; text-align:center; font-weight:bold; font-size:10px; padding:4px;">NR</td>
   </tr>
   ${ergRiskRows.map(r => {
     let typeCell = "";
     if (r.type !== currentType) {
       const count = typeGroups.get(r.type) || 1;
-      typeCell = `<td rowspan="${count}" class="label" style="font-size:10px; text-align:center; font-weight:bold;">${r.type}</td>`;
+      typeCell = `<td rowspan="${count}" style="border:1px solid #000; text-align:center; font-weight:bold; font-size:10px; padding:4px; vertical-align:middle;">${r.type}</td>`;
       currentType = r.type;
     }
     return `<tr>${typeCell}
-      <td>${r.hazard}</td>
-      <td>${r.damage}</td>
-      <td>${r.source}</td>
-      <td>${r.exposure}</td>
-      <td style="text-align:center;">${r.p}</td>
-      <td style="text-align:center;">${r.s}</td>
-      <td style="text-align:center; ${nrBadgeStyle(r.nr)}">${r.nr}</td>
+      <td style="border:1px solid #000; padding:4px; font-size:10px;">${r.hazard}</td>
+      <td style="border:1px solid #000; padding:4px; font-size:10px;">${r.damage}</td>
+      <td style="border:1px solid #000; padding:4px; font-size:10px;">${r.source}</td>
+      <td style="border:1px solid #000; padding:4px; font-size:10px;">${r.exposure}</td>
+      <td style="border:1px solid #000; padding:4px; font-size:10px; text-align:center;">${r.p}</td>
+      <td style="border:1px solid #000; padding:4px; font-size:10px; text-align:center;">${r.s}</td>
+      <td style="border:1px solid #000; padding:4px; font-size:10px; text-align:center; font-weight:bold; ${nrBadgeStyle(r.nr)}">${r.nr}</td>
     </tr>`;
   }).join('')}
 </table>
-<div style="border:1px solid #B0BEC5; padding:6px 10px; font-size:9px; color:#333; margin-top:0;">
+<div style="border:1px solid #000; padding:6px 10px; font-size:9px; color:#333; margin-top:0;">
   <p style="margin:2px 0;"><strong>Legendas</strong></p>
   <table style="width:100%; font-size:9px; border-collapse:collapse;">
     <tr>
-      <td style="padding:4px; border:1px solid #ccc;">1 - <strong>P:</strong> Probabilidade / <strong>S:</strong> Gravidade (Severidade) / <strong>B:</strong> Baixa/ <strong>M:</strong> Moderada / <strong>A:</strong> Alta/ <strong>E:</strong> excessivo</td>
-      <td style="padding:4px; border:1px solid #ccc;"><strong>NR:</strong> Nível de Risco/ <strong>C:</strong> Crítico / <strong>A:</strong> Alto / <strong>M:</strong> Médio / <strong>B:</strong> Baixo / <strong>I:</strong> Irrelevante</td>
+      <td style="padding:4px; border:1px solid #000;">1 - <strong>P:</strong> Probabilidade / <strong>S:</strong> Gravidade (Severidade) / <strong>B:</strong> Baixa/ <strong>M:</strong> Moderada / <strong>A:</strong> Alta/ <strong>E:</strong> excessivo</td>
+      <td style="padding:4px; border:1px solid #000;"><strong>NR:</strong> Nível de Risco/ <strong>C:</strong> Crítico / <strong>A:</strong> Alto / <strong>M:</strong> Médio / <strong>B:</strong> Baixo / <strong>I:</strong> Irrelevante</td>
     </tr>
   </table>
 </div>
