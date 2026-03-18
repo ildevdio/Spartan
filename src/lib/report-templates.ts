@@ -823,7 +823,7 @@ ${wsAnalyses.length > 0 ? `
 ${wsRisks.length > 0 ? `
 <div class="rpt-section3">Riscos Ergonômicos Identificados</div>
 <table class="rpt-table">
-  <tr><th>Descrição</th><th>P×E×C</th><th>Score</th><th>Nível</th></tr>
+  <tr><th>Descrição do Risco</th><th>Cálculo (P×E×C)</th><th>Pontuação</th><th>Nível de Risco</th></tr>
   ${wsRisks.map(r => `<tr><td>${r.description}</td><td>${r.probability}×${r.exposure}×${r.consequence}</td><td><strong>${r.risk_score}</strong></td><td><strong>${riskLevelLabel(r.risk_level)}</strong></td></tr>`).join("")}
 </table>` : ''}
 ${wsPhotos.length > 0 ? `
