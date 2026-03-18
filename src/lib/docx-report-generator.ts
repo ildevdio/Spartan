@@ -2137,7 +2137,7 @@ async function waitForStableRender(root: HTMLElement): Promise<void> {
   await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
   await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
-  const fonts = (document as Document & { fonts?: { ready?: Promise<unknown> } }).fonts;
+  const fonts = (document as unknown as { fonts?: { ready?: Promise<unknown> } }).fonts;
   if (fonts?.ready) {
     await fonts.ready.catch(() => undefined);
   }
@@ -2170,13 +2170,13 @@ function canvasHasVisibleContent(canvas: HTMLCanvasElement): boolean {
   return total > 0 && nonWhite / total > 0.005;
 }
 
-function saveCanvasAsPaginatedPdf(canvas: HTMLCanvasElement, fileName: string, quality = 0.95): void {
-  const { jsPDF } = (window as unknown as { jspdf?: { jsPDF: typeof import("jspdf").jsPDF } }).jspdf || {};
-  if (!jsPDF) {
-    throw new Error("jsPDF indisponível para gerar PDF.");
-  }
-
-  const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+function saveCanvasAsPaginatedPdf(
+  canvas: HTMLCanvasElement,
+  jsPDFCtor: typeof import("jspdf").jsPDF,
+  fileName: string,
+  quality = 0.95
+): void {
+  const pdf = new jsPDFCtor({ unit: "mm", format: "a4", orientation: "portrait" });
   const pageHeightPx = Math.floor((canvas.width * PDF_PAGE_HEIGHT_MM) / PDF_PAGE_WIDTH_MM);
 
   let sourceY = 0;
@@ -2214,7 +2214,7 @@ function saveCanvasAsPaginatedPdf(canvas: HTMLCanvasElement, fileName: string, q
 
 async function tryGeneratePdfWithCanvas(container: HTMLElement, fileName: string, scale: number): Promise<boolean> {
   const html2canvas = (await import("html2canvas")).default;
-  await import("jspdf");
+  const { jsPDF } = await import("jspdf");
 
   const width = Math.ceil(container.scrollWidth);
   const height = Math.ceil(container.scrollHeight);
@@ -2237,7 +2237,7 @@ async function tryGeneratePdfWithCanvas(container: HTMLElement, fileName: string
     return false;
   }
 
-  saveCanvasAsPaginatedPdf(canvas, fileName, scale >= 3 ? 0.98 : 0.95);
+  saveCanvasAsPaginatedPdf(canvas, jsPDF, fileName, scale >= 3 ? 0.98 : 0.95);
   return true;
 }
 
