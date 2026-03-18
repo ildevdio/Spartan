@@ -696,26 +696,19 @@ ${workstations.map(ws => {
 </ul>
 
 <div class="rpt-section">7. ESTUDO ERGONÔMICO DO TRABALHO</div>
-<p>A realização do Estudo Ergonômico do Trabalho é indispensável não apenas pelo cumprimento da NR17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral. O presente trabalho foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT.</p>
-
-${photos.length > 0 ? `<div class="rpt-section3">Registro Postural</div>
-<p>Foram registradas <strong>${photos.length}</strong> posturas de trabalho:</p>
+<p>A realização do Estudo Ergonômico do Trabalho (EET) é indispensável não apenas pelo cumprimento da NR-17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral.</p>
+<p>O presente estudo foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT, contemplando <strong>${workstations.length}</strong> posto(s) de trabalho, <strong>${analyses.length}</strong> análise(s) ergonômica(s) e <strong>${photos.length}</strong> registro(s) fotográfico(s) de postura.</p>
+${analyses.length > 0 ? `
+<div class="rpt-section3">Resumo das Avaliações</div>
 <table class="rpt-table">
-  <tr><th>Postura</th><th>Descrição</th><th>Data</th></tr>
-  ${photos.map(p => `<tr><td><strong>${p.posture_type}</strong></td><td>${p.notes}</td><td>${p.created_at}</td></tr>`).join("")}
-</table>` : ""}
-
-${analyses.length > 0 ? `<div class="rpt-section3">Análises Ergonômicas</div>
-<p>Métodos utilizados: <strong>${methods}</strong></p>
-${analyses.map(a => {
-  const ws = workstations.find(w => w.id === a.workstation_id);
-  const risk = risks.find(r => r.analysis_id === a.id);
-  return `<table class="rpt-table"><tr><td class="label" colspan="2">${ws?.name || "—"}</td></tr>
-    <tr><td class="label" style="width:200px;">Método</td><td>${a.method}</td></tr>
-    <tr><td class="label">Score</td><td>${a.score}</td></tr>
-    <tr><td class="label">Nível de Risco</td><td>${risk ? riskLevelLabel(risk.risk_level) : "N/A"}</td></tr>
-    <tr><td class="label">Observações</td><td>${a.notes}</td></tr></table>`;
-}).join("")}` : "<p>Nenhuma análise realizada.</p>"}
+  <tr><th>Posto de Trabalho</th><th>Método Aplicado</th><th>Pontuação</th><th>Nível de Risco</th></tr>
+  ${analyses.map(a => {
+    const ws = workstations.find(w => w.id === a.workstation_id);
+    const risk = risks.find(r => r.analysis_id === a.id);
+    return `<tr><td>${ws?.name || "—"}</td><td>${a.method}</td><td><strong>${a.score}</strong></td><td><strong>${risk ? riskLevelLabel(risk.risk_level) : "N/A"}</strong></td></tr>`;
+  }).join("")}
+</table>
+<p style="font-size:11px; color:#64748b;">Os detalhes completos de cada avaliação estão apresentados nas seções 7.1 (Relatório por Posto) e 7.2 (Fichas REBA), e o registro fotográfico encontra-se no Anexo V.</p>` : '<div class="rpt-callout warning">Nenhuma análise ergonômica realizada até o momento. Recomenda-se a aplicação dos métodos REBA, RULA ou ROSA conforme o tipo de posto.</div>'}
 
 <div class="page-break"></div>
 <div class="rpt-section2">7.1 RELATÓRIO DA ANÁLISE ERGONÔMICA POR POSTO</div>
