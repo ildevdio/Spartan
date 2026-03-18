@@ -742,7 +742,7 @@ ${riskMatrix()}
 
 ${risks.length > 0 ? `<div class="rpt-section3">Riscos Identificados</div>
 <table class="rpt-table">
-  <tr><th>GHE/Posto</th><th>Risco</th><th>P × E × C</th><th>Score</th><th>Nível</th></tr>
+  <tr><th>Posto de Trabalho</th><th>Descrição do Risco</th><th>Cálculo (P×E×C)</th><th>Pontuação</th><th>Nível de Risco</th></tr>
   ${risks.map((r, i) => {
     const analysis = analyses.find(a => a.id === r.analysis_id);
     const ws = analysis ? workstations.find(w => w.id === analysis.workstation_id) : null;
