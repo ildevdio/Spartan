@@ -27,8 +27,12 @@ export default function PostosPage() {
   const [tasks, setTasks] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const descriptionError = description.trim().length > 0 && description.trim().length < 25
+    ? `Mínimo de 25 caracteres (${description.trim().length}/25)`
+    : "";
+
   const handleSave = async () => {
-    if (!name.trim() || !sectorId) return;
+    if (!name.trim() || !sectorId || description.trim().length < 25) return;
     if (editingId) {
       await updateWorkstation(editingId, { name, sector_id: sectorId, description, activity_description: description, tasks_performed: tasks });
     } else {
