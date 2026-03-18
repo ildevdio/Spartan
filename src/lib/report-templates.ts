@@ -906,12 +906,13 @@ ${actions.length > 0 ? `
 <div class="page-break"></div>
 <div class="rpt-section">ANEXO V — REGISTRO FOTOGRÁFICO</div>
 ${photos.length > 0 ? `
-<p>Total de registros fotográficos: <strong>${photos.length}</strong></p>
+<p>Total de registros fotográficos capturados: <strong>${photos.length}</strong></p>
 <table class="rpt-table">
-  <tr><th>Nº</th><th>Posto</th><th>Tipo de Postura</th><th>Observações</th><th>Data</th></tr>
+  <tr><th>Nº</th><th>Posto de Trabalho</th><th>Tipo de Postura</th><th>Observações</th><th>Data do Registro</th></tr>
   ${photos.map((p, i) => {
     const ws = workstations.find(w => w.id === p.workstation_id);
-    return `<tr><td>${i + 1}</td><td>${ws?.name || "—"}</td><td>${p.posture_type}</td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`;
+    const postureLabel = p.posture_type === 'sentado' ? 'Sentado' : p.posture_type === 'em_pe' ? 'Em pé' : p.posture_type;
+    return `<tr><td>${i + 1}</td><td>${ws?.name || "—"}</td><td>${postureLabel}</td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`;
   }).join("")}
 </table>` : '<div class="rpt-callout warning">Nenhum registro fotográfico disponível.</div>'}
 
