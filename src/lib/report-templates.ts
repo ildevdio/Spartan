@@ -597,246 +597,158 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
   const riskAction = finalScore <= 1 ? "Não necessária" : finalScore <= 3 ? "Pode ser necessária" : finalScore <= 7 ? "Necessária" : finalScore <= 10 ? "Necessária em breve" : "Necessária imediatamente";
   const resultColor = finalScore <= 1 ? "#C8E6C9" : finalScore <= 3 ? "#C8E6C9" : finalScore <= 7 ? "#FFF9C4" : finalScore <= 10 ? "#FFE0B2" : "#FFCDD2";
 
-  const cellStyle = "border:1px solid #000; padding:5px; font-size:11px;";
-  const headerStyle = "border:1px solid #000; padding:6px; font-size:11px; font-weight:bold; background:#D9E2F3; text-align:center;";
-  const groupHeaderStyle = "border:1px solid #000; padding:6px; font-size:12px; font-weight:bold; background:#4472C4; color:white; text-align:center;";
-  const labelStyle = "border:1px solid #000; padding:5px; font-size:11px; background:#F2F2F2; font-weight:bold;";
-  const scoreStyle = "border:1px solid #000; padding:5px; font-size:14px; font-weight:bold; text-align:center;";
+  const cs = "border:1px solid #000; padding:5px; font-size:11px;";
+  const hs = "border:1px solid #000; padding:6px; font-size:11px; font-weight:bold; background:#D9E2F3; text-align:center;";
+  const gs = "border:1px solid #000; padding:6px; font-size:12px; font-weight:bold; background:#4472C4; color:white; text-align:center;";
+  const ls = "border:1px solid #000; padding:5px; font-size:11px; background:#F2F2F2; font-weight:bold;";
+  const ss = "border:1px solid #000; padding:5px; font-size:14px; font-weight:bold; text-align:center;";
 
-  // Highlight function for classification table
-  function highlightRow(min: number, max: number): string {
+  const companyName = ctx.company.trade_name || ctx.company.name;
+  const gheLabel = "GHE " + String(idx + 1).padStart(2, "0") + ": " + ws.name;
+  const analysisDate = new Date(analysis.created_at).toLocaleDateString("pt-BR");
+  const activityDesc = ws.activity_description || ws.description || "—";
+
+  function hlRow(min: number, max: number): string {
     return (finalScore >= min && finalScore <= max) ? "background:#DAEEF3; font-weight:bold;" : "";
   }
 
-  return \`
-<div style="page-break-inside:avoid; break-inside:avoid; margin-top:24px; border:2px solid #000; background:white;">
+  return '<div style="page-break-inside:avoid; break-inside:avoid; margin-top:24px; border:2px solid #000; background:white;">' +
+    '<div style="background:#4472C4; color:white; text-align:center; padding:10px; font-size:14px; font-weight:bold; letter-spacing:1px;">REBA — RAPID ENTIRE BODY ASSESSMENT</div>' +
+    '<div style="text-align:center; font-size:9px; color:#555; padding:4px; border-bottom:1px solid #000; background:#f9f9f9;">Referência: Sue Hignett and Lynn McAtamney, <em>Rapid entire body assessment (REBA)</em>; Applied Ergonomics. 31:201-205, 2000.</div>' +
 
-  <!-- Title -->
-  <div style="background:#4472C4; color:white; text-align:center; padding:10px; font-size:14px; font-weight:bold; letter-spacing:1px;">
-    REBA — RAPID ENTIRE BODY ASSESSMENT
-  </div>
-  <div style="text-align:center; font-size:9px; color:#555; padding:4px; border-bottom:1px solid #000; background:#f9f9f9;">
-    Referência: Sue Hignett and Lynn McAtamney, <em>Rapid entire body assessment (REBA)</em>; Applied Ergonomics. 31:201-205, 2000.
-  </div>
+    // Header info
+    '<table style="width:100%; border-collapse:collapse; font-size:11px;">' +
+    '<tr><td style="' + ls + ' width:15%;">Empresa:</td><td style="' + cs + ' width:35%;">' + companyName + '</td>' +
+    '<td style="' + ls + ' width:15%;">Função:</td><td style="' + cs + ' width:35%;">' + gheLabel + '</td></tr>' +
+    '<tr><td style="' + ls + '">Setor:</td><td style="' + cs + '">' + sectorName + '</td>' +
+    '<td style="' + ls + '">Data:</td><td style="' + cs + '">' + analysisDate + '</td></tr>' +
+    '<tr><td style="' + ls + '">Atividade:</td><td style="' + cs + '">' + activityDesc + '</td>' +
+    '<td style="' + ls + '">Analista:</td><td style="' + cs + '">MG Consult</td></tr>' +
+    '</table>' +
 
-  <!-- Header info table -->
-  <table style="width:100%; border-collapse:collapse; font-size:11px;">
-    <tr>
-      <td style="${labelStyle} width:15%;">Empresa:</td>
-      <td style="${cellStyle} width:35%;">\${ctx.company.trade_name || ctx.company.name}</td>
-      <td style="${labelStyle} width:15%;">Função:</td>
-      <td style="${cellStyle} width:35%;">GHE \${String(idx + 1).padStart(2, '0')}: \${ws.name}</td>
-    </tr>
-    <tr>
-      <td style="${labelStyle}">Setor:</td>
-      <td style="${cellStyle}">\${sectorName}</td>
-      <td style="${labelStyle}">Data:</td>
-      <td style="${cellStyle}">\${new Date(analysis.created_at).toLocaleDateString("pt-BR")}</td>
-    </tr>
-    <tr>
-      <td style="${labelStyle}">Atividade:</td>
-      <td style="${cellStyle}" colspan="1">\${ws.activity_description || ws.description || "—"}</td>
-      <td style="${labelStyle}">Analista:</td>
-      <td style="${cellStyle}">MG Consult</td>
-    </tr>
-  </table>
+    // Two-column: Group A | Group B
+    '<table style="width:100%; border-collapse:collapse;"><tr>' +
 
-  <!-- Two-column layout: Group A (left) | Group B (right) -->
-  <table style="width:100%; border-collapse:collapse;">
-    <tr>
-      <!-- GROUP A -->
-      <td style="width:50%; vertical-align:top; border:1px solid #000; padding:0;">
-        <div style="${groupHeaderStyle}">GRUPO A — Tronco, Pescoço e Pernas</div>
-        <table style="width:100%; border-collapse:collapse;">
-          <tr>
-            <td style="width:50%; vertical-align:top; padding:0;">
-              <table style="width:100%; border-collapse:collapse;">
-                <tr><td colspan="2" style="${headerStyle}">Tronco</td></tr>
-                <tr><td style="${cellStyle}">Posição 1 (ereto)</td><td style="${scoreStyle}">1</td></tr>
-                <tr><td style="${cellStyle}">Posição 2 (0-20° flexão)</td><td style="${scoreStyle}">2</td></tr>
-                <tr><td style="${cellStyle}">Posição 3 (20-60° flexão)</td><td style="${scoreStyle}">3</td></tr>
-                <tr><td style="${cellStyle}">Posição 4 (>60° flexão)</td><td style="${scoreStyle}">4</td></tr>
-                <tr><td style="${cellStyle} font-size:9px;" colspan="2">+1 se rotação ou flexão lateral</td></tr>
-              </table>
-            </td>
-            <td style="width:50%; vertical-align:middle; text-align:center; padding:8px;">
-              <img src="/reba/tronco.png" alt="Tronco" style="width:120px; height:auto;" onerror="this.style.display='none'" />
-            </td>
-          </tr>
-          <tr>
-            <td style="vertical-align:top; padding:0;">
-              <table style="width:100%; border-collapse:collapse;">
-                <tr><td colspan="2" style="${headerStyle}">Pescoço</td></tr>
-                <tr><td style="${cellStyle}">Posição 1 (0-20° flexão)</td><td style="${scoreStyle}">1</td></tr>
-                <tr><td style="${cellStyle}">Posição 2 (>20° ou extensão)</td><td style="${scoreStyle}">2</td></tr>
-                <tr><td style="${cellStyle} font-size:9px;" colspan="2">+1 se rotação ou flexão lateral</td></tr>
-              </table>
-            </td>
-            <td style="vertical-align:middle; text-align:center; padding:8px;">
-              <img src="/reba/pescoco.png" alt="Pescoço" style="width:100px; height:auto;" onerror="this.style.display='none'" />
-            </td>
-          </tr>
-          <tr>
-            <td style="vertical-align:top; padding:0;">
-              <table style="width:100%; border-collapse:collapse;">
-                <tr><td colspan="2" style="${headerStyle}">Pernas</td></tr>
-                <tr><td style="${cellStyle}">Bilateral, andando ou sentado</td><td style="${scoreStyle}">1</td></tr>
-                <tr><td style="${cellStyle}">Unilateral, instável ou de joelhos</td><td style="${scoreStyle}">2</td></tr>
-                <tr><td style="${cellStyle} font-size:9px;" colspan="2">+1 se flexão 30-60° / +2 se >60°</td></tr>
-              </table>
-            </td>
-            <td style="vertical-align:middle; text-align:center; padding:8px;">
-              <img src="/reba/pernas.png" alt="Pernas" style="width:100px; height:auto;" onerror="this.style.display='none'" />
-            </td>
-          </tr>
-        </table>
+    // GROUP A
+    '<td style="width:50%; vertical-align:top; border:1px solid #000; padding:0;">' +
+    '<div style="' + gs + '">GRUPO A — Tronco, Pescoço e Pernas</div>' +
+    '<table style="width:100%; border-collapse:collapse;"><tr>' +
+    '<td style="width:50%; vertical-align:top; padding:0;">' +
+    '<table style="width:100%; border-collapse:collapse;">' +
+    '<tr><td colspan="2" style="' + hs + '">Tronco</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 1 (ereto)</td><td style="' + ss + '">1</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 2 (0-20° flexão)</td><td style="' + ss + '">2</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 3 (20-60° flexão)</td><td style="' + ss + '">3</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 4 (>60° flexão)</td><td style="' + ss + '">4</td></tr>' +
+    '<tr><td style="' + cs + ' font-size:9px;" colspan="2">+1 se rotação ou flexão lateral</td></tr>' +
+    '</table></td>' +
+    '<td style="width:50%; vertical-align:middle; text-align:center; padding:8px;">' +
+    '<img src="/reba/tronco.png" alt="Tronco" style="width:120px; height:auto;" onerror="this.style.display=\'none\'" />' +
+    '</td></tr><tr>' +
+    '<td style="vertical-align:top; padding:0;">' +
+    '<table style="width:100%; border-collapse:collapse;">' +
+    '<tr><td colspan="2" style="' + hs + '">Pescoço</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 1 (0-20° flexão)</td><td style="' + ss + '">1</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 2 (>20° ou extensão)</td><td style="' + ss + '">2</td></tr>' +
+    '<tr><td style="' + cs + ' font-size:9px;" colspan="2">+1 se rotação ou flexão lateral</td></tr>' +
+    '</table></td>' +
+    '<td style="vertical-align:middle; text-align:center; padding:8px;">' +
+    '<img src="/reba/pescoco.png" alt="Pescoço" style="width:100px; height:auto;" onerror="this.style.display=\'none\'" />' +
+    '</td></tr><tr>' +
+    '<td style="vertical-align:top; padding:0;">' +
+    '<table style="width:100%; border-collapse:collapse;">' +
+    '<tr><td colspan="2" style="' + hs + '">Pernas</td></tr>' +
+    '<tr><td style="' + cs + '">Bilateral, andando ou sentado</td><td style="' + ss + '">1</td></tr>' +
+    '<tr><td style="' + cs + '">Unilateral, instável ou de joelhos</td><td style="' + ss + '">2</td></tr>' +
+    '<tr><td style="' + cs + ' font-size:9px;" colspan="2">+1 se flexão 30-60° / +2 se >60°</td></tr>' +
+    '</table></td>' +
+    '<td style="vertical-align:middle; text-align:center; padding:8px;">' +
+    '<img src="/reba/pernas.png" alt="Pernas" style="width:100px; height:auto;" onerror="this.style.display=\'none\'" />' +
+    '</td></tr></table>' +
 
-        <!-- Scores Group A -->
-        <table style="width:100%; border-collapse:collapse; margin-top:4px;">
-          <tr>
-            <td style="${labelStyle} text-align:center; width:33%;">Tronco: <span style="font-size:14px; color:#4472C4;">\${trunk}</span></td>
-            <td style="${labelStyle} text-align:center; width:33%;">Pescoço: <span style="font-size:14px; color:#4472C4;">\${neck}</span></td>
-            <td style="${labelStyle} text-align:center; width:34%;">Pernas: <span style="font-size:14px; color:#4472C4;">\${legs}</span></td>
-          </tr>
-          <tr>
-            <td style="${headerStyle}" colspan="2">Pontuação Tabela A</td>
-            <td style="${scoreStyle} background:#D9E2F3; font-size:16px;">\${tableA}</td>
-          </tr>
-          <tr>
-            <td style="${labelStyle} text-align:center;" colspan="2">Carga / Força</td>
-            <td style="${scoreStyle}">\${load}</td>
-          </tr>
-        </table>
-      </td>
+    // Scores Group A
+    '<table style="width:100%; border-collapse:collapse; margin-top:4px;">' +
+    '<tr><td style="' + ls + ' text-align:center; width:33%;">Tronco: <span style="font-size:14px; color:#4472C4;">' + trunk + '</span></td>' +
+    '<td style="' + ls + ' text-align:center; width:33%;">Pescoço: <span style="font-size:14px; color:#4472C4;">' + neck + '</span></td>' +
+    '<td style="' + ls + ' text-align:center; width:34%;">Pernas: <span style="font-size:14px; color:#4472C4;">' + legs + '</span></td></tr>' +
+    '<tr><td style="' + hs + '" colspan="2">Pontuação Tabela A</td><td style="' + ss + ' background:#D9E2F3; font-size:16px;">' + tableA + '</td></tr>' +
+    '<tr><td style="' + ls + ' text-align:center;" colspan="2">Carga / Força</td><td style="' + ss + '">' + load + '</td></tr>' +
+    '</table></td>' +
 
-      <!-- GROUP B -->
-      <td style="width:50%; vertical-align:top; border:1px solid #000; padding:0;">
-        <div style="${groupHeaderStyle}">GRUPO B — Ombro, Cotovelo e Punho</div>
-        <table style="width:100%; border-collapse:collapse;">
-          <tr>
-            <td style="width:50%; vertical-align:top; padding:0;">
-              <table style="width:100%; border-collapse:collapse;">
-                <tr><td colspan="2" style="${headerStyle}">Ombro</td></tr>
-                <tr><td style="${cellStyle}">Posição 1 (0-20° flexão/ext.)</td><td style="${scoreStyle}">1</td></tr>
-                <tr><td style="${cellStyle}">Posição 2 (20-45° ou >20° ext.)</td><td style="${scoreStyle}">2</td></tr>
-                <tr><td style="${cellStyle}">Posição 3 (45-90° flexão)</td><td style="${scoreStyle}">3</td></tr>
-                <tr><td style="${cellStyle}">Posição 4 (>90° flexão)</td><td style="${scoreStyle}">4</td></tr>
-                <tr><td style="${cellStyle} font-size:9px;" colspan="2">+1 abdução/rotação | +1 elevação | −1 apoio</td></tr>
-              </table>
-            </td>
-            <td style="width:50%; vertical-align:middle; text-align:center; padding:8px;">
-              <img src="/reba/ombro.png" alt="Ombro" style="width:120px; height:auto;" onerror="this.style.display='none'" />
-            </td>
-          </tr>
-          <tr>
-            <td style="vertical-align:top; padding:0;">
-              <table style="width:100%; border-collapse:collapse;">
-                <tr><td colspan="2" style="${headerStyle}">Cotovelo</td></tr>
-                <tr><td style="${cellStyle}">Posição 1 (60-100° flexão)</td><td style="${scoreStyle}">1</td></tr>
-                <tr><td style="${cellStyle}">Posição 2 (<60° ou >100°)</td><td style="${scoreStyle}">2</td></tr>
-              </table>
-            </td>
-            <td style="vertical-align:middle; text-align:center; padding:8px;">
-              <img src="/reba/cotovelo.png" alt="Cotovelo" style="width:100px; height:auto;" onerror="this.style.display='none'" />
-            </td>
-          </tr>
-          <tr>
-            <td style="vertical-align:top; padding:0;">
-              <table style="width:100%; border-collapse:collapse;">
-                <tr><td colspan="2" style="${headerStyle}">Punho</td></tr>
-                <tr><td style="${cellStyle}">Posição 1 (0-15° flexão/ext.)</td><td style="${scoreStyle}">1</td></tr>
-                <tr><td style="${cellStyle}">Posição 2 (>15° flexão/ext.)</td><td style="${scoreStyle}">2</td></tr>
-                <tr><td style="${cellStyle} font-size:9px;" colspan="2">+1 se desvio radial ou ulnar</td></tr>
-              </table>
-            </td>
-            <td style="vertical-align:middle; text-align:center; padding:8px;">
-              <img src="/reba/punho.png" alt="Punho" style="width:100px; height:auto;" onerror="this.style.display='none'" />
-            </td>
-          </tr>
-        </table>
+    // GROUP B
+    '<td style="width:50%; vertical-align:top; border:1px solid #000; padding:0;">' +
+    '<div style="' + gs + '">GRUPO B — Ombro, Cotovelo e Punho</div>' +
+    '<table style="width:100%; border-collapse:collapse;"><tr>' +
+    '<td style="width:50%; vertical-align:top; padding:0;">' +
+    '<table style="width:100%; border-collapse:collapse;">' +
+    '<tr><td colspan="2" style="' + hs + '">Ombro</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 1 (0-20° flexão/ext.)</td><td style="' + ss + '">1</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 2 (20-45° ou >20° ext.)</td><td style="' + ss + '">2</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 3 (45-90° flexão)</td><td style="' + ss + '">3</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 4 (>90° flexão)</td><td style="' + ss + '">4</td></tr>' +
+    '<tr><td style="' + cs + ' font-size:9px;" colspan="2">+1 abdução/rotação | +1 elevação | −1 apoio</td></tr>' +
+    '</table></td>' +
+    '<td style="width:50%; vertical-align:middle; text-align:center; padding:8px;">' +
+    '<img src="/reba/ombro.png" alt="Ombro" style="width:120px; height:auto;" onerror="this.style.display=\'none\'" />' +
+    '</td></tr><tr>' +
+    '<td style="vertical-align:top; padding:0;">' +
+    '<table style="width:100%; border-collapse:collapse;">' +
+    '<tr><td colspan="2" style="' + hs + '">Cotovelo</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 1 (60-100° flexão)</td><td style="' + ss + '">1</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 2 (<60° ou >100°)</td><td style="' + ss + '">2</td></tr>' +
+    '</table></td>' +
+    '<td style="vertical-align:middle; text-align:center; padding:8px;">' +
+    '<img src="/reba/cotovelo.png" alt="Cotovelo" style="width:100px; height:auto;" onerror="this.style.display=\'none\'" />' +
+    '</td></tr><tr>' +
+    '<td style="vertical-align:top; padding:0;">' +
+    '<table style="width:100%; border-collapse:collapse;">' +
+    '<tr><td colspan="2" style="' + hs + '">Punho</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 1 (0-15° flexão/ext.)</td><td style="' + ss + '">1</td></tr>' +
+    '<tr><td style="' + cs + '">Posição 2 (>15° flexão/ext.)</td><td style="' + ss + '">2</td></tr>' +
+    '<tr><td style="' + cs + ' font-size:9px;" colspan="2">+1 se desvio radial ou ulnar</td></tr>' +
+    '</table></td>' +
+    '<td style="vertical-align:middle; text-align:center; padding:8px;">' +
+    '<img src="/reba/punho.png" alt="Punho" style="width:100px; height:auto;" onerror="this.style.display=\'none\'" />' +
+    '</td></tr></table>' +
 
-        <!-- Scores Group B -->
-        <table style="width:100%; border-collapse:collapse; margin-top:4px;">
-          <tr>
-            <td style="${labelStyle} text-align:center; width:33%;">Ombro: <span style="font-size:14px; color:#4472C4;">\${upperArm}</span></td>
-            <td style="${labelStyle} text-align:center; width:33%;">Cotovelo: <span style="font-size:14px; color:#4472C4;">\${lowerArm}</span></td>
-            <td style="${labelStyle} text-align:center; width:34%;">Punho: <span style="font-size:14px; color:#4472C4;">\${wrist}</span></td>
-          </tr>
-          <tr>
-            <td style="${headerStyle}" colspan="2">Pontuação Tabela B</td>
-            <td style="${scoreStyle} background:#D9E2F3; font-size:16px;">\${tableB}</td>
-          </tr>
-          <tr>
-            <td style="${labelStyle} text-align:center;" colspan="2">Pega (Coupling)</td>
-            <td style="${scoreStyle}">\${coupling}</td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
+    // Scores Group B
+    '<table style="width:100%; border-collapse:collapse; margin-top:4px;">' +
+    '<tr><td style="' + ls + ' text-align:center; width:33%;">Ombro: <span style="font-size:14px; color:#4472C4;">' + upperArm + '</span></td>' +
+    '<td style="' + ls + ' text-align:center; width:33%;">Cotovelo: <span style="font-size:14px; color:#4472C4;">' + lowerArm + '</span></td>' +
+    '<td style="' + ls + ' text-align:center; width:34%;">Punho: <span style="font-size:14px; color:#4472C4;">' + wrist + '</span></td></tr>' +
+    '<tr><td style="' + hs + '" colspan="2">Pontuação Tabela B</td><td style="' + ss + ' background:#D9E2F3; font-size:16px;">' + tableB + '</td></tr>' +
+    '<tr><td style="' + ls + ' text-align:center;" colspan="2">Pega (Coupling)</td><td style="' + ss + '">' + coupling + '</td></tr>' +
+    '</table></td>' +
 
-  <!-- Final Scoring -->
-  <table style="width:100%; border-collapse:collapse; margin-top:0;">
-    <tr>
-      <td style="${headerStyle} width:25%;">Pontuação A + Carga</td>
-      <td style="${scoreStyle} width:25%; background:#D9E2F3; font-size:16px;">\${tableA + load}</td>
-      <td style="${headerStyle} width:25%;">Pontuação B + Pega</td>
-      <td style="${scoreStyle} width:25%; background:#D9E2F3; font-size:16px;">\${tableB + coupling}</td>
-    </tr>
-    <tr>
-      <td style="${headerStyle}" colspan="2">Tabela C</td>
-      <td style="${scoreStyle} background:#BDD7EE; font-size:18px;" colspan="2">\${tableC}</td>
-    </tr>
-    <tr>
-      <td style="${headerStyle}" colspan="2">Pontuação de Atividade</td>
-      <td style="${scoreStyle}" colspan="2">\${activity}</td>
-    </tr>
-    <tr>
-      <td style="border:2px solid #000; padding:10px; font-size:14px; font-weight:bold; text-align:center; background:#4472C4; color:white;" colspan="2">PONTUAÇÃO FINAL REBA</td>
-      <td style="border:2px solid #000; padding:10px; font-size:22px; font-weight:bold; text-align:center; background:\${resultColor};" colspan="2">\${finalScore}</td>
-    </tr>
-  </table>
+    '</tr></table>' +
 
-  <!-- Classification table -->
-  <table style="width:100%; border-collapse:collapse; margin-top:8px; font-size:11px; text-align:center;">
-    <tr>
-      <td style="border:1px solid #000; padding:6px; background:#4472C4; color:white; font-weight:bold; width:25%;">Pontuação</td>
-      <td style="border:1px solid #000; padding:6px; background:#4472C4; color:white; font-weight:bold; width:25%;">Nível do Risco</td>
-      <td style="border:1px solid #000; padding:6px; background:#4472C4; color:white; font-weight:bold; width:50%;">Ação</td>
-    </tr>
-    <tr style="\${highlightRow(1, 1)}">
-      <td style="${cellStyle} text-align:center;">1</td>
-      <td style="${cellStyle} text-align:center; background:#C8E6C9;">Insignificante</td>
-      <td style="${cellStyle}">Não necessária</td>
-    </tr>
-    <tr style="\${highlightRow(2, 3)}">
-      <td style="${cellStyle} text-align:center;">2 – 3</td>
-      <td style="${cellStyle} text-align:center; background:#C8E6C9;">Baixo</td>
-      <td style="${cellStyle}">Pode ser necessária</td>
-    </tr>
-    <tr style="\${highlightRow(4, 7)}">
-      <td style="${cellStyle} text-align:center;">4 – 7</td>
-      <td style="${cellStyle} text-align:center; background:#FFF9C4;">Médio</td>
-      <td style="${cellStyle}">Necessária</td>
-    </tr>
-    <tr style="\${highlightRow(8, 10)}">
-      <td style="${cellStyle} text-align:center;">8 – 10</td>
-      <td style="${cellStyle} text-align:center; background:#FFE0B2;">Alto</td>
-      <td style="${cellStyle}">Necessária em breve</td>
-    </tr>
-    <tr style="\${highlightRow(11, 99)}">
-      <td style="${cellStyle} text-align:center;">≥ 11</td>
-      <td style="${cellStyle} text-align:center; background:#FFCDD2;">Muito Alto</td>
-      <td style="${cellStyle}">Necessária imediatamente</td>
-    </tr>
-  </table>
+    // Final Scoring
+    '<table style="width:100%; border-collapse:collapse; margin-top:0;">' +
+    '<tr><td style="' + hs + ' width:25%;">Pontuação A + Carga</td><td style="' + ss + ' width:25%; background:#D9E2F3; font-size:16px;">' + (tableA + load) + '</td>' +
+    '<td style="' + hs + ' width:25%;">Pontuação B + Pega</td><td style="' + ss + ' width:25%; background:#D9E2F3; font-size:16px;">' + (tableB + coupling) + '</td></tr>' +
+    '<tr><td style="' + hs + '" colspan="2">Tabela C</td><td style="' + ss + ' background:#BDD7EE; font-size:18px;" colspan="2">' + tableC + '</td></tr>' +
+    '<tr><td style="' + hs + '" colspan="2">Pontuação de Atividade</td><td style="' + ss + '" colspan="2">' + activity + '</td></tr>' +
+    '<tr><td style="border:2px solid #000; padding:10px; font-size:14px; font-weight:bold; text-align:center; background:#4472C4; color:white;" colspan="2">PONTUAÇÃO FINAL REBA</td>' +
+    '<td style="border:2px solid #000; padding:10px; font-size:22px; font-weight:bold; text-align:center; background:' + resultColor + ';" colspan="2">' + finalScore + '</td></tr>' +
+    '</table>' +
 
-  <!-- Conclusion -->
-  <div style="border-top:2px solid #4472C4; padding:12px; margin-top:0; font-size:11px; line-height:1.6; background:#F2F7FB;">
-    <strong>Conclusão:</strong> A atividade em <strong>\${ws.name}</strong> apresenta risco <strong>\${riskLevel.toLowerCase()}</strong> (pontuação <strong>\${finalScore}</strong>). Ação: <strong>\${riskAction.toLowerCase()}</strong>.
-    Recomenda-se adoção de medidas corretivas como melhoria na organização do posto, adequação de alturas, alternância postural e orientação ergonômica.
-  </div>
-</div>\`;
+    // Classification table
+    '<table style="width:100%; border-collapse:collapse; margin-top:8px; font-size:11px; text-align:center;">' +
+    '<tr><td style="border:1px solid #000; padding:6px; background:#4472C4; color:white; font-weight:bold; width:25%;">Pontuação</td>' +
+    '<td style="border:1px solid #000; padding:6px; background:#4472C4; color:white; font-weight:bold; width:25%;">Nível do Risco</td>' +
+    '<td style="border:1px solid #000; padding:6px; background:#4472C4; color:white; font-weight:bold; width:50%;">Ação</td></tr>' +
+    '<tr style="' + hlRow(1, 1) + '"><td style="' + cs + ' text-align:center;">1</td><td style="' + cs + ' text-align:center; background:#C8E6C9;">Insignificante</td><td style="' + cs + '">Não necessária</td></tr>' +
+    '<tr style="' + hlRow(2, 3) + '"><td style="' + cs + ' text-align:center;">2 – 3</td><td style="' + cs + ' text-align:center; background:#C8E6C9;">Baixo</td><td style="' + cs + '">Pode ser necessária</td></tr>' +
+    '<tr style="' + hlRow(4, 7) + '"><td style="' + cs + ' text-align:center;">4 – 7</td><td style="' + cs + ' text-align:center; background:#FFF9C4;">Médio</td><td style="' + cs + '">Necessária</td></tr>' +
+    '<tr style="' + hlRow(8, 10) + '"><td style="' + cs + ' text-align:center;">8 – 10</td><td style="' + cs + ' text-align:center; background:#FFE0B2;">Alto</td><td style="' + cs + '">Necessária em breve</td></tr>' +
+    '<tr style="' + hlRow(11, 99) + '"><td style="' + cs + ' text-align:center;">≥ 11</td><td style="' + cs + ' text-align:center; background:#FFCDD2;">Muito Alto</td><td style="' + cs + '">Necessária imediatamente</td></tr>' +
+    '</table>' +
+
+    // Conclusion
+    '<div style="border-top:2px solid #4472C4; padding:12px; margin-top:0; font-size:11px; line-height:1.6; background:#F2F7FB;">' +
+    '<strong>Conclusão:</strong> A atividade em <strong>' + ws.name + '</strong> apresenta risco <strong>' + riskLevel.toLowerCase() + '</strong> (pontuação <strong>' + finalScore + '</strong>). Ação: <strong>' + riskAction.toLowerCase() + '</strong>. ' +
+    'Recomenda-se adoção de medidas corretivas como melhoria na organização do posto, adequação de alturas, alternância postural e orientação ergonômica.</div>' +
+    '</div>';
 }
 
 // ==================== AET ====================
