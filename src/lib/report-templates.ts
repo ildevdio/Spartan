@@ -401,12 +401,13 @@ function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportC
   interface ErgRiskRow { type: string; hazard: string; damage: string; source: string; exposure: string; p: string; s: string; nr: string; }
   const ergRiskRows: ErgRiskRow[] = [];
 
+  // Biomecânico risks
   if (wsRisks.length > 0) {
     wsRisks.forEach(r => {
       ergRiskRows.push({
         type: "Biomecânico",
         hazard: r.description || "Postura inadequada",
-        damage: "Fadiga muscular, dores lombares",
+        damage: "Fadiga muscular, dores lombares e nos membros inferiores",
         source: ws.activity_description || "Atividades do posto",
         exposure: exposureTimeLabel(r.exposure),
         p: psgLabel(r.probability), s: psgLabel(r.consequence),
@@ -416,25 +417,54 @@ function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportC
   } else {
     ergRiskRows.push({
       type: "Biomecânico",
-      hazard: "Permanência prolongada na postura de trabalho",
+      hazard: "Permanência prolongada em pé durante as atividades",
       damage: "Fadiga muscular, dores lombares e nos membros inferiores",
-      source: "Atividades de " + (ws.activity_description || ws.description || "trabalho").toLowerCase().substring(0, 40),
+      source: "Atividades de " + (ws.activity_description || ws.description || "trabalho").toLowerCase().substring(0, 50),
       exposure: "Contínuo",
+      p: "M", s: "B", nr: "Baixo"
+    });
+
+    ergRiskRows.push({
+      type: "Biomecânico",
+      hazard: "Inclinação do tronco e agachamentos durante a atividade",
+      damage: "Dores lombares e cervicais",
+      source: ws.activity_description || ws.description || "Atividades do posto",
+      exposure: "Frequente",
       p: "M", s: "B", nr: "Baixo"
     });
   }
 
-  // Add organizational risk
+  // Movimentos Repetitivos
+  ergRiskRows.push({
+    type: "Movimentos Repetitivos",
+    hazard: "Manipulação constante de materiais e ferramentas",
+    damage: "Tendinites, dores em punhos e antebraços",
+    source: "Organização e execução das atividades",
+    exposure: "Contínuo",
+    p: "M", s: "B", nr: "Baixo"
+  });
+
+  // Levantamento de cargas
+  ergRiskRows.push({
+    type: "Levantamento de cargas",
+    hazard: "Transporte manual de materiais e equipamentos",
+    damage: "Lombalgias e fadiga física",
+    source: "Movimentação de materiais",
+    exposure: "Frequente",
+    p: "M", s: "B", nr: "Baixo"
+  });
+
+  // Organizacionais
   ergRiskRows.push({
     type: "Organizacionais",
-    hazard: "Ritmo de trabalho condicionado à demanda",
+    hazard: "Ritmo de trabalho condicionado à necessidade de produção constante",
     damage: "Fadiga física e mental",
     source: "Demanda operacional",
     exposure: "Diário",
     p: "M", s: "B", nr: "Baixo"
   });
 
-  // Add psychosocial risk
+  // Psicossociais
   ergRiskRows.push({
     type: "Psicossociais",
     hazard: "Pressão por produtividade e organização do setor",
@@ -444,26 +474,32 @@ function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportC
     p: "M", s: "B", nr: "Baixo"
   });
 
+  // Group rows by type for rowspan
+  const typeGroups = new Map<string, number>();
+  ergRiskRows.forEach(r => typeGroups.set(r.type, (typeGroups.get(r.type) || 0) + 1));
+
+  let currentType = "";
+
   return `
 <div style="page-break-inside:avoid; break-inside:avoid; margin-top:20px;">
 <table class="rpt-table" style="font-size:11px;">
   <tr><th colspan="9" style="text-align:center; font-size:13px;">RELATÓRIO DA ANÁLISE ERGONÔMICA</th></tr>
   <tr>
     <td class="label" style="width:100px;">SETOR</td>
-    <td colspan="5" style="font-weight:bold;">${sectorName.toUpperCase()}</td>
-    <td class="label">Nº AVALIAÇÃO</td>
-    <td colspan="2" style="text-align:center; font-weight:bold;">${String(idx + 1).padStart(2, '0')}</td>
+    <td colspan="5" style="text-align:center; font-weight:bold;">FUNÇÕES</td>
+    <td class="label" colspan="3" style="text-align:center;">Nº AVALIAÇÃO</td>
   </tr>
   <tr>
-    <td colspan="2" style="height:10px;"></td>
-    <td colspan="7" style="font-weight:bold;">GHE ${String(idx + 1).padStart(2, '0')}: ${ws.name}</td>
+    <td style="text-align:center; font-weight:bold; padding:10px;">${sectorName.toUpperCase()}</td>
+    <td colspan="5" style="text-align:center; font-weight:bold; padding:10px;">GHE ${String(idx + 1).padStart(2, '0')}: ${ws.name}</td>
+    <td colspan="3" style="text-align:center; font-weight:bold; padding:10px;">${String(idx + 1).padStart(2, '0')}</td>
   </tr>
 </table>
 
 <table class="rpt-table" style="font-size:11px;">
   <tr>
-    <td class="label" rowspan="2" style="width:100px;">DESCRIÇÃO FÍSICA</td>
-    <td class="label" style="width:180px;">MÁQUINAS E EQUIPAMENTOS</td>
+    <td class="label" rowspan="2" style="width:120px;">DESCRIÇÃO FÍSICA</td>
+    <td class="label" style="width:200px;">MÁQUINAS E EQUIPAMENTOS</td>
     <td colspan="7">${ws.description || "Equipamentos e mobiliário do posto de trabalho"}</td>
   </tr>
   <tr>
@@ -471,7 +507,7 @@ function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportC
     <td colspan="7">${ws.tasks_performed || "Ferramentas e utensílios utilizados na atividade"}</td>
   </tr>
   <tr>
-    <td class="label" rowspan="2">MEDIÇÕES</td>
+    <td class="label" rowspan="2" style="width:120px;">MEDIÇÕES</td>
     <td class="label">ILUMINAÇÃO – NHO11</td>
     <td colspan="7">A verificar in loco (lux)</td>
   </tr>
@@ -494,12 +530,13 @@ function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportC
 <div style="background:#333; color:white; padding:6px 12px; font-weight:bold; font-size:12px; text-align:center; margin-top:2px;">DESCRIÇÃO DOS RISCOS ERGONÔMICOS</div>
 <table class="rpt-table" style="font-size:11px;">
   <tr>
-    <th rowspan="2" style="width:90px;">Tipos</th>
+    <th rowspan="2" style="width:100px;"></th>
     <th colspan="2">Identificação</th>
-    <th colspan="2">Perfil de Exposição Existente</th>
-    <th colspan="3">Avaliação do Risco¹</th>
+    <th>Perfil de Exposição Existente</th>
+    <th colspan="4">Avaliação do Risco¹</th>
   </tr>
   <tr>
+    <th>Tipos</th>
     <th>Identificação de perigos</th>
     <th>Possíveis Danos</th>
     <th>Fonte Geradora</th>
@@ -508,20 +545,32 @@ function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportC
     <th>S</th>
     <th>NR</th>
   </tr>
-  ${ergRiskRows.map(r => `<tr>
-    <td class="label" style="font-size:10px;">${r.type}</td>
-    <td>${r.hazard}</td>
-    <td>${r.damage}</td>
-    <td>${r.source}</td>
-    <td>${r.exposure}</td>
-    <td style="text-align:center;">${r.p}</td>
-    <td style="text-align:center;">${r.s}</td>
-    <td style="text-align:center; ${nrBadgeStyle(r.nr)}">${r.nr}</td>
-  </tr>`).join('')}
+  ${ergRiskRows.map(r => {
+    let typeCell = "";
+    if (r.type !== currentType) {
+      const count = typeGroups.get(r.type) || 1;
+      typeCell = `<td rowspan="${count}" class="label" style="font-size:10px; text-align:center; font-weight:bold;">${r.type}</td>`;
+      currentType = r.type;
+    }
+    return `<tr>${typeCell}
+      <td>${r.hazard}</td>
+      <td>${r.damage}</td>
+      <td>${r.source}</td>
+      <td>${r.exposure}</td>
+      <td style="text-align:center;">${r.p}</td>
+      <td style="text-align:center;">${r.s}</td>
+      <td style="text-align:center; ${nrBadgeStyle(r.nr)}">${r.nr}</td>
+    </tr>`;
+  }).join('')}
 </table>
-<div style="font-size:9px; color:#666; margin-top:2px;">
-  <p>1 - <strong>P:</strong> Probabilidade / <strong>S:</strong> Gravidade (Severidade) / <strong>B:</strong> Baixa / <strong>M:</strong> Moderada / <strong>A:</strong> Alta / <strong>E:</strong> Excessivo</p>
-  <p><strong>NR:</strong> Nível de Risco / <strong>C:</strong> Crítico / <strong>A:</strong> Alto / <strong>M:</strong> Médio / <strong>B:</strong> Baixo / <strong>I:</strong> Irrelevante</p>
+<div style="border:1px solid #B0BEC5; padding:6px 10px; font-size:9px; color:#333; margin-top:0;">
+  <p style="margin:2px 0;"><strong>Legendas</strong></p>
+  <table style="width:100%; font-size:9px; border-collapse:collapse;">
+    <tr>
+      <td style="padding:4px; border:1px solid #ccc;">1 - <strong>P:</strong> Probabilidade / <strong>S:</strong> Gravidade (Severidade) / <strong>B:</strong> Baixa/ <strong>M:</strong> Moderada / <strong>A:</strong> Alta/ <strong>E:</strong> excessivo</td>
+      <td style="padding:4px; border:1px solid #ccc;"><strong>NR:</strong> Nível de Risco/ <strong>C:</strong> Crítico / <strong>A:</strong> Alto / <strong>M:</strong> Médio / <strong>B:</strong> Baixo / <strong>I:</strong> Irrelevante</td>
+    </tr>
+  </table>
 </div>
 </div>`;
 }
