@@ -829,8 +829,11 @@ ${wsRisks.length > 0 ? `
 ${wsPhotos.length > 0 ? `
 <div class="rpt-section3">Registro Postural</div>
 <table class="rpt-table">
-  <tr><th>Postura</th><th>Observações</th><th>Data</th></tr>
-  ${wsPhotos.map(p => `<tr><td><strong>${p.posture_type}</strong></td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`).join("")}
+  <tr><th>Tipo de Postura</th><th>Observações</th><th>Data do Registro</th></tr>
+  ${wsPhotos.map(p => {
+    const postureLabel = p.posture_type === 'sentado' ? 'Sentado' : p.posture_type === 'em_pe' ? 'Em pé' : p.posture_type;
+    return `<tr><td><strong>${postureLabel}</strong></td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`;
+  }).join("")}
 </table>` : ''}`;
 }).join("")}
 
