@@ -27,8 +27,12 @@ export default function PostosPage() {
   const [tasks, setTasks] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const descriptionError = description.trim().length > 0 && description.trim().length < 25
+    ? `Mínimo de 25 caracteres (${description.trim().length}/25)`
+    : "";
+
   const handleSave = async () => {
-    if (!name.trim() || !sectorId) return;
+    if (!name.trim() || !sectorId || description.trim().length < 25) return;
     if (editingId) {
       await updateWorkstation(editingId, { name, sector_id: sectorId, description, activity_description: description, tasks_performed: tasks });
     } else {
@@ -68,9 +72,13 @@ export default function PostosPage() {
                     {companySectors.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Textarea placeholder="Descrição do posto" value={description} onChange={(e) => setDescription(e.target.value)} />
+                <div className="space-y-1">
+                  <Textarea placeholder="Descrição do posto (mínimo 25 caracteres)" value={description} onChange={(e) => setDescription(e.target.value)} className={descriptionError ? "border-destructive" : ""} />
+                  {descriptionError && <p className="text-xs text-destructive">{descriptionError}</p>}
+                  {description.trim().length >= 25 && <p className="text-xs text-success">✓ {description.trim().length} caracteres</p>}
+                </div>
                 <Textarea placeholder="Tarefas realizadas" value={tasks} onChange={(e) => setTasks(e.target.value)} />
-                <Button onClick={handleSave} className="w-full">{editingId ? "Salvar" : "Criar Posto"}</Button>
+                <Button onClick={handleSave} className="w-full" disabled={!name.trim() || !sectorId || description.trim().length < 25}>{editingId ? "Salvar" : "Criar Posto"}</Button>
               </div>
             </DialogContent>
           </Dialog>
