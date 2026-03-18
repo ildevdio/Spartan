@@ -717,6 +717,23 @@ ${analyses.map(a => {
     <tr><td class="label">Observações</td><td>${a.notes}</td></tr></table>`;
 }).join("")}` : "<p>Nenhuma análise realizada.</p>"}
 
+<div class="page-break"></div>
+<div class="rpt-section2">7.1 RELATÓRIO DA ANÁLISE ERGONÔMICA POR POSTO</div>
+<p>Relatórios individuais por posto de trabalho com descrição física, situações encontradas e riscos ergonômicos classificados:</p>
+${workstations.map((ws, idx) => ergonomicAnalysisReportTable(ws, idx, ctx, risks, analyses, psychosocial)).join('<div class="page-break"></div>')}
+
+${analyses.filter(a => a.method === "REBA").length > 0 ? `
+<div class="page-break"></div>
+<div class="rpt-section2">7.2 FICHAS REBA — RAPID ENTIRE BODY ASSESSMENT</div>
+<p>Avaliação detalhada utilizando o método REBA para cada posto analisado:</p>
+${analyses.filter(a => a.method === "REBA").map(a => {
+  const ws = workstations.find(w => w.id === a.workstation_id);
+  if (!ws) return '';
+  const wsIdx = workstations.indexOf(ws);
+  const risk = risks.find(r => r.analysis_id === a.id);
+  return rebaAssessmentSheet(ws, wsIdx, a, risk, ctx);
+}).join('')}` : ''}
+
 <div class="rpt-section">8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS</div>
 <p><strong>REBA</strong> — Rapid Entire Body Assessment: Estima o risco de distúrbios musculoesqueléticos. Classificação: 1-3 Baixo | 4-7 Médio | 8-10 Alto | 11+ Muito Alto.</p>
 <p><strong>RULA</strong> — Rapid Upper Limb Assessment: Avalia exposição dos membros superiores. Classificação: 1-2 Aceitável | 3-4 Investigar | 5-6 Mudar breve | 7 Mudar imediatamente.</p>
@@ -739,6 +756,14 @@ ${risks.length > 0 ? `<div class="rpt-section3">Riscos Identificados</div>
     return `<tr><td>${ws?.name || 'GHE ' + (i + 1)}</td><td>${r.description}</td><td>${r.probability}×${r.exposure}×${r.consequence}</td><td><strong>${r.risk_score}</strong></td><td><strong>${riskLevelLabel(r.risk_level)}</strong></td></tr>`;
   }).join("")}
 </table>` : ""}
+
+<div class="page-break"></div>
+<div class="rpt-section2">9.1 INVENTÁRIO DE RISCOS OCUPACIONAIS POR POSTO</div>
+<p>Inventário completo de riscos ocupacionais com classificação por agente, conforme metodologia do PGR/NR-01:</p>
+${workstations.map((ws, idx) => {
+  return `<div class="rpt-section3">GHE ${String(idx + 1).padStart(2, '0')} — ${ws.name}</div>
+${occupationalRiskInventoryTable(risks, analyses, ws, psychosocial)}`;
+}).join('<div class="page-break"></div>')}
 
 <div class="rpt-section">10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</div>
 ${psychosocial.length > 0 ? `<p>Instrumentos aplicados: ${psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II</strong>, ' : ''}${psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : ''}${psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : ''}</p>
