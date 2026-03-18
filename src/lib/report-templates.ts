@@ -618,7 +618,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
     <!-- Row 3: Pescoço | Tabela C | Cotovelo -->
     <tr>
       <td style="vertical-align:top; padding:4px;">
-        <img src="/reba/pescoco.png" alt="Pescoço" style="height:70px; margin-bottom:4px;" onerror="this.style.display='none'" />
+        <img src="/reba/pescoco.png" alt="Pescoço" style="width:120px; height:auto; margin-bottom:6px; border:1px solid #ccc; border-radius:4px; padding:4px; background:#fafafa;" onerror="this.style.display='none'" />
         <div style="background:#DAA520; color:white; font-weight:bold; padding:6px; margin-bottom:2px;">Pescoço</div>
         <div style="font-size:18px; font-weight:bold; padding:4px;">${neck}</div>
         <div style="font-size:9px; color:#555;">Add + 1 se em rotação ou flexão lateral</div>
