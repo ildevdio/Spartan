@@ -817,8 +817,8 @@ ${workstations.map((ws, idx) => {
 ${wsAnalyses.length > 0 ? `
 <div class="rpt-section3">Resultados da Avaliação</div>
 <table class="rpt-table">
-  <tr><th>Método</th><th>Score</th><th>Status</th><th>Observações</th></tr>
-  ${wsAnalyses.map(a => `<tr><td>${a.method}</td><td><strong>${a.score}</strong></td><td>${a.analysis_status}</td><td>${a.notes || "—"}</td></tr>`).join("")}
+  <tr><th>Método</th><th>Pontuação</th><th>Situação</th><th>Observações</th></tr>
+  ${wsAnalyses.map(a => `<tr><td>${a.method}</td><td><strong>${a.score}</strong></td><td>${analysisStatusLabel(a.analysis_status as any)}</td><td>${a.notes || "—"}</td></tr>`).join("")}
 </table>` : '<div class="rpt-callout warning">Nenhuma análise ergonômica realizada para este posto.</div>'}
 ${wsRisks.length > 0 ? `
 <div class="rpt-section3">Riscos Ergonômicos Identificados</div>
