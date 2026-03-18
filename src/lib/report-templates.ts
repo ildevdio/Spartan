@@ -197,6 +197,430 @@ function equipmentTable() {
   <tr><td class="label">Vibração</td><td>Acelerômetro triaxial</td><td>NHO-09 / NHO-10</td></tr>
 </table>`;
 }
+// ==================== AET MANDATORY TABLES ====================
+
+function psgLabel(val: number): string {
+  if (val <= 1) return "B";
+  if (val <= 2) return "M";
+  if (val <= 3) return "A";
+  return "E";
+}
+
+function nrLabel(p: number, s: number): string {
+  const score = p * s;
+  if (score <= 2) return "Baixo";
+  if (score <= 4) return "Baixo";
+  if (score <= 6) return "Médio";
+  if (score <= 9) return "Alto";
+  return "Crítico";
+}
+
+function nrBadgeStyle(nr: string): string {
+  if (nr === "Crítico") return "background:#FFCDD2; color:#B71C1C; font-weight:bold;";
+  if (nr === "Alto") return "background:#FFE0B2; color:#E65100; font-weight:bold;";
+  if (nr === "Médio") return "background:#FFF9C4; color:#F57F17; font-weight:bold;";
+  return "background:#C8E6C9; color:#1B5E20; font-weight:bold;";
+}
+
+function exposureTimeLabel(exposure: number): string {
+  if (exposure <= 1) return "Esporádico";
+  if (exposure <= 2) return "Intermitente";
+  if (exposure <= 3) return "Frequente";
+  return "Contínuo durante a jornada";
+}
+
+interface RiskRow {
+  type: string;
+  typeColor: string;
+  hazard: string;
+  damage: string;
+  source: string;
+  trajectory: string;
+  exposure: string;
+  p: string;
+  s: string;
+  nr: string;
+  epc: string;
+  adm: string;
+  epi: string;
+}
+
+function buildOccupationalRiskRows(
+  risks: { probability: number; exposure: number; consequence: number; risk_level: string; description: string; analysis_id: string }[],
+  analyses: Analysis[],
+  ws: Workstation,
+  psychosocial: PsychosocialAnalysis[]
+): RiskRow[] {
+  const rows: RiskRow[] = [];
+
+  // Biológico - default row
+  rows.push({
+    type: "Biológico", typeColor: "#8B4513",
+    hazard: "Ausência de fator de risco", damage: "N.A.", source: "N.A.",
+    trajectory: "N.A.", exposure: "N.A.", p: "N.A.", s: "N.A.", nr: "N.A.",
+    epc: "N.A.", adm: "N.A.", epi: "N.A."
+  });
+
+  // Ergonômico risks from analyses
+  const ergoRisks = risks.filter(r => {
+    const a = analyses.find(x => x.id === r.analysis_id);
+    return a && a.workstation_id === ws.id;
+  });
+
+  if (ergoRisks.length > 0) {
+    ergoRisks.forEach(r => {
+      const pVal = psgLabel(r.probability);
+      const sVal = psgLabel(r.consequence);
+      rows.push({
+        type: "Ergonômico", typeColor: "#DAA520",
+        hazard: r.description || "Postura inadequada durante atividade",
+        damage: "Cansaço; Dor muscular",
+        source: ws.activity_description || ws.description || "Atividade do posto",
+        trajectory: "Sistema Musculoesquelético",
+        exposure: exposureTimeLabel(r.exposure),
+        p: pVal, s: sVal, nr: nrLabel(r.probability, r.consequence),
+        epc: "N.A.", adm: "N.I.", epi: "N.A."
+      });
+    });
+  } else {
+    rows.push({
+      type: "Ergonômico", typeColor: "#DAA520",
+      hazard: "Postura em pé por longos períodos",
+      damage: "Cansaço e dor muscular",
+      source: ws.activity_description || "Atividade do posto",
+      trajectory: "Sistema Musculoesquelético",
+      exposure: "Intermitente",
+      p: "B", s: "M", nr: "Baixo",
+      epc: "N.A.", adm: "N.I.", epi: "N.A."
+    });
+  }
+
+  // Mecânico/Acidente
+  rows.push({
+    type: "Mecânico/ Acidente", typeColor: "#555555",
+    hazard: "Objetos cortantes e/ou perfurocortantes",
+    damage: "Cortes; lesões na pele",
+    source: "Ferramentas e equipamentos",
+    trajectory: "Sistema musculoesquelético",
+    exposure: "Intermitente",
+    p: "M", s: "M", nr: "Baixo",
+    epc: "N.A.", adm: "N.A.", epi: "Luva de proteção"
+  });
+
+  rows.push({
+    type: "Mecânico/ Acidente", typeColor: "#555555",
+    hazard: "Quedas, torções e tropeços",
+    damage: "Lesões e escoriações",
+    source: "Desnível no piso",
+    trajectory: "Sistema musculoesquelético",
+    exposure: "Intermitente",
+    p: "M", s: "M", nr: "Baixo",
+    epc: "N.A.", adm: "N.A.", epi: "Calçado ocupacional"
+  });
+
+  // Psicossocial
+  const hasPsycho = psychosocial.length > 0;
+  rows.push({
+    type: "Fatores Psicossociais", typeColor: "#1565C0",
+    hazard: "Ritmo intenso de trabalho, pressão por tempo, conflitos na equipe",
+    damage: "Estresse, ansiedade, fadiga mental, irritabilidade, síndrome de burnout",
+    source: "Alta demanda de produção, organização do trabalho",
+    trajectory: "Interações no ambiente de trabalho, exigências constantes, pressão por prazos",
+    exposure: "Contínuo durante a jornada",
+    p: hasPsycho ? "M" : "M", s: "B", nr: "Baixo",
+    epc: "N.A.", adm: "N.A.", epi: "N.A."
+  });
+
+  return rows;
+}
+
+function occupationalRiskInventoryTable(
+  risks: any[], analyses: Analysis[], ws: Workstation, psychosocial: PsychosocialAnalysis[]
+): string {
+  const rows = buildOccupationalRiskRows(risks, analyses, ws, psychosocial);
+
+  // Group rows by type for rowspan
+  const typeGroups = new Map<string, number>();
+  rows.forEach(r => typeGroups.set(r.type, (typeGroups.get(r.type) || 0) + 1));
+
+  let currentType = "";
+  return `
+<table class="rpt-table" style="font-size:11px;">
+  <tr><th colspan="13" style="text-align:center; font-size:13px; background:#333; color:white;">INVENTÁRIO DE RISCOS OCUPACIONAIS</th></tr>
+  <tr>
+    <th rowspan="2" style="background:#E0E0E0; color:#333;">Agente</th>
+    <th colspan="2" style="background:#E0E0E0; color:#333;">Identificação</th>
+    <th colspan="2" style="background:#E0E0E0; color:#333;">Perfil de Exposição Existente</th>
+    <th colspan="3" style="background:#E0E0E0; color:#333;">Avaliação do Risco¹</th>
+    <th colspan="3" style="background:#E0E0E0; color:#333;">Medidas de Controle²</th>
+  </tr>
+  <tr>
+    <th style="background:#F5F5F5; color:#333;">Identificação de perigos</th>
+    <th style="background:#F5F5F5; color:#333;">Possíveis Danos</th>
+    <th style="background:#F5F5F5; color:#333;">Fonte Geradora</th>
+    <th style="background:#F5F5F5; color:#333;">Tempo de exposição</th>
+    <th style="background:#F5F5F5; color:#333;">P</th>
+    <th style="background:#F5F5F5; color:#333;">S</th>
+    <th style="background:#F5F5F5; color:#333;">NR</th>
+    <th style="background:#F5F5F5; color:#333;">EPC</th>
+    <th style="background:#F5F5F5; color:#333;">ADM</th>
+    <th style="background:#F5F5F5; color:#333;">EPI</th>
+  </tr>
+  ${rows.map(r => {
+    let typeCell = "";
+    if (r.type !== currentType) {
+      const count = typeGroups.get(r.type) || 1;
+      typeCell = `<td rowspan="${count}" style="background:${r.typeColor}; color:white; font-weight:bold; text-align:center; writing-mode:horizontal-tb; font-size:11px;">${r.type}</td>`;
+      currentType = r.type;
+    }
+    return `<tr>${typeCell}
+      <td>${r.hazard}</td><td>${r.damage}</td>
+      <td>${r.source}</td><td>${r.exposure}</td>
+      <td style="text-align:center;">${r.p}</td><td style="text-align:center;">${r.s}</td>
+      <td style="text-align:center; ${nrBadgeStyle(r.nr)}">${r.nr}</td>
+      <td style="text-align:center;">${r.epc}</td><td style="text-align:center;">${r.adm}</td>
+      <td style="text-align:center;">${r.epi}</td>
+    </tr>`;
+  }).join("")}
+</table>
+<div style="font-size:10px; margin-top:4px; color:#555;">
+  <p><strong>Legenda:</strong></p>
+  <p>1 - <strong>P:</strong> Probabilidade / <strong>S:</strong> Gravidade (Severidade) / <strong>B:</strong> Baixa / <strong>M:</strong> Moderada / <strong>A:</strong> Alta / <strong>E:</strong> Excessivo</p>
+  <p><strong>NR:</strong> Nível de Risco / <strong>C:</strong> Crítico / <strong>A:</strong> Alto / <strong>M:</strong> Médio / <strong>B:</strong> Baixo / <strong>I:</strong> Irrelevante</p>
+  <p>2 - <strong>EPC:</strong> Equipamento de Proteção Coletiva / <strong>ADM:</strong> Medida Administrativa / <strong>EPI:</strong> Equipamento de Proteção Individual / <strong>N.A:</strong> Não se Aplica / <strong>N.I:</strong> Não Identificado</p>
+</div>`;
+}
+
+function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportContext, risks: any[], analyses: Analysis[], psychosocial: PsychosocialAnalysis[]): string {
+  const sector = ws.sector || ctx.sector;
+  const sectorName = (sector as any)?.name || "Geral";
+  const wsAnalyses = analyses.filter(a => a.workstation_id === ws.id);
+  const wsRisks = risks.filter(r => wsAnalyses.some(a => a.id === r.analysis_id));
+
+  // Build risk description rows categorized
+  interface ErgRiskRow { type: string; hazard: string; damage: string; source: string; exposure: string; p: string; s: string; nr: string; }
+  const ergRiskRows: ErgRiskRow[] = [];
+
+  if (wsRisks.length > 0) {
+    wsRisks.forEach(r => {
+      ergRiskRows.push({
+        type: "Biomecânico",
+        hazard: r.description || "Postura inadequada",
+        damage: "Fadiga muscular, dores lombares",
+        source: ws.activity_description || "Atividades do posto",
+        exposure: exposureTimeLabel(r.exposure),
+        p: psgLabel(r.probability), s: psgLabel(r.consequence),
+        nr: nrLabel(r.probability, r.consequence)
+      });
+    });
+  } else {
+    ergRiskRows.push({
+      type: "Biomecânico",
+      hazard: "Permanência prolongada na postura de trabalho",
+      damage: "Fadiga muscular, dores lombares e nos membros inferiores",
+      source: "Atividades de " + (ws.activity_description || ws.description || "trabalho").toLowerCase().substring(0, 40),
+      exposure: "Contínuo",
+      p: "M", s: "B", nr: "Baixo"
+    });
+  }
+
+  // Add organizational risk
+  ergRiskRows.push({
+    type: "Organizacionais",
+    hazard: "Ritmo de trabalho condicionado à demanda",
+    damage: "Fadiga física e mental",
+    source: "Demanda operacional",
+    exposure: "Diário",
+    p: "M", s: "B", nr: "Baixo"
+  });
+
+  // Add psychosocial risk
+  ergRiskRows.push({
+    type: "Psicossociais",
+    hazard: "Pressão por produtividade e organização do setor",
+    damage: "Estresse ocupacional",
+    source: "Exigências da função",
+    exposure: "Contínuo",
+    p: "M", s: "B", nr: "Baixo"
+  });
+
+  return `
+<div style="page-break-inside:avoid; break-inside:avoid; margin-top:20px;">
+<table class="rpt-table" style="font-size:11px;">
+  <tr><th colspan="9" style="text-align:center; font-size:13px;">RELATÓRIO DA ANÁLISE ERGONÔMICA</th></tr>
+  <tr>
+    <td class="label" style="width:100px;">SETOR</td>
+    <td colspan="5" style="font-weight:bold;">${sectorName.toUpperCase()}</td>
+    <td class="label">Nº AVALIAÇÃO</td>
+    <td colspan="2" style="text-align:center; font-weight:bold;">${String(idx + 1).padStart(2, '0')}</td>
+  </tr>
+  <tr>
+    <td colspan="2" style="height:10px;"></td>
+    <td colspan="7" style="font-weight:bold;">GHE ${String(idx + 1).padStart(2, '0')}: ${ws.name}</td>
+  </tr>
+</table>
+
+<table class="rpt-table" style="font-size:11px;">
+  <tr>
+    <td class="label" rowspan="2" style="width:100px;">DESCRIÇÃO FÍSICA</td>
+    <td class="label" style="width:180px;">MÁQUINAS E EQUIPAMENTOS</td>
+    <td colspan="7">${ws.description || "Equipamentos e mobiliário do posto de trabalho"}</td>
+  </tr>
+  <tr>
+    <td class="label">FERRAMENTAS E ACESSÓRIOS</td>
+    <td colspan="7">${ws.tasks_performed || "Ferramentas e utensílios utilizados na atividade"}</td>
+  </tr>
+  <tr>
+    <td class="label" rowspan="2">MEDIÇÕES</td>
+    <td class="label">ILUMINAÇÃO – NHO11</td>
+    <td colspan="7">A verificar in loco (lux)</td>
+  </tr>
+  <tr>
+    <td class="label">CONFORTO TÉRMICO – NR-17</td>
+    <td colspan="7">A verificar in loco</td>
+  </tr>
+</table>
+
+<div style="background:#333; color:white; padding:6px 12px; font-weight:bold; font-size:12px; text-align:center; margin-top:2px;">SITUAÇÕES ENCONTRADAS</div>
+<div style="border:1px solid #B0BEC5; padding:8px 12px; font-size:12px;">
+  <ol style="margin:0; padding-left:20px;">
+    ${ws.activity_description ? `<li>${ws.activity_description}</li>` : ''}
+    ${wsAnalyses.map(a => a.notes ? `<li>${a.notes}</li>` : '').filter(Boolean).join('')}
+    ${wsRisks.map(r => `<li>${r.description}</li>`).join('')}
+    ${!ws.activity_description && wsAnalyses.length === 0 ? '<li>Avaliação pendente</li>' : ''}
+  </ol>
+</div>
+
+<div style="background:#333; color:white; padding:6px 12px; font-weight:bold; font-size:12px; text-align:center; margin-top:2px;">DESCRIÇÃO DOS RISCOS ERGONÔMICOS</div>
+<table class="rpt-table" style="font-size:11px;">
+  <tr>
+    <th rowspan="2" style="width:90px;">Tipos</th>
+    <th colspan="2">Identificação</th>
+    <th colspan="2">Perfil de Exposição Existente</th>
+    <th colspan="3">Avaliação do Risco¹</th>
+  </tr>
+  <tr>
+    <th>Identificação de perigos</th>
+    <th>Possíveis Danos</th>
+    <th>Fonte Geradora</th>
+    <th>Tempo de exposição</th>
+    <th>P</th>
+    <th>S</th>
+    <th>NR</th>
+  </tr>
+  ${ergRiskRows.map(r => `<tr>
+    <td class="label" style="font-size:10px;">${r.type}</td>
+    <td>${r.hazard}</td>
+    <td>${r.damage}</td>
+    <td>${r.source}</td>
+    <td>${r.exposure}</td>
+    <td style="text-align:center;">${r.p}</td>
+    <td style="text-align:center;">${r.s}</td>
+    <td style="text-align:center; ${nrBadgeStyle(r.nr)}">${r.nr}</td>
+  </tr>`).join('')}
+</table>
+<div style="font-size:9px; color:#666; margin-top:2px;">
+  <p>1 - <strong>P:</strong> Probabilidade / <strong>S:</strong> Gravidade (Severidade) / <strong>B:</strong> Baixa / <strong>M:</strong> Moderada / <strong>A:</strong> Alta / <strong>E:</strong> Excessivo</p>
+  <p><strong>NR:</strong> Nível de Risco / <strong>C:</strong> Crítico / <strong>A:</strong> Alto / <strong>M:</strong> Médio / <strong>B:</strong> Baixo / <strong>I:</strong> Irrelevante</p>
+</div>
+</div>`;
+}
+
+function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, risk: any, ctx: ReportContext): string {
+  const sector = ws.sector || ctx.sector;
+  const sectorName = (sector as any)?.name || "Geral";
+  const bp = analysis.body_parts || {};
+  const trunk = bp.trunk ?? bp.tronco ?? 1;
+  const neck = bp.neck ?? bp.pescoço ?? bp.pescoco ?? 1;
+  const legs = bp.legs ?? bp.pernas ?? 1;
+  const upperArm = bp.upper_arm ?? bp.ombro ?? bp.shoulder ?? 1;
+  const lowerArm = bp.lower_arm ?? bp.cotovelo ?? bp.elbow ?? 1;
+  const wrist = bp.wrist ?? bp.punho ?? 1;
+  const load = bp.load ?? bp.carga ?? bp["carga/força"] ?? 0;
+  const coupling = bp.coupling ?? bp.pega ?? 1;
+  const activity = bp.activity ?? bp.atividade ?? 1;
+
+  // Calculate Table A/B/C scores (simplified)
+  const tableA = Math.max(1, Math.min(trunk + load, 12));
+  const tableB = Math.max(1, Math.min(upperArm + coupling, 12));
+  const tableC = Math.max(1, Math.min(Math.ceil((tableA + tableB) / 2), 12));
+  const finalScore = analysis.score || (tableC + activity);
+  const riskLevel = finalScore <= 1 ? "Insignificante" : finalScore <= 3 ? "Baixo" : finalScore <= 7 ? "Médio" : finalScore <= 10 ? "Alto" : "Muito alto";
+  const riskAction = finalScore <= 1 ? "Não necessária" : finalScore <= 3 ? "Pode ser necessária" : finalScore <= 7 ? "Necessária" : finalScore <= 10 ? "Necessária em breve" : "Necessária imediatamente";
+  const resultColor = finalScore <= 1 ? "#C8E6C9" : finalScore <= 3 ? "#C8E6C9" : finalScore <= 7 ? "#FFF9C4" : finalScore <= 10 ? "#FFE0B2" : "#FFCDD2";
+
+  return `
+<div style="page-break-inside:avoid; break-inside:avoid; margin-top:24px; border:2px solid #333; padding:16px;">
+  <div style="text-align:center; font-weight:bold; font-size:14px; margin-bottom:4px;">REBA (RAPID ENTIRE BODY ASSESSMENT)</div>
+  <div style="text-align:center; font-size:10px; color:#666; margin-bottom:12px;">Referência: Sue Hignett and Lynn McAtamney, Rapid entire body assessment (REBA); Applied Ergonomics. 31:201-205, 2000.</div>
+
+  <table class="rpt-table" style="font-size:11px; margin-bottom:12px;">
+    <tr>
+      <td class="label">Empresa: ${ctx.company.trade_name || ctx.company.name}</td>
+      <td class="label">Função: GHE ${String(idx + 1).padStart(2, '0')}: ${ws.name}</td>
+      <td class="label">Data: ${new Date(analysis.created_at).toLocaleDateString("pt-BR")}</td>
+    </tr>
+    <tr>
+      <td>Local: ${sectorName}</td>
+      <td>Atividade: ${ws.activity_description || ws.description || "—"}</td>
+      <td>Analista: MG Consult</td>
+    </tr>
+  </table>
+
+  <table class="rpt-table" style="text-align:center; font-size:12px;">
+    <tr>
+      <th colspan="3" style="background:#1565C0;">GRUPO A (Tronco + Pescoço + Pernas)</th>
+      <th style="background:#333;">+</th>
+      <th colspan="3" style="background:#1565C0;">GRUPO B (Braço + Antebraço + Punho)</th>
+    </tr>
+    <tr>
+      <td style="background:#FFD600; font-weight:bold;">Tronco<br/>${trunk}</td>
+      <td style="background:#FFD600; font-weight:bold;">Pescoço<br/>${neck}</td>
+      <td style="background:#FFD600; font-weight:bold;">Pernas<br/>${legs}</td>
+      <td></td>
+      <td style="background:#9E9E9E; color:white; font-weight:bold;">Ombro<br/>${upperArm}</td>
+      <td style="background:#9E9E9E; color:white; font-weight:bold;">Cotovelo<br/>${lowerArm}</td>
+      <td style="background:#9E9E9E; color:white; font-weight:bold;">Punho<br/>${wrist}</td>
+    </tr>
+    <tr>
+      <td colspan="2" style="font-size:10px;">Carga/Força: ${load}</td>
+      <td style="background:#1565C0; color:white; font-weight:bold;">Tabela A<br/>${tableA}</td>
+      <td></td>
+      <td colspan="2" style="font-size:10px;">Pega: ${coupling}</td>
+      <td style="background:#1565C0; color:white; font-weight:bold;">Tabela B<br/>${tableB}</td>
+    </tr>
+    <tr>
+      <td colspan="3"></td>
+      <td style="background:#1565C0; color:white; font-weight:bold;">Tabela C<br/>${tableC}</td>
+      <td colspan="3"></td>
+    </tr>
+    <tr>
+      <td colspan="3"></td>
+      <td style="font-size:10px;">Atividade: ${activity}</td>
+      <td colspan="3"></td>
+    </tr>
+    <tr>
+      <td colspan="7" style="background:${resultColor}; font-size:16px; font-weight:bold; padding:12px;">
+        Resultado: ${finalScore} — ${riskLevel}
+      </td>
+    </tr>
+  </table>
+
+  <table class="rpt-table" style="font-size:11px; margin-top:8px; text-align:center;">
+    <tr><th style="background:#9E9E9E;">Pontuação</th><th style="background:#9E9E9E;">Nível do risco</th><th style="background:#9E9E9E;">Ação</th></tr>
+    <tr style="${finalScore === 1 ? 'font-weight:bold;' : ''}"><td>1</td><td style="background:#C8E6C9;">Insignificante</td><td>Não necessária</td></tr>
+    <tr style="${finalScore >= 2 && finalScore <= 3 ? 'font-weight:bold;' : ''}"><td>2 a 3</td><td style="background:#C8E6C9;">Baixo</td><td>Pode ser necessária</td></tr>
+    <tr style="${finalScore >= 4 && finalScore <= 7 ? 'font-weight:bold;' : ''}"><td>4 a 7</td><td style="background:#FFF9C4;">Médio</td><td>Necessária</td></tr>
+    <tr style="${finalScore >= 8 && finalScore <= 10 ? 'font-weight:bold;' : ''}"><td>8 a 10</td><td style="background:#FFE0B2;">Alto</td><td>Necessária em breve</td></tr>
+    <tr style="${finalScore >= 11 ? 'font-weight:bold;' : ''}"><td>&gt; 11</td><td style="background:#FFCDD2;">Muito alto</td><td>Necessária imediatamente</td></tr>
+  </table>
+
+  <div class="rpt-callout" style="margin-top:12px; font-size:11px;">
+    Com base na análise ergonômica realizada, verificou-se que a atividade desenvolvida em <strong>${ws.name}</strong> (${sectorName}) apresenta risco ergonômico de nível <strong>${riskLevel.toLowerCase()}</strong>, decorrente principalmente de ${ws.activity_description || "posturas adotadas durante a execução das tarefas"}. A aplicação do método REBA resultou em pontuação <strong>${finalScore}</strong>, caracterizando Nível de <strong>Risco ${riskLevel}</strong>, com ação <strong>${riskAction.toLowerCase()}</strong>.
+    ${risk ? `<br/><br/><strong>Recomendação:</strong> ${risk.description || "Adoção de medidas corretivas para reduzir a sobrecarga musculoesquelética."}` : ""}
+  </div>
+</div>`;
+}
 
 // ==================== AET ====================
 function generateAETReport(ctx: ReportContext): string {
@@ -293,6 +717,23 @@ ${analyses.map(a => {
     <tr><td class="label">Observações</td><td>${a.notes}</td></tr></table>`;
 }).join("")}` : "<p>Nenhuma análise realizada.</p>"}
 
+<div class="page-break"></div>
+<div class="rpt-section2">7.1 RELATÓRIO DA ANÁLISE ERGONÔMICA POR POSTO</div>
+<p>Relatórios individuais por posto de trabalho com descrição física, situações encontradas e riscos ergonômicos classificados:</p>
+${workstations.map((ws, idx) => ergonomicAnalysisReportTable(ws, idx, ctx, risks, analyses, psychosocial)).join('<div class="page-break"></div>')}
+
+${analyses.filter(a => a.method === "REBA").length > 0 ? `
+<div class="page-break"></div>
+<div class="rpt-section2">7.2 FICHAS REBA — RAPID ENTIRE BODY ASSESSMENT</div>
+<p>Avaliação detalhada utilizando o método REBA para cada posto analisado:</p>
+${analyses.filter(a => a.method === "REBA").map(a => {
+  const ws = workstations.find(w => w.id === a.workstation_id);
+  if (!ws) return '';
+  const wsIdx = workstations.indexOf(ws);
+  const risk = risks.find(r => r.analysis_id === a.id);
+  return rebaAssessmentSheet(ws, wsIdx, a, risk, ctx);
+}).join('')}` : ''}
+
 <div class="rpt-section">8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS</div>
 <p><strong>REBA</strong> — Rapid Entire Body Assessment: Estima o risco de distúrbios musculoesqueléticos. Classificação: 1-3 Baixo | 4-7 Médio | 8-10 Alto | 11+ Muito Alto.</p>
 <p><strong>RULA</strong> — Rapid Upper Limb Assessment: Avalia exposição dos membros superiores. Classificação: 1-2 Aceitável | 3-4 Investigar | 5-6 Mudar breve | 7 Mudar imediatamente.</p>
@@ -315,6 +756,14 @@ ${risks.length > 0 ? `<div class="rpt-section3">Riscos Identificados</div>
     return `<tr><td>${ws?.name || 'GHE ' + (i + 1)}</td><td>${r.description}</td><td>${r.probability}×${r.exposure}×${r.consequence}</td><td><strong>${r.risk_score}</strong></td><td><strong>${riskLevelLabel(r.risk_level)}</strong></td></tr>`;
   }).join("")}
 </table>` : ""}
+
+<div class="page-break"></div>
+<div class="rpt-section2">9.1 INVENTÁRIO DE RISCOS OCUPACIONAIS POR POSTO</div>
+<p>Inventário completo de riscos ocupacionais com classificação por agente, conforme metodologia do PGR/NR-01:</p>
+${workstations.map((ws, idx) => {
+  return `<div class="rpt-section3">GHE ${String(idx + 1).padStart(2, '0')} — ${ws.name}</div>
+${occupationalRiskInventoryTable(risks, analyses, ws, psychosocial)}`;
+}).join('<div class="page-break"></div>')}
 
 <div class="rpt-section">10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</div>
 ${psychosocial.length > 0 ? `<p>Instrumentos aplicados: ${psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II</strong>, ' : ''}${psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : ''}${psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : ''}</p>
