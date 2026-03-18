@@ -99,12 +99,6 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
                   <span className="hidden sm:inline">PDF</span>
                 </Button>
               )}
-              {onDownloadDocx && (
-                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={onDownloadDocx}>
-                  <Download className="h-3.5 w-3.5 mr-1" />
-                  <span className="hidden sm:inline">HTML</span>
-                </Button>
-              )}
             </div>
           </DialogHeader>
           <div className="flex-1 overflow-auto bg-white">
