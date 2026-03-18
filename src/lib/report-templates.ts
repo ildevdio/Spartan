@@ -572,7 +572,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
     <!-- Row 1: Tronco | Tabela A + Tabela B | Ombro -->
     <tr>
       <td style="width:25%; vertical-align:top; padding:4px;">
-        <img src="/reba/tronco.png" alt="Tronco" style="height:80px; margin-bottom:4px;" onerror="this.style.display='none'" />
+        <img src="/reba/tronco.png" alt="Tronco" style="width:130px; height:auto; margin-bottom:6px; border:1px solid #ccc; border-radius:4px; padding:4px; background:#fafafa;" onerror="this.style.display='none'" />
         <div style="background:#DAA520; color:white; font-weight:bold; padding:6px; margin-bottom:2px;">Tronco</div>
         <div style="font-size:18px; font-weight:bold; padding:4px;">${trunk}</div>
         <div style="font-size:9px; color:#555;">Add + 1 se em rotação ou flexão lateral</div>
@@ -592,7 +592,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
         <div style="font-size:18px; font-weight:bold; padding:4px;">${coupling}</div>
       </td>
       <td style="width:25%; vertical-align:top; padding:4px;">
-        <img src="/reba/ombro.png" alt="Ombro" style="height:80px; margin-bottom:4px;" onerror="this.style.display='none'" />
+        <img src="/reba/ombro.png" alt="Ombro" style="width:130px; height:auto; margin-bottom:6px; border:1px solid #ccc; border-radius:4px; padding:4px; background:#fafafa;" onerror="this.style.display='none'" />
         <div style="background:#757575; color:white; font-weight:bold; padding:6px; margin-bottom:2px;">Ombro</div>
         <div style="font-size:18px; font-weight:bold; padding:4px;">${upperArm}</div>
         <div style="font-size:9px; color:#555;">Add + 1 se em abdução ou rotação</div>
@@ -618,7 +618,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
     <!-- Row 3: Pescoço | Tabela C | Cotovelo -->
     <tr>
       <td style="vertical-align:top; padding:4px;">
-        <img src="/reba/pescoco.png" alt="Pescoço" style="height:70px; margin-bottom:4px;" onerror="this.style.display='none'" />
+        <img src="/reba/pescoco.png" alt="Pescoço" style="width:120px; height:auto; margin-bottom:6px; border:1px solid #ccc; border-radius:4px; padding:4px; background:#fafafa;" onerror="this.style.display='none'" />
         <div style="background:#DAA520; color:white; font-weight:bold; padding:6px; margin-bottom:2px;">Pescoço</div>
         <div style="font-size:18px; font-weight:bold; padding:4px;">${neck}</div>
         <div style="font-size:9px; color:#555;">Add + 1 se em rotação ou flexão lateral</div>
@@ -629,7 +629,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
         <div style="font-weight:bold; margin:6px 0;">+</div>
       </td>
       <td style="vertical-align:top; padding:4px;">
-        <img src="/reba/cotovelo.png" alt="Cotovelo" style="height:70px; margin-bottom:4px;" onerror="this.style.display='none'" />
+        <img src="/reba/cotovelo.png" alt="Cotovelo" style="width:120px; height:auto; margin-bottom:6px; border:1px solid #ccc; border-radius:4px; padding:4px; background:#fafafa;" onerror="this.style.display='none'" />
         <div style="background:#757575; color:white; font-weight:bold; padding:6px; margin-bottom:2px;">Cotovelo</div>
         <div style="font-size:18px; font-weight:bold; padding:4px;">${lowerArm}</div>
       </td>
@@ -650,7 +650,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
     <!-- Row 5: Pernas | Resultado | Punho -->
     <tr>
       <td style="vertical-align:top; padding:4px;">
-        <img src="/reba/pernas.png" alt="Pernas" style="height:70px; margin-bottom:4px;" onerror="this.style.display='none'" />
+        <img src="/reba/pernas.png" alt="Pernas" style="width:120px; height:auto; margin-bottom:6px; border:1px solid #ccc; border-radius:4px; padding:4px; background:#fafafa;" onerror="this.style.display='none'" />
         <div style="background:#DAA520; color:white; font-weight:bold; padding:6px; margin-bottom:2px;">Pernas</div>
         <div style="font-size:18px; font-weight:bold; padding:4px;">${legs}</div>
       </td>
@@ -661,7 +661,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
         </div>
       </td>
       <td style="vertical-align:top; padding:4px;">
-        <img src="/reba/punho.png" alt="Punho" style="height:70px; margin-bottom:4px;" onerror="this.style.display='none'" />
+        <img src="/reba/punho.png" alt="Punho" style="width:120px; height:auto; margin-bottom:6px; border:1px solid #ccc; border-radius:4px; padding:4px; background:#fafafa;" onerror="this.style.display='none'" />
         <div style="background:#757575; color:white; font-weight:bold; padding:6px; margin-bottom:2px;">Punho</div>
         <div style="font-size:18px; font-weight:bold; padding:4px;">${wrist}</div>
         <div style="font-size:9px; color:#555;">Add + 1 se em desvio radial ou ulnar</div>
