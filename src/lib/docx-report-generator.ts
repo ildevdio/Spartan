@@ -2036,8 +2036,18 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
   }
 }
 
-export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<void> {
-  const html = generateReportHTML({
+const PDF_PAGE_WIDTH_MM = 210;
+const PDF_PAGE_HEIGHT_MM = 297;
+
+function getPdfSourceHtml(ctx: DocxReportContext): string {
+  const previewNode = document.querySelector(".report-preview-content") as HTMLDivElement | null;
+  const previewHtml = previewNode?.innerHTML?.trim();
+
+  if (previewHtml && previewHtml.length > 20) {
+    return previewHtml;
+  }
+
+  return generateReportHTML({
     company: ctx.company,
     sector: ctx.sector,
     workstation: ctx.workstation,
@@ -2046,145 +2056,241 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
     photos: ctx.photos,
     reportType: ctx.reportType,
   });
+}
 
-  const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+function createPdfRenderContainer(html: string): HTMLDivElement {
+  const container = document.createElement("div");
+  container.setAttribute("data-pdf-render", "true");
+  container.style.position = "fixed";
+  container.style.left = "-10000px";
+  container.style.top = "0";
+  container.style.width = "210mm";
+  container.style.minHeight = "297mm";
+  container.style.background = "#ffffff";
+  container.style.opacity = "1";
+  container.style.pointerEvents = "none";
+  container.style.zIndex = "-1";
 
-  // Create an off-screen but VISIBLE iframe to guarantee full rendering
-  const iframe = document.createElement("iframe");
-  iframe.style.position = "fixed";
-  iframe.style.left = "0";
-  iframe.style.top = "0";
-  iframe.style.width = "210mm";
-  iframe.style.height = "297mm";
-  iframe.style.opacity = "0";
-  iframe.style.pointerEvents = "none";
-  iframe.style.zIndex = "-9999";
-  document.body.appendChild(iframe);
-
-  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-  if (!iframeDoc) {
-    document.body.removeChild(iframe);
-    throw new Error("Não foi possível criar iframe para renderização do PDF.");
-  }
-
-  // Write a full HTML document into the iframe so styles are self-contained
-  iframeDoc.open();
-  iframeDoc.write(`<!DOCTYPE html>
-<html><head><meta charset="utf-8">
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: Calibri, Arial, sans-serif;
-    color: #1e293b;
-    line-height: 1.6;
-    background: #fff;
-    width: 210mm;
-    padding: 15mm 18mm;
-  }
-  table { border-collapse: collapse; width: 100%; margin: 8px 0; page-break-inside: avoid; }
-  td, th { border: 1px solid #D1D5DB; padding: 6px 8px; font-size: 12px; vertical-align: top; }
-  th { background: #f1f5f9; font-weight: bold; }
-  h1 { font-size: 22px; color: #1e293b; margin: 16px 0 8px; }
-  h2 { font-size: 18px; color: #1e293b; margin: 20px 0 8px; }
-  h3 { font-size: 15px; color: #475569; margin: 14px 0 6px; }
-  p { font-size: 13px; margin: 6px 0; }
-  hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
-  img { max-width: 100%; height: auto; }
-  .page-break { page-break-before: always; }
-</style>
-</head><body>${html}</body></html>`);
-  iframeDoc.close();
-
-  // Wait for iframe content to fully render (images, fonts, layout)
-  await new Promise<void>((resolve) => {
-    iframe.onload = () => resolve();
-    // Fallback: if onload doesn't fire (already loaded), resolve after delay
-    setTimeout(resolve, 1500);
-  });
-
-  // Extra safety: wait for all images inside the iframe to load
-  const images = Array.from(iframeDoc.querySelectorAll("img"));
-  if (images.length > 0) {
-    await Promise.all(
-      images.map(
-        (img) =>
-          new Promise<void>((resolve) => {
-            if (img.complete) return resolve();
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-          })
-      )
-    );
-  }
-
-  // Another small delay to let the browser finish painting
-  await new Promise((r) => setTimeout(r, 300));
-
-  try {
-    const html2canvas = (await import("html2canvas")).default;
-    const { jsPDF } = await import("jspdf");
-
-    const body = iframeDoc.body;
-
-    // Render the entire iframe body to canvas
-    const canvas = await html2canvas(body, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      width: body.scrollWidth,
-      height: body.scrollHeight,
-      windowWidth: body.scrollWidth,
-      windowHeight: body.scrollHeight,
-    });
-
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
-    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const margin = 0; // margins already in the HTML padding
-
-    const contentWidth = pageWidth - margin * 2;
-    const imgWidth = canvas.width;
-    const imgHeight = canvas.height;
-    const ratio = contentWidth / imgWidth;
-    const totalPdfHeight = imgHeight * ratio;
-
-    let yOffset = 0;
-    let page = 0;
-
-    while (yOffset < totalPdfHeight) {
-      if (page > 0) pdf.addPage();
-
-      // Calculate source slice from canvas
-      const sliceHeightMM = Math.min(pageHeight, totalPdfHeight - yOffset);
-      const sliceHeightPx = sliceHeightMM / ratio;
-      const sourceY = (yOffset / ratio);
-
-      // Create a slice canvas for this page
-      const pageCanvas = document.createElement("canvas");
-      pageCanvas.width = imgWidth;
-      pageCanvas.height = Math.ceil(sliceHeightPx);
-      const pageCtx = pageCanvas.getContext("2d");
-      if (pageCtx) {
-        pageCtx.fillStyle = "#ffffff";
-        pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-        pageCtx.drawImage(
-          canvas,
-          0, Math.round(sourceY), imgWidth, Math.ceil(sliceHeightPx),
-          0, 0, imgWidth, Math.ceil(sliceHeightPx)
-        );
+  container.innerHTML = `
+    <style>
+      [data-pdf-render="true"] * { box-sizing: border-box; }
+      [data-pdf-render="true"] .pdf-export-root {
+        font-family: Calibri, Arial, sans-serif;
+        color: #1e293b;
+        line-height: 1.6;
+        background: #fff;
+        width: 210mm;
+        padding: 15mm 18mm;
       }
+      [data-pdf-render="true"] .pdf-export-root table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 8px 0;
+        page-break-inside: avoid;
+      }
+      [data-pdf-render="true"] .pdf-export-root td,
+      [data-pdf-render="true"] .pdf-export-root th {
+        border: 1px solid #D1D5DB;
+        padding: 6px 8px;
+        font-size: 12px;
+        vertical-align: top;
+      }
+      [data-pdf-render="true"] .pdf-export-root th {
+        background: #f1f5f9;
+        font-weight: bold;
+      }
+      [data-pdf-render="true"] .pdf-export-root h1 { font-size: 22px; color: #1e293b; margin: 16px 0 8px; }
+      [data-pdf-render="true"] .pdf-export-root h2 { font-size: 18px; color: #1e293b; margin: 20px 0 8px; }
+      [data-pdf-render="true"] .pdf-export-root h3 { font-size: 15px; color: #475569; margin: 14px 0 6px; }
+      [data-pdf-render="true"] .pdf-export-root p { font-size: 13px; margin: 6px 0; }
+      [data-pdf-render="true"] .pdf-export-root hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
+      [data-pdf-render="true"] .pdf-export-root img { max-width: 100%; height: auto; }
+      [data-pdf-render="true"] .pdf-export-root .page-break { page-break-before: always; }
+    </style>
+    <div class="pdf-export-root">${html}</div>
+  `;
 
-      const pageImgData = pageCanvas.toDataURL("image/jpeg", 0.95);
-      pdf.addImage(pageImgData, "JPEG", margin, 0, contentWidth, sliceHeightMM);
+  document.body.appendChild(container);
+  return container;
+}
 
-      yOffset += pageHeight;
-      page++;
+async function waitForImages(root: HTMLElement): Promise<void> {
+  const images = Array.from(root.querySelectorAll("img"));
+  if (images.length === 0) return;
+
+  await Promise.all(
+    images.map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          if (img.complete) {
+            resolve();
+            return;
+          }
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        })
+    )
+  );
+}
+
+async function waitForStableRender(root: HTMLElement): Promise<void> {
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+
+  const fonts = (document as unknown as { fonts?: { ready?: Promise<unknown> } }).fonts;
+  if (fonts?.ready) {
+    await fonts.ready.catch(() => undefined);
+  }
+
+  await waitForImages(root);
+  await new Promise<void>((resolve) => setTimeout(resolve, 150));
+}
+
+function canvasHasVisibleContent(canvas: HTMLCanvasElement): boolean {
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return false;
+  if (canvas.width < 100 || canvas.height < 100) return false;
+
+  const step = Math.max(8, Math.floor(Math.sqrt((canvas.width * canvas.height) / 1800)));
+  let total = 0;
+  let nonWhite = 0;
+
+  for (let y = 0; y < canvas.height; y += step) {
+    for (let x = 0; x < canvas.width; x += step) {
+      total += 1;
+      const pixel = ctx.getImageData(x, y, 1, 1).data;
+      const alpha = pixel[3];
+      const isNearWhite = pixel[0] > 246 && pixel[1] > 246 && pixel[2] > 246;
+      if (alpha > 8 && !isNearWhite) {
+        nonWhite += 1;
+      }
+    }
+  }
+
+  return total > 0 && nonWhite / total > 0.005;
+}
+
+function saveCanvasAsPaginatedPdf(
+  canvas: HTMLCanvasElement,
+  jsPDFCtor: typeof import("jspdf").jsPDF,
+  fileName: string,
+  quality = 0.95
+): void {
+  const pdf = new jsPDFCtor({ unit: "mm", format: "a4", orientation: "portrait" });
+  const pageHeightPx = Math.floor((canvas.width * PDF_PAGE_HEIGHT_MM) / PDF_PAGE_WIDTH_MM);
+
+  let sourceY = 0;
+  let pageIndex = 0;
+
+  while (sourceY < canvas.height) {
+    if (pageIndex > 0) {
+      pdf.addPage();
     }
 
-    pdf.save(fileName);
+    const sliceHeightPx = Math.min(pageHeightPx, canvas.height - sourceY);
+    const pageCanvas = document.createElement("canvas");
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = sliceHeightPx;
+
+    const pageCtx = pageCanvas.getContext("2d");
+    if (!pageCtx) {
+      throw new Error("Não foi possível preparar página do PDF.");
+    }
+
+    pageCtx.fillStyle = "#ffffff";
+    pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+    pageCtx.drawImage(canvas, 0, sourceY, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+
+    const renderHeightMm = (sliceHeightPx * PDF_PAGE_WIDTH_MM) / canvas.width;
+    const pageImage = pageCanvas.toDataURL("image/jpeg", quality);
+    pdf.addImage(pageImage, "JPEG", 0, 0, PDF_PAGE_WIDTH_MM, renderHeightMm);
+
+    sourceY += pageHeightPx;
+    pageIndex += 1;
+  }
+
+  pdf.save(fileName);
+}
+
+async function tryGeneratePdfWithCanvas(container: HTMLElement, fileName: string, scale: number): Promise<boolean> {
+  const html2canvas = (await import("html2canvas")).default;
+  const { jsPDF } = await import("jspdf");
+
+  const width = Math.ceil(container.scrollWidth);
+  const height = Math.ceil(container.scrollHeight);
+  if (width < 100 || height < 100) return false;
+
+  const canvas = await html2canvas(container, {
+    scale,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    logging: false,
+    width,
+    height,
+    windowWidth: width,
+    windowHeight: height,
+    scrollX: 0,
+    scrollY: 0,
+  });
+
+  if (!canvasHasVisibleContent(canvas)) {
+    return false;
+  }
+
+  saveCanvasAsPaginatedPdf(canvas, jsPDF, fileName, scale >= 3 ? 0.98 : 0.95);
+  return true;
+}
+
+async function fallbackGeneratePdfWithJsPdfHtml(container: HTMLElement, fileName: string): Promise<void> {
+  const { jsPDF } = await import("jspdf");
+
+  await new Promise<void>((resolve, reject) => {
+    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+
+    pdf.html(container, {
+      x: 0,
+      y: 0,
+      width: PDF_PAGE_WIDTH_MM,
+      windowWidth: container.scrollWidth,
+      autoPaging: "text",
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+      },
+      callback: (doc) => {
+        if (doc.getNumberOfPages() < 1) {
+          reject(new Error("PDF inválido (sem páginas)."));
+          return;
+        }
+        doc.save(fileName);
+        resolve();
+      },
+    });
+  });
+}
+
+export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<void> {
+  const html = getPdfSourceHtml(ctx);
+  const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
+
+  const container = createPdfRenderContainer(html);
+
+  try {
+    await waitForStableRender(container);
+
+    const firstAttemptOk = await tryGeneratePdfWithCanvas(container, fileName, 2);
+    if (firstAttemptOk) return;
+
+    const secondAttemptOk = await tryGeneratePdfWithCanvas(container, fileName, 3);
+    if (secondAttemptOk) return;
+
+    await fallbackGeneratePdfWithJsPdfHtml(container, fileName);
+  } catch (error) {
+    console.error("Falha na geração de PDF a partir do HTML do relatório.", error);
+    throw new Error("Não foi possível gerar o PDF com conteúdo visível. Tente novamente.");
   } finally {
-    document.body.removeChild(iframe);
+    container.remove();
   }
 }
