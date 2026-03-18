@@ -2049,17 +2049,12 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
 
   const container = document.createElement("div");
   container.innerHTML = html;
-  container.style.position = "fixed";
-  container.style.top = "0";
-  container.style.left = "0";
   container.style.width = "210mm";
   container.style.padding = "20mm";
   container.style.fontFamily = "Calibri, Arial, sans-serif";
   container.style.color = "#1e293b";
   container.style.lineHeight = "1.6";
   container.style.background = "#fff";
-  container.style.zIndex = "99999";
-  container.style.overflow = "visible";
   document.body.appendChild(container);
 
   const { default: html2pdf } = await import("html2pdf.js");

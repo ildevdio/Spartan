@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Download, Printer, FileText, Loader2, ShieldCheck } from "lucide-react";
 import { useRef, useState } from "react";
 import { ReportSignatureDialog, type SignatureResult } from "./ReportSignatureDialog";
-import { toast } from "sonner";
 
 interface ReportPreviewDialogProps {
   open: boolean;
@@ -47,9 +46,6 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
     setGeneratingPdf(true);
     try {
       await onDownloadPdf();
-    } catch (err) {
-      console.error("PDF generation error:", err);
-      toast.error("Erro ao gerar PDF. Verifique o console para detalhes.");
     } finally {
       setGeneratingPdf(false);
     }
