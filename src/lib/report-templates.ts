@@ -572,7 +572,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
     <!-- Row 1: Tronco | Tabela A + Tabela B | Ombro -->
     <tr>
       <td style="width:25%; vertical-align:top; padding:4px;">
-        <img src="/reba/tronco.png" alt="Tronco" style="height:80px; margin-bottom:4px;" onerror="this.style.display='none'" />
+        <img src="/reba/tronco.png" alt="Tronco" style="width:130px; height:auto; margin-bottom:6px; border:1px solid #ccc; border-radius:4px; padding:4px; background:#fafafa;" onerror="this.style.display='none'" />
         <div style="background:#DAA520; color:white; font-weight:bold; padding:6px; margin-bottom:2px;">Tronco</div>
         <div style="font-size:18px; font-weight:bold; padding:4px;">${trunk}</div>
         <div style="font-size:9px; color:#555;">Add + 1 se em rotação ou flexão lateral</div>
