@@ -1027,18 +1027,18 @@ ${Array.from(sectorMap.entries()).map(([sectorId, { sectorName, workstations: se
 <div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} / SETOR — ${sectorName.toUpperCase()}</div>
 <p><strong>Postos:</strong> ${sectorWs.map(w => w.name).join(", ")}</p>
 <table class="rpt-table">
-  <tr><th>Posto/Função</th><th>Descrição das Atividades</th></tr>
+  <tr><th>Posto / Função</th><th>Descrição das Atividades</th></tr>
   ${sectorWs.map(ws => {
     const wt = tasks.filter(t => t.workstation_id === ws.id);
     return `<tr><td><strong>${ws.name}</strong></td><td>${wt.map(t => t.description).join("; ") || ws.tasks_performed || ws.activity_description}</td></tr>`;
   }).join("")}
 </table>
 <table class="rpt-table">
-  <tr><th>Agente/Perigo</th><th>Possíveis Danos</th><th>P</th><th>G</th><th>NR</th><th>Medidas de Controle</th></tr>
+  <tr><th>Agente / Perigo</th><th>Possíveis Danos</th><th>Probabilidade</th><th>Gravidade</th><th>Nível de Risco</th><th>Medidas de Controle</th></tr>
   ${wsRisks.length > 0 ? wsRisks.map(r => {
     const analysis = analyses.find(a => a.id === r.analysis_id);
     const ws = analysis ? sectorWs.find(w => w.id === analysis.workstation_id) : null;
-    return `<tr><td>${r.description}</td><td>${ws?.name || "—"}</td><td style="text-align:center;">${r.probability}</td><td style="text-align:center;">${r.consequence}</td><td style="text-align:center;">${riskLevelLabel(r.risk_level).charAt(0)}</td><td>${mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I."}</td></tr>`;
+    return `<tr><td>${r.description}</td><td>${ws?.name || "—"}</td><td style="text-align:center;">${r.probability}</td><td style="text-align:center;">${r.consequence}</td><td style="text-align:center;">${riskLevelLabel(r.risk_level)}</td><td>${mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I."}</td></tr>`;
   }).join("") : `<tr><td colspan="6" style="text-align:center;">Nenhum risco identificado para este setor</td></tr>`}
 </table>`;
 }).join("")}
