@@ -1045,7 +1045,7 @@ ${Array.from(sectorMap.entries()).map(([sectorId, { sectorName, workstations: se
 
 <div class="rpt-section">11. IMPLEMENTAÇÃO DAS MEDIDAS DE PREVENÇÃO</div>
 ${actions.length > 0 ? `<table class="rpt-table">
-  <tr><th>Meta / Ação</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr>
+  <tr><th>Ação Corretiva / Preventiva</th><th>Responsável</th><th>Prazo</th><th>Situação</th></tr>
   ${actions.map(ap => `<tr><td>${ap.description}</td><td>${ap.responsible}</td><td>${ap.deadline}</td><td>${statusLabel(ap.status)}</td></tr>`).join("")}
 </table>` : "<p>Nenhuma ação registrada.</p>"}
 
