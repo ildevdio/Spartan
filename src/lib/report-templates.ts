@@ -1,6 +1,6 @@
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, ReportType, Task, PsychosocialAnalysis } from "./types";
 import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses } from "./mock-data";
-import { riskLevelLabel, statusLabel } from "./types";
+import { riskLevelLabel, statusLabel, analysisStatusLabel } from "./types";
 
 interface ReportContext {
   company: Company;
@@ -696,26 +696,19 @@ ${workstations.map(ws => {
 </ul>
 
 <div class="rpt-section">7. ESTUDO ERGONÔMICO DO TRABALHO</div>
-<p>A realização do Estudo Ergonômico do Trabalho é indispensável não apenas pelo cumprimento da NR17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral. O presente trabalho foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT.</p>
-
-${photos.length > 0 ? `<div class="rpt-section3">Registro Postural</div>
-<p>Foram registradas <strong>${photos.length}</strong> posturas de trabalho:</p>
+<p>A realização do Estudo Ergonômico do Trabalho (EET) é indispensável não apenas pelo cumprimento da NR-17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral.</p>
+<p>O presente estudo foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT, contemplando <strong>${workstations.length}</strong> posto(s) de trabalho, <strong>${analyses.length}</strong> análise(s) ergonômica(s) e <strong>${photos.length}</strong> registro(s) fotográfico(s) de postura.</p>
+${analyses.length > 0 ? `
+<div class="rpt-section3">Resumo das Avaliações</div>
 <table class="rpt-table">
-  <tr><th>Postura</th><th>Descrição</th><th>Data</th></tr>
-  ${photos.map(p => `<tr><td><strong>${p.posture_type}</strong></td><td>${p.notes}</td><td>${p.created_at}</td></tr>`).join("")}
-</table>` : ""}
-
-${analyses.length > 0 ? `<div class="rpt-section3">Análises Ergonômicas</div>
-<p>Métodos utilizados: <strong>${methods}</strong></p>
-${analyses.map(a => {
-  const ws = workstations.find(w => w.id === a.workstation_id);
-  const risk = risks.find(r => r.analysis_id === a.id);
-  return `<table class="rpt-table"><tr><td class="label" colspan="2">${ws?.name || "—"}</td></tr>
-    <tr><td class="label" style="width:200px;">Método</td><td>${a.method}</td></tr>
-    <tr><td class="label">Score</td><td>${a.score}</td></tr>
-    <tr><td class="label">Nível de Risco</td><td>${risk ? riskLevelLabel(risk.risk_level) : "N/A"}</td></tr>
-    <tr><td class="label">Observações</td><td>${a.notes}</td></tr></table>`;
-}).join("")}` : "<p>Nenhuma análise realizada.</p>"}
+  <tr><th>Posto de Trabalho</th><th>Método Aplicado</th><th>Pontuação</th><th>Nível de Risco</th></tr>
+  ${analyses.map(a => {
+    const ws = workstations.find(w => w.id === a.workstation_id);
+    const risk = risks.find(r => r.analysis_id === a.id);
+    return `<tr><td>${ws?.name || "—"}</td><td>${a.method}</td><td><strong>${a.score}</strong></td><td><strong>${risk ? riskLevelLabel(risk.risk_level) : "N/A"}</strong></td></tr>`;
+  }).join("")}
+</table>
+<p style="font-size:11px; color:#64748b;">Os detalhes completos de cada avaliação estão apresentados nas seções 7.1 (Relatório por Posto) e 7.2 (Fichas REBA), e o registro fotográfico encontra-se no Anexo V.</p>` : '<div class="rpt-callout warning">Nenhuma análise ergonômica realizada até o momento. Recomenda-se a aplicação dos métodos REBA, RULA ou ROSA conforme o tipo de posto.</div>'}
 
 <div class="page-break"></div>
 <div class="rpt-section2">7.1 RELATÓRIO DA ANÁLISE ERGONÔMICA POR POSTO</div>
@@ -749,7 +742,7 @@ ${riskMatrix()}
 
 ${risks.length > 0 ? `<div class="rpt-section3">Riscos Identificados</div>
 <table class="rpt-table">
-  <tr><th>GHE/Posto</th><th>Risco</th><th>P × E × C</th><th>Score</th><th>Nível</th></tr>
+  <tr><th>Posto de Trabalho</th><th>Descrição do Risco</th><th>Cálculo (P×E×C)</th><th>Pontuação</th><th>Nível de Risco</th></tr>
   ${risks.map((r, i) => {
     const analysis = analyses.find(a => a.id === r.analysis_id);
     const ws = analysis ? workstations.find(w => w.id === analysis.workstation_id) : null;
@@ -824,20 +817,23 @@ ${workstations.map((ws, idx) => {
 ${wsAnalyses.length > 0 ? `
 <div class="rpt-section3">Resultados da Avaliação</div>
 <table class="rpt-table">
-  <tr><th>Método</th><th>Score</th><th>Status</th><th>Observações</th></tr>
-  ${wsAnalyses.map(a => `<tr><td>${a.method}</td><td><strong>${a.score}</strong></td><td>${a.analysis_status}</td><td>${a.notes || "—"}</td></tr>`).join("")}
+  <tr><th>Método</th><th>Pontuação</th><th>Situação</th><th>Observações</th></tr>
+  ${wsAnalyses.map(a => `<tr><td>${a.method}</td><td><strong>${a.score}</strong></td><td>${analysisStatusLabel(a.analysis_status as any)}</td><td>${a.notes || "—"}</td></tr>`).join("")}
 </table>` : '<div class="rpt-callout warning">Nenhuma análise ergonômica realizada para este posto.</div>'}
 ${wsRisks.length > 0 ? `
 <div class="rpt-section3">Riscos Ergonômicos Identificados</div>
 <table class="rpt-table">
-  <tr><th>Descrição</th><th>P×E×C</th><th>Score</th><th>Nível</th></tr>
+  <tr><th>Descrição do Risco</th><th>Cálculo (P×E×C)</th><th>Pontuação</th><th>Nível de Risco</th></tr>
   ${wsRisks.map(r => `<tr><td>${r.description}</td><td>${r.probability}×${r.exposure}×${r.consequence}</td><td><strong>${r.risk_score}</strong></td><td><strong>${riskLevelLabel(r.risk_level)}</strong></td></tr>`).join("")}
 </table>` : ''}
 ${wsPhotos.length > 0 ? `
 <div class="rpt-section3">Registro Postural</div>
 <table class="rpt-table">
-  <tr><th>Postura</th><th>Observações</th><th>Data</th></tr>
-  ${wsPhotos.map(p => `<tr><td><strong>${p.posture_type}</strong></td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`).join("")}
+  <tr><th>Tipo de Postura</th><th>Observações</th><th>Data do Registro</th></tr>
+  ${wsPhotos.map(p => {
+    const postureLabel = p.posture_type === 'sentado' ? 'Sentado' : p.posture_type === 'em_pe' ? 'Em pé' : p.posture_type;
+    return `<tr><td><strong>${postureLabel}</strong></td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`;
+  }).join("")}
 </table>` : ''}`;
 }).join("")}
 
@@ -913,12 +909,13 @@ ${actions.length > 0 ? `
 <div class="page-break"></div>
 <div class="rpt-section">ANEXO V — REGISTRO FOTOGRÁFICO</div>
 ${photos.length > 0 ? `
-<p>Total de registros fotográficos: <strong>${photos.length}</strong></p>
+<p>Total de registros fotográficos capturados: <strong>${photos.length}</strong></p>
 <table class="rpt-table">
-  <tr><th>Nº</th><th>Posto</th><th>Tipo de Postura</th><th>Observações</th><th>Data</th></tr>
+  <tr><th>Nº</th><th>Posto de Trabalho</th><th>Tipo de Postura</th><th>Observações</th><th>Data do Registro</th></tr>
   ${photos.map((p, i) => {
     const ws = workstations.find(w => w.id === p.workstation_id);
-    return `<tr><td>${i + 1}</td><td>${ws?.name || "—"}</td><td>${p.posture_type}</td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`;
+    const postureLabel = p.posture_type === 'sentado' ? 'Sentado' : p.posture_type === 'em_pe' ? 'Em pé' : p.posture_type;
+    return `<tr><td>${i + 1}</td><td>${ws?.name || "—"}</td><td>${postureLabel}</td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`;
   }).join("")}
 </table>` : '<div class="rpt-callout warning">Nenhum registro fotográfico disponível.</div>'}
 
@@ -1030,25 +1027,25 @@ ${Array.from(sectorMap.entries()).map(([sectorId, { sectorName, workstations: se
 <div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} / SETOR — ${sectorName.toUpperCase()}</div>
 <p><strong>Postos:</strong> ${sectorWs.map(w => w.name).join(", ")}</p>
 <table class="rpt-table">
-  <tr><th>Posto/Função</th><th>Descrição das Atividades</th></tr>
+  <tr><th>Posto / Função</th><th>Descrição das Atividades</th></tr>
   ${sectorWs.map(ws => {
     const wt = tasks.filter(t => t.workstation_id === ws.id);
     return `<tr><td><strong>${ws.name}</strong></td><td>${wt.map(t => t.description).join("; ") || ws.tasks_performed || ws.activity_description}</td></tr>`;
   }).join("")}
 </table>
 <table class="rpt-table">
-  <tr><th>Agente/Perigo</th><th>Possíveis Danos</th><th>P</th><th>G</th><th>NR</th><th>Medidas de Controle</th></tr>
+  <tr><th>Agente / Perigo</th><th>Possíveis Danos</th><th>Probabilidade</th><th>Gravidade</th><th>Nível de Risco</th><th>Medidas de Controle</th></tr>
   ${wsRisks.length > 0 ? wsRisks.map(r => {
     const analysis = analyses.find(a => a.id === r.analysis_id);
     const ws = analysis ? sectorWs.find(w => w.id === analysis.workstation_id) : null;
-    return `<tr><td>${r.description}</td><td>${ws?.name || "—"}</td><td style="text-align:center;">${r.probability}</td><td style="text-align:center;">${r.consequence}</td><td style="text-align:center;">${riskLevelLabel(r.risk_level).charAt(0)}</td><td>${mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I."}</td></tr>`;
+    return `<tr><td>${r.description}</td><td>${ws?.name || "—"}</td><td style="text-align:center;">${r.probability}</td><td style="text-align:center;">${r.consequence}</td><td style="text-align:center;">${riskLevelLabel(r.risk_level)}</td><td>${mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I."}</td></tr>`;
   }).join("") : `<tr><td colspan="6" style="text-align:center;">Nenhum risco identificado para este setor</td></tr>`}
 </table>`;
 }).join("")}
 
 <div class="rpt-section">11. IMPLEMENTAÇÃO DAS MEDIDAS DE PREVENÇÃO</div>
 ${actions.length > 0 ? `<table class="rpt-table">
-  <tr><th>Meta / Ação</th><th>Responsável</th><th>Prazo</th><th>Status</th></tr>
+  <tr><th>Ação Corretiva / Preventiva</th><th>Responsável</th><th>Prazo</th><th>Situação</th></tr>
   ${actions.map(ap => `<tr><td>${ap.description}</td><td>${ap.responsible}</td><td>${ap.deadline}</td><td>${statusLabel(ap.status)}</td></tr>`).join("")}
 </table>` : "<p>Nenhuma ação registrada.</p>"}
 
