@@ -46,6 +46,9 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
     setGeneratingPdf(true);
     try {
       await onDownloadPdf();
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      toast.error("Erro ao gerar PDF. Verifique o console para detalhes.");
     } finally {
       setGeneratingPdf(false);
     }
