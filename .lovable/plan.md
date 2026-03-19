@@ -1,28 +1,40 @@
 
 
-# Correção do Zoom e Gradiente da Capa do PDF
+# Correção: Cada Seção em Sua Própria Página no PDF
 
-## Problemas identificados
+## Problema
+O algoritmo `sliceIntoPdf` corta o canvas em fatias iguais baseado na altura A4 em pixels, ignorando completamente os `<div class="page-break">` do HTML. Resultado: a capa mistura com o índice, seções começam no meio da página, conteúdo cortado.
 
-1. **Zoom excessivo**: O `PDF_RENDER_WIDTH_PX = 900` combinado com `scale: 1.5` do html2canvas cria um canvas de 1350px de largura que é comprimido em 210mm (A4), resultando em conteúdo "ampliado". A solução é usar uma largura de renderização mais próxima da relação real A4 e ajustar o scale para 1.
-2. **Gradiente da capa quebrado**: O `html2canvas` frequentemente falha ao renderizar `linear-gradient` em CSS. A capa `.rpt-cover` usa `background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%)` que o html2canvas pode não capturar. A solução é adicionar um fallback de `background-color` sólido e forçar o gradiente com `!important` no container de PDF.
+## Solução
+Modificar o fluxo de PDF para respeitar os page-breaks do HTML. Em vez de renderizar todo o HTML em um único canvas gigante e fatiar cegamente, vamos:
 
-## Correções no arquivo `src/lib/docx-report-generator.ts`
+1. **Dividir o HTML em blocos por page-break** antes de renderizar
+2. **Renderizar cada bloco separadamente** com html2canvas
+3. **Cada bloco = uma página A4** no PDF
 
-### 1. Ajustar dimensões de renderização
-- Mudar `PDF_RENDER_WIDTH_PX` de `900` para **`794`** (que é exatamente a largura em pixels de uma página A4 a 96 DPI — padrão web)
-- Reduzir `scale` do html2canvas de `1.5` para **`1`** na primeira tentativa e de `2` para `1.5` na segunda
-- Isso faz com que o conteúdo seja renderizado em tamanho 1:1 com o A4, eliminando o zoom
+### Arquivo: `src/lib/docx-report-generator.ts`
 
-### 2. Corrigir o gradiente da capa
-- No CSS injetado no container de PDF, adicionar override explícito para `.rpt-cover` forçando o `background` com `!important` e adicionando `background-color: #0A1F44` como fallback sólido
-- Isso garante que o html2canvas renderize pelo menos a cor base, e idealmente o gradiente completo
+#### Mudança 1: Nova função `splitHtmlByPageBreaks`
+- Antes de injetar o HTML no container, dividir o HTML string nos pontos de `<div class="page-break"></div>`
+- Cada fragmento vira um bloco separado
 
-### 3. Ajustar padding do container
-- Reduzir padding de `30px 40px` para `20px 30px` para aproveitar melhor a largura de 794px
+#### Mudança 2: Reescrever `createOnScreenContainer` 
+- Em vez de colocar todo o HTML em um único `.pdf-root`, criar um container com múltiplos `.pdf-page` divs
+- Cada `.pdf-page` tem largura fixa de 794px e é limitado em altura para caber em uma página A4
 
-## Resultado esperado
-- PDF com zoom proporcional ao preview em tela (sem ampliação nem redução excessiva)
-- Capa com gradiente azul visível (navy → azul → teal)
-- Número de páginas proporcional ao conteúdo real
+#### Mudança 3: Reescrever a função `generateAndDownloadPdf`
+- Iterar sobre cada `.pdf-page` no container
+- Capturar cada um com html2canvas individualmente
+- Adicionar cada captura como uma página no jsPDF
+- Isso garante: capa = página 1, índice = página 2, etc.
+
+#### Mudança 4: Remover `sliceIntoPdf` (não mais necessária)
+- A função de fatiamento cega é substituída pela captura por seção
+
+### Resultado esperado
+- Página 1: apenas a capa (com gradiente azul)
+- Página 2: apenas o índice
+- Página 3+: cada seção começa em sua própria página
+- Zoom correto mantido (794px, scale 1)
+- Gradiente da capa preservado
 
