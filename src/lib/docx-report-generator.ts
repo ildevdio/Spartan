@@ -2256,10 +2256,10 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
     const html2canvas = (await import("html2canvas")).default;
     const { jsPDF } = await import("jspdf");
 
-    // Attempt 1: scale 2
-    console.log("[PDF] Attempt 1: scale 2");
+    // Attempt 1: scale 1.5
+    console.log("[PDF] Attempt 1: scale 1.5");
     let canvas = await html2canvas(container, {
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
