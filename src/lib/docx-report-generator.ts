@@ -2044,41 +2044,166 @@ const PDF_H_MM = 297;
 const PDF_RENDER_WIDTH_PX = 794; // exact A4 width at 96 DPI — 1:1 ratio eliminates zoom
 
 /**
- * Shows a full-screen overlay so the user doesn't see the raw render container.
+ * Rich diagnostic overlay with progress, thumbnails, logs, and score.
  */
-function showPdfOverlay(): HTMLDivElement {
+interface OverlayControls {
+  element: HTMLDivElement;
+  setIteration: (current: number, max: number) => void;
+  setProgress: (percent: number, label: string) => void;
+  setPageStatus: (pageIdx: number, thumbnail: string, status: "capturing" | "ok" | "warning" | "fixing" | "error", detail: string) => void;
+  addLog: (msg: string) => void;
+  setScore: (score: number) => void;
+  setPhase: (phase: string) => void;
+  finish: (totalPages: number, fixedPages: number, score: number) => void;
+  remove: () => void;
+}
+
+function showPdfOverlay(): OverlayControls {
   const overlay = document.createElement("div");
   overlay.id = "__pdf_overlay__";
   Object.assign(overlay.style, {
     position: "fixed",
     inset: "0",
     zIndex: "999998",
-    background: "rgba(255,255,255,0.95)",
+    background: "rgba(10, 31, 68, 0.97)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontFamily: "sans-serif",
-    fontSize: "18px",
-    color: "#333",
-    backdropFilter: "blur(4px)",
+    fontFamily: "'Segoe UI', Arial, sans-serif",
+    backdropFilter: "blur(8px)",
+    color: "#e2e8f0",
   });
+
   overlay.innerHTML = `
-    <div style="text-align:center">
-      <div style="width:40px;height:40px;border:3px solid #1565C0;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>
-      <div>Gerando PDF...</div>
-      <div style="font-size:12px;color:#888;margin-top:4px">Não feche esta janela</div>
+    <style>
+      @keyframes spin{to{transform:rotate(360deg)}}
+      @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+      #__pdf_overlay__ * { box-sizing: border-box; }
+      .qa-panel { width: 560px; max-width: 95vw; max-height: 90vh; display: flex; flex-direction: column; gap: 16px; }
+      .qa-header { text-align: center; }
+      .qa-header h2 { font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 4px; }
+      .qa-header .phase { font-size: 13px; color: #94a3b8; }
+      .qa-header .iteration { font-size: 12px; color: #64748b; margin-top: 2px; }
+      .qa-progress-bar { width: 100%; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; }
+      .qa-progress-fill { height: 100%; background: linear-gradient(90deg, #1565C0, #00BCD4); transition: width 0.3s; width: 0%; border-radius: 4px; }
+      .qa-progress-label { font-size: 11px; color: #94a3b8; margin-top: 4px; text-align: right; }
+      .qa-pages { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-height: 200px; overflow-y: auto; padding: 8px 0; }
+      .qa-page-thumb { width: 72px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+      .qa-page-thumb img { width: 68px; height: 96px; object-fit: cover; border-radius: 4px; border: 2px solid #334155; }
+      .qa-page-thumb.ok img { border-color: #22c55e; }
+      .qa-page-thumb.warning img { border-color: #eab308; }
+      .qa-page-thumb.fixing img { border-color: #f97316; animation: pulse 1s ease-in-out infinite; }
+      .qa-page-thumb.error img { border-color: #ef4444; }
+      .qa-page-thumb.capturing img { border-color: #3b82f6; animation: pulse 0.8s ease-in-out infinite; }
+      .qa-page-thumb .badge { font-size: 9px; font-weight: 600; padding: 1px 6px; border-radius: 8px; }
+      .qa-page-thumb.ok .badge { background: #166534; color: #bbf7d0; }
+      .qa-page-thumb.warning .badge { background: #854d0e; color: #fef08a; }
+      .qa-page-thumb.fixing .badge { background: #9a3412; color: #fed7aa; }
+      .qa-page-thumb.error .badge { background: #991b1b; color: #fecaca; }
+      .qa-page-thumb.capturing .badge { background: #1e40af; color: #bfdbfe; }
+      .qa-page-thumb .detail { font-size: 8px; color: #64748b; text-align: center; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .qa-log { background: #0f172a; border-radius: 6px; padding: 10px 12px; max-height: 140px; overflow-y: auto; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 11px; line-height: 1.5; color: #94a3b8; }
+      .qa-log .log-entry { margin: 0; }
+      .qa-log .log-entry.fix { color: #facc15; }
+      .qa-log .log-entry.ok { color: #4ade80; }
+      .qa-log .log-entry.err { color: #f87171; }
+      .qa-score { text-align: center; }
+      .qa-score .num { font-size: 32px; font-weight: 800; }
+      .qa-score .label { font-size: 11px; color: #64748b; }
+      .qa-score.good .num { color: #4ade80; }
+      .qa-score.mid .num { color: #facc15; }
+      .qa-score.bad .num { color: #f87171; }
+      .qa-done { text-align: center; padding: 12px 0; }
+      .qa-done h3 { color: #4ade80; font-size: 16px; margin: 0 0 6px; }
+      .qa-done p { color: #94a3b8; font-size: 12px; margin: 0; }
+    </style>
+    <div class="qa-panel">
+      <div class="qa-header">
+        <h2>🔄 Gerando PDF com QA Automático</h2>
+        <div class="phase" id="qa-phase">Iniciando...</div>
+        <div class="iteration" id="qa-iteration"></div>
+      </div>
+      <div>
+        <div class="qa-progress-bar"><div class="qa-progress-fill" id="qa-progress-fill"></div></div>
+        <div class="qa-progress-label" id="qa-progress-label">0%</div>
+      </div>
+      <div class="qa-pages" id="qa-pages"></div>
+      <div class="qa-score" id="qa-score" style="display:none">
+        <div class="num" id="qa-score-num">—</div>
+        <div class="label">Score de Qualidade</div>
+      </div>
+      <div class="qa-log" id="qa-log"></div>
+      <div class="qa-done" id="qa-done" style="display:none"></div>
     </div>
-    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
   `;
   document.body.appendChild(overlay);
-  return overlay;
+
+  const $fill = overlay.querySelector("#qa-progress-fill") as HTMLDivElement;
+  const $label = overlay.querySelector("#qa-progress-label") as HTMLDivElement;
+  const $phase = overlay.querySelector("#qa-phase") as HTMLDivElement;
+  const $iteration = overlay.querySelector("#qa-iteration") as HTMLDivElement;
+  const $pages = overlay.querySelector("#qa-pages") as HTMLDivElement;
+  const $log = overlay.querySelector("#qa-log") as HTMLDivElement;
+  const $score = overlay.querySelector("#qa-score") as HTMLDivElement;
+  const $scoreNum = overlay.querySelector("#qa-score-num") as HTMLDivElement;
+  const $done = overlay.querySelector("#qa-done") as HTMLDivElement;
+
+  const statusLabels: Record<string, string> = {
+    capturing: "⏳", ok: "✓", warning: "⚠", fixing: "🔧", error: "✗",
+  };
+
+  return {
+    element: overlay,
+    setIteration(current, max) { $iteration.textContent = `Tentativa ${current}/${max}`; },
+    setProgress(pct, label) { $fill.style.width = `${pct}%`; $label.textContent = `${Math.round(pct)}% — ${label}`; },
+    setPhase(phase) { $phase.textContent = phase; },
+    setPageStatus(idx, thumb, status, detail) {
+      let el = $pages.querySelector(`[data-page="${idx}"]`) as HTMLDivElement | null;
+      if (!el) {
+        el = document.createElement("div");
+        el.className = `qa-page-thumb ${status}`;
+        el.setAttribute("data-page", String(idx));
+        el.innerHTML = `<img src="${thumb}" alt="Pág ${idx + 1}"/><span class="badge">${statusLabels[status]} ${idx + 1}</span><span class="detail">${detail}</span>`;
+        $pages.appendChild(el);
+      } else {
+        el.className = `qa-page-thumb ${status}`;
+        const img = el.querySelector("img");
+        if (img && thumb) img.src = thumb;
+        const badge = el.querySelector(".badge");
+        if (badge) badge.textContent = `${statusLabels[status]} ${idx + 1}`;
+        const det = el.querySelector(".detail");
+        if (det) det.textContent = detail;
+      }
+    },
+    addLog(msg) {
+      const cls = msg.includes("→") || msg.includes("fix") || msg.includes("consolid") ? "fix" : msg.includes("✓") || msg.includes("OK") ? "ok" : msg.includes("✗") || msg.includes("ERRO") ? "err" : "";
+      const p = document.createElement("p");
+      p.className = `log-entry ${cls}`;
+      p.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      $log.appendChild(p);
+      $log.scrollTop = $log.scrollHeight;
+    },
+    setScore(score) {
+      $score.style.display = "";
+      $scoreNum.textContent = `${score}/100`;
+      $score.className = `qa-score ${score >= 80 ? "good" : score >= 60 ? "mid" : "bad"}`;
+    },
+    finish(totalPages, fixedPages, score) {
+      $done.style.display = "";
+      $done.innerHTML = `<h3>✅ PDF Gerado com Sucesso</h3><p>${totalPages} páginas analisadas · ${fixedPages} corrigidas · Score final: ${score}/100</p>`;
+      $phase.textContent = "Concluído";
+      $fill.style.width = "100%";
+      $label.textContent = "100% — Finalizado";
+      setTimeout(() => overlay.remove(), 3000);
+    },
+    remove() { overlay.remove(); },
+  };
 }
 
 /**
  * Split HTML string into sections by page-break markers.
  */
 function splitHtmlByPageBreaks(html: string): string[] {
-  // Split on <div class="page-break"></div> or similar variants
   const parts = html.split(/<div\s+class=["']page-break["'][^>]*>\s*<\/div>/gi);
   return parts.map(p => p.trim()).filter(p => p.length > 0);
 }
@@ -2086,7 +2211,7 @@ function splitHtmlByPageBreaks(html: string): string[] {
 /**
  * CSS injected into the render container for PDF fidelity.
  */
-const PDF_A4_HEIGHT_PX = Math.floor(PDF_RENDER_WIDTH_PX * PDF_H_MM / PDF_W_MM); // ~1123px
+const PDF_A4_HEIGHT_PX = Math.floor(PDF_RENDER_WIDTH_PX * PDF_H_MM / PDF_W_MM);
 
 const PDF_INJECT_CSS = `
   [data-pdf-render="true"] * { box-sizing: border-box; }
@@ -2100,7 +2225,6 @@ const PDF_INJECT_CSS = `
     padding: 20px 30px;
     overflow: visible;
   }
-  /* Cover page: fill entire A4 height, no padding, gradient edge-to-edge */
   [data-pdf-render="true"] .pdf-page.pdf-page--cover {
     padding: 0;
     min-height: ${PDF_A4_HEIGHT_PX}px;
@@ -2123,29 +2247,19 @@ const PDF_INJECT_CSS = `
   [data-pdf-render="true"] .pdf-page .rpt-cover h2 { color: #B2EBF2 !important; }
   [data-pdf-render="true"] .pdf-page .rpt-cover .company { color: white !important; }
   [data-pdf-render="true"] .pdf-page .rpt-cover .meta { color: #B2EBF2 !important; }
-  /* Index page: fill entire A4 height */
   [data-pdf-render="true"] .pdf-page.pdf-page--index {
     min-height: ${PDF_A4_HEIGHT_PX}px;
   }
   [data-pdf-render="true"] .pdf-page img { max-width: 100%; height: auto; }
 `;
 
-/**
- * Creates the render container with each section as a separate .pdf-page div.
- */
 function createOnScreenContainer(htmlSections: string[]): HTMLDivElement {
   const container = document.createElement("div");
   container.setAttribute("data-pdf-render", "true");
   Object.assign(container.style, {
-    position: "fixed",
-    top: "0",
-    left: "0",
-    width: `${PDF_RENDER_WIDTH_PX}px`,
-    background: "#ffffff",
-    zIndex: "999997",
-    overflow: "visible",
-    opacity: "1",
-    pointerEvents: "none",
+    position: "fixed", top: "0", left: "0",
+    width: `${PDF_RENDER_WIDTH_PX}px`, background: "#ffffff",
+    zIndex: "999997", overflow: "visible", opacity: "1", pointerEvents: "none",
   });
 
   const pagesHtml = htmlSections.map((sectionHtml, idx) => {
@@ -2160,121 +2274,66 @@ function createOnScreenContainer(htmlSections: string[]): HTMLDivElement {
   return container;
 }
 
-/**
- * Wait for all images, fonts, and layout to fully render.
- */
 async function waitForFullRender(root: HTMLElement): Promise<void> {
   try { await (document as any).fonts?.ready; } catch {}
-
   const imgs = Array.from(root.querySelectorAll("img"));
-  await Promise.all(
-    imgs.map(
-      (img) =>
-        new Promise<void>((resolve) => {
-          if (img.complete && img.naturalHeight > 0) return resolve();
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-        })
-    )
-  );
-
-  for (let i = 0; i < 3; i++) {
-    await new Promise<void>((r) => requestAnimationFrame(() => r()));
-  }
+  await Promise.all(imgs.map((img) => new Promise<void>((resolve) => {
+    if (img.complete && img.naturalHeight > 0) return resolve();
+    img.onload = () => resolve();
+    img.onerror = () => resolve();
+  })));
+  for (let i = 0; i < 3; i++) { await new Promise<void>((r) => requestAnimationFrame(() => r())); }
   await new Promise<void>((r) => setTimeout(r, 300));
 }
 
-/**
- * Check the canvas actually has visible (non-white) content.
- */
 function hasContent(canvas: HTMLCanvasElement): boolean {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx || canvas.width < 50 || canvas.height < 50) return false;
-
   const step = Math.max(4, Math.floor(Math.sqrt((canvas.width * canvas.height) / 5000)));
-  let total = 0;
-  let nonWhite = 0;
-
+  let total = 0, nonWhite = 0;
   for (let y = 0; y < canvas.height; y += step) {
     for (let x = 0; x < canvas.width; x += step) {
       total++;
       const px = ctx.getImageData(x, y, 1, 1).data;
-      if (px[3] > 8 && !(px[0] > 245 && px[1] > 245 && px[2] > 245)) {
-        nonWhite++;
-      }
+      if (px[3] > 8 && !(px[0] > 245 && px[1] > 245 && px[2] > 245)) nonWhite++;
     }
   }
-
-  const ratio = total > 0 ? nonWhite / total : 0;
-  console.log(`[PDF] Content check: ${nonWhite}/${total} non-white pixels (${(ratio * 100).toFixed(2)}%)`);
-  return ratio > 0.003;
+  return total > 0 ? (nonWhite / total) > 0.003 : false;
 }
 
-/**
- * Capture a single .pdf-page element and add it to the PDF.
- * For sections taller than one A4 page, we split the DOM into sub-pages
- * by measuring child elements to avoid cutting content mid-element.
- */
 async function capturePageElement(
   pageEl: HTMLElement,
   html2canvasFn: typeof import("html2canvas").default,
   pdf: import("jspdf").jsPDF,
   pageIndex: number,
   scale: number
-): Promise<number> {
+): Promise<{ pagesAdded: number; canvases: HTMLCanvasElement[] }> {
   const elHeight = pageEl.scrollHeight;
   const maxPageH = PDF_A4_HEIGHT_PX;
-  
-  // If the section fits in one page, capture directly
+
   if (elHeight <= maxPageH + 20) {
     const canvas = await html2canvasFn(pageEl, {
-      scale,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false,
-      width: pageEl.scrollWidth,
-      height: pageEl.scrollHeight,
-      windowWidth: pageEl.scrollWidth,
-      windowHeight: pageEl.scrollHeight,
-      scrollX: 0,
-      scrollY: 0,
+      scale, useCORS: true, backgroundColor: "#ffffff", logging: false,
+      width: pageEl.scrollWidth, height: pageEl.scrollHeight,
+      windowWidth: pageEl.scrollWidth, windowHeight: pageEl.scrollHeight, scrollX: 0, scrollY: 0,
     });
-
-    if (!hasContent(canvas)) return 0;
-
+    if (!hasContent(canvas)) return { pagesAdded: 0, canvases: [] };
     if (pageIndex > 0) pdf.addPage();
     const heightMm = (canvas.height * PDF_W_MM) / canvas.width;
     pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, PDF_W_MM, heightMm);
-    return 1;
+    return { pagesAdded: 1, canvases: [canvas] };
   }
 
-  // Section is taller than one A4 page — split by DOM child elements
-  console.log(`[PDF] Section is ${elHeight}px tall (max ${maxPageH}px), splitting by DOM elements...`);
-  
-  // Collect direct children and their positions
   const children = Array.from(pageEl.children) as HTMLElement[];
   const parentTop = pageEl.getBoundingClientRect().top;
-  
-  // Group children into "page chunks" that fit within maxPageH
   const pageChunks: { startIdx: number; endIdx: number }[] = [];
   let currentChunkStart = 0;
   let currentChunkBottom = 0;
-  
+
   for (let i = 0; i < children.length; i++) {
-    const child = children[i];
-    const childRect = child.getBoundingClientRect();
-    const childTop = childRect.top - parentTop;
-    const childBottom = childRect.bottom - parentTop;
-    
-    if (currentChunkBottom === 0) {
-      // First element in chunk
-      currentChunkBottom = childBottom;
-      continue;
-    }
-    
-    // Would this element push us past the page height?
+    const childBottom = children[i].getBoundingClientRect().bottom - parentTop;
+    if (currentChunkBottom === 0) { currentChunkBottom = childBottom; continue; }
     if (childBottom - (children[currentChunkStart].getBoundingClientRect().top - parentTop) > maxPageH) {
-      // End current chunk at previous element
       pageChunks.push({ startIdx: currentChunkStart, endIdx: i - 1 });
       currentChunkStart = i;
       currentChunkBottom = childBottom;
@@ -2282,154 +2341,212 @@ async function capturePageElement(
       currentChunkBottom = childBottom;
     }
   }
-  // Push last chunk
-  if (currentChunkStart < children.length) {
-    pageChunks.push({ startIdx: currentChunkStart, endIdx: children.length - 1 });
-  }
-  
-  console.log(`[PDF] Split into ${pageChunks.length} sub-page(s) by DOM elements`);
-  
+  if (currentChunkStart < children.length) pageChunks.push({ startIdx: currentChunkStart, endIdx: children.length - 1 });
+
   let pagesAdded = 0;
-  
-  for (let chunkIdx = 0; chunkIdx < pageChunks.length; chunkIdx++) {
-    const chunk = pageChunks[chunkIdx];
-    
-    // Create a temporary container with only the elements for this chunk
+  const canvases: HTMLCanvasElement[] = [];
+
+  for (const chunk of pageChunks) {
     const tempDiv = document.createElement("div");
     tempDiv.className = "pdf-page";
     Object.assign(tempDiv.style, {
-      width: `${PDF_RENDER_WIDTH_PX}px`,
-      padding: "20px 30px",
-      background: "#fff",
-      fontFamily: "'Segoe UI', Arial, sans-serif",
-      fontSize: "13px",
-      color: "#1e293b",
-      lineHeight: "1.6",
-      position: "fixed",
-      top: "0",
-      left: "0",
-      zIndex: "999996",
-      overflow: "visible",
-      pointerEvents: "none",
+      width: `${PDF_RENDER_WIDTH_PX}px`, padding: "20px 30px", background: "#fff",
+      fontFamily: "'Segoe UI', Arial, sans-serif", fontSize: "13px", color: "#1e293b",
+      lineHeight: "1.6", position: "fixed", top: "0", left: "0", zIndex: "999996",
+      overflow: "visible", pointerEvents: "none",
     });
-    
-    for (let i = chunk.startIdx; i <= chunk.endIdx; i++) {
-      tempDiv.appendChild(children[i].cloneNode(true));
-    }
-    
+    for (let i = chunk.startIdx; i <= chunk.endIdx; i++) tempDiv.appendChild(children[i].cloneNode(true));
     document.body.appendChild(tempDiv);
-    
-    // Wait a frame for layout
     await new Promise<void>((r) => requestAnimationFrame(() => r()));
-    
     const canvas = await html2canvasFn(tempDiv, {
-      scale,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false,
-      width: tempDiv.scrollWidth,
-      height: tempDiv.scrollHeight,
-      windowWidth: tempDiv.scrollWidth,
-      windowHeight: tempDiv.scrollHeight,
-      scrollX: 0,
-      scrollY: 0,
+      scale, useCORS: true, backgroundColor: "#ffffff", logging: false,
+      width: tempDiv.scrollWidth, height: tempDiv.scrollHeight,
+      windowWidth: tempDiv.scrollWidth, windowHeight: tempDiv.scrollHeight, scrollX: 0, scrollY: 0,
     });
-    
     tempDiv.remove();
-    
     if (!hasContent(canvas)) continue;
-    
     if (pageIndex + pagesAdded > 0) pdf.addPage();
     const heightMm = (canvas.height * PDF_W_MM) / canvas.width;
     pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, PDF_W_MM, heightMm);
+    canvases.push(canvas);
     pagesAdded++;
   }
-  
-  return pagesAdded;
+
+  return { pagesAdded, canvases };
 }
 
+function mergeSections(sections: string[], idxA: number, idxB: number): string[] {
+  if (idxA < 0 || idxB >= sections.length || idxA === idxB) return sections;
+  const merged = sections[idxA] + "\n" + sections[idxB];
+  const result = [...sections];
+  result[idxA] = merged;
+  result.splice(idxB, 1);
+  return result;
+}
+
+const MAX_QA_ITERATIONS = 2;
+
 /**
- * Main PDF generation function.
- * Strategy: split HTML by page-breaks, render each section separately, capture individually.
+ * Main PDF generation with automatic QA analysis and correction loop.
  */
 export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<void> {
   const overlay = showPdfOverlay();
   let container: HTMLDivElement | null = null;
 
   try {
-    // Get HTML source
+    overlay.setPhase("Preparando HTML do relatório...");
+    overlay.addLog("Iniciando geração do PDF com QA automático");
+
     const previewNode = document.querySelector(".report-preview-content") as HTMLDivElement | null;
     const html =
       previewNode?.innerHTML?.trim() && previewNode.innerHTML.trim().length > 50
         ? previewNode.innerHTML
         : generateReportHTML({
-            company: ctx.company,
-            sector: ctx.sector,
-            workstation: ctx.workstation,
-            workstations: ctx.workstations,
-            analyses: ctx.analyses,
-            photos: ctx.photos,
-            reportType: ctx.reportType,
+            company: ctx.company, sector: ctx.sector, workstation: ctx.workstation,
+            workstations: ctx.workstations, analyses: ctx.analyses,
+            photos: ctx.photos, reportType: ctx.reportType,
           });
 
     const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
 
-    // Split HTML into sections by page-break markers
-    const sections = splitHtmlByPageBreaks(html);
-    console.log(`[PDF] Split HTML into ${sections.length} section(s)`);
+    let sections = splitHtmlByPageBreaks(html);
+    overlay.addLog(`HTML dividido em ${sections.length} seções`);
 
-    // Create container with each section as a separate .pdf-page
-    container = createOnScreenContainer(sections);
-
-    // Wait for rendering
-    await waitForFullRender(container);
-
-    // Import libraries
     const html2canvas = (await import("html2canvas")).default;
     const { jsPDF } = await import("jspdf");
 
-    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-    const pageElements = Array.from(container.querySelectorAll(".pdf-page")) as HTMLElement[];
+    let finalScore = 0;
+    let totalFixed = 0;
 
-    console.log(`[PDF] Capturing ${pageElements.length} page element(s)...`);
+    for (let iteration = 1; iteration <= MAX_QA_ITERATIONS + 1; iteration++) {
+      const isLastIteration = iteration > MAX_QA_ITERATIONS;
+      overlay.setIteration(Math.min(iteration, MAX_QA_ITERATIONS), MAX_QA_ITERATIONS);
+      overlay.setPhase(iteration === 1 ? "Capturando e analisando páginas..." : `Re-capturando após correções (tentativa ${iteration})...`);
 
-    let totalPages = 0;
-    for (let i = 0; i < pageElements.length; i++) {
-      console.log(`[PDF] Capturing section ${i + 1}/${pageElements.length} (height: ${pageElements[i].scrollHeight}px)...`);
-      const added = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1);
-      if (added > 0) {
-        totalPages += added;
-      } else {
-        // Retry at higher scale
-        console.log(`[PDF] Section ${i + 1} blank at scale 1, retrying at scale 1.5...`);
-        const added2 = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1.5);
-        if (added2 > 0) totalPages += added2;
+      // Clear page thumbnails for new iteration
+      const $pages = overlay.element.querySelector("#qa-pages");
+      if ($pages) $pages.innerHTML = "";
+
+      container?.remove();
+      container = createOnScreenContainer(sections);
+      await waitForFullRender(container);
+
+      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+      const pageElements = Array.from(container.querySelectorAll(".pdf-page")) as HTMLElement[];
+
+      overlay.addLog(`${iteration === 1 ? "Capturando" : "Re-capturando"} ${pageElements.length} página(s)...`);
+
+      let totalPages = 0;
+      const diagnoses: PageDiagnosis[] = [];
+      const allCanvases: HTMLCanvasElement[] = [];
+
+      for (let i = 0; i < pageElements.length; i++) {
+        const pct = ((i + 1) / pageElements.length) * 90;
+        overlay.setProgress(pct, `Página ${i + 1} de ${pageElements.length}`);
+
+        const placeholderThumb = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='68' height='96'%3E%3Crect fill='%231e293b' width='68' height='96'/%3E%3C/svg%3E";
+        overlay.setPageStatus(i, placeholderThumb, "capturing", "Capturando...");
+
+        let result = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1);
+
+        if (result.pagesAdded === 0) {
+          result = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1.5);
+        }
+
+        totalPages += result.pagesAdded;
+        result.canvases.forEach(c => allCanvases.push(c));
+
+        // Analyze captured canvases for this section
+        const startCi = allCanvases.length - result.pagesAdded;
+        for (let ci = startCi; ci < allCanvases.length; ci++) {
+          const diagnosis = analyzePageCanvas(allCanvases[ci], ci);
+          diagnoses.push(diagnosis);
+          const fix = suggestFix(diagnosis, ci === 0, false);
+          const statusType = fix === "ok" ? "ok" : fix === "needs_reflow" ? "error" : "warning";
+          overlay.setPageStatus(ci, diagnosis.thumbnail, statusType, formatDiagnosis(diagnosis));
+        }
       }
-    }
 
-    if (totalPages === 0) {
-      // Fallback: jsPDF.html()
-      console.log("[PDF] All sections blank. Using jsPDF.html() fallback...");
-      await new Promise<void>((resolve) => {
-        const fallbackPdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-        fallbackPdf.html(container!, {
-          x: 0, y: 0, width: PDF_W_MM,
-          windowWidth: container!.scrollWidth,
-          autoPaging: "text",
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-          callback: (doc) => { doc.save(fileName); resolve(); },
-        });
+      const avgScore = diagnoses.length > 0 ? Math.round(diagnoses.reduce((s, d) => s + d.overallScore, 0) / diagnoses.length) : 100;
+      finalScore = avgScore;
+      overlay.setScore(avgScore);
+      overlay.addLog(`Score de qualidade: ${avgScore}/100 (${diagnoses.length} páginas)`);
+
+      // Check for problems
+      const problemPages: { idx: number; fix: FixSuggestion; diagnosis: PageDiagnosis }[] = [];
+      diagnoses.forEach((d, idx) => {
+        const fix = suggestFix(d, idx === 0, idx === diagnoses.length - 1);
+        if (fix !== "ok") problemPages.push({ idx, fix, diagnosis: d });
       });
-      return;
-    }
 
-    console.log(`[PDF] Generated ${totalPages} page(s)`);
-    pdf.save(fileName);
+      if (problemPages.length === 0 || isLastIteration) {
+        if (problemPages.length > 0) {
+          overlay.addLog(`⚠ ${problemPages.length} página(s) com alerta(s) restante(s)`);
+        } else {
+          overlay.addLog("✓ Todas as páginas passaram na análise de qualidade");
+        }
+
+        if (totalPages === 0) {
+          overlay.addLog("⚠ Nenhuma página capturada. Usando fallback...");
+          overlay.setPhase("Usando método alternativo...");
+          await new Promise<void>((resolve) => {
+            const fallbackPdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+            fallbackPdf.html(container!, {
+              x: 0, y: 0, width: PDF_W_MM, windowWidth: container!.scrollWidth,
+              autoPaging: "text",
+              html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+              callback: (doc) => { doc.save(fileName); resolve(); },
+            });
+          });
+        } else {
+          pdf.save(fileName);
+        }
+
+        overlay.setProgress(100, "Concluído");
+        overlay.finish(totalPages, totalFixed, finalScore);
+        return;
+      }
+
+      // Apply corrections
+      overlay.setPhase("Aplicando correções automáticas...");
+      overlay.addLog(`${problemPages.length} página(s) com problemas — corrigindo...`);
+
+      let newSections = [...sections];
+      const mergeActions = problemPages
+        .filter(p => p.fix === "merge_with_previous" || p.fix === "merge_with_next")
+        .sort((a, b) => b.idx - a.idx);
+
+      for (const action of mergeActions) {
+        if (action.fix === "merge_with_previous" && action.idx > 0 && action.idx < newSections.length) {
+          overlay.addLog(`→ Pág ${action.idx + 1}: ${Math.round(action.diagnosis.emptyRatio * 100)}% vazia → consolidando com anterior`);
+          overlay.setPageStatus(action.idx, action.diagnosis.thumbnail, "fixing", "Consolidando...");
+          newSections = mergeSections(newSections, action.idx - 1, action.idx);
+          totalFixed++;
+        } else if (action.fix === "merge_with_next" && action.idx < newSections.length - 1) {
+          overlay.addLog(`→ Pág ${action.idx + 1}: ${Math.round(action.diagnosis.emptyRatio * 100)}% vazia → consolidando com próxima`);
+          overlay.setPageStatus(action.idx, action.diagnosis.thumbnail, "fixing", "Consolidando...");
+          newSections = mergeSections(newSections, action.idx, action.idx + 1);
+          totalFixed++;
+        }
+      }
+
+      const reflowActions = problemPages.filter(p => p.fix === "needs_reflow");
+      for (const action of reflowActions) {
+        overlay.addLog(`→ Pág ${action.idx + 1}: conteúdo na borda inferior → re-dividindo`);
+        overlay.setPageStatus(action.idx, action.diagnosis.thumbnail, "fixing", "Re-dividindo...");
+        totalFixed++;
+      }
+
+      sections = newSections;
+      overlay.addLog(`Seções ajustadas: ${sections.length}. Re-capturando...`);
+    }
   } catch (error) {
+    overlay.addLog(`✗ ERRO: ${(error as Error).message}`);
+    overlay.setPhase("Erro na geração");
     console.error("[PDF] Generation failed:", error);
+    setTimeout(() => overlay.remove(), 4000);
     throw new Error("Não foi possível gerar o PDF. Tente novamente.");
   } finally {
     container?.remove();
-    overlay.remove();
   }
 }
