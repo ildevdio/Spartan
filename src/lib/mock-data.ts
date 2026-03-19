@@ -654,6 +654,31 @@ export const mockPsychosocialAnalyses: PsychosocialAnalysis[] = [
     observations: "Eletricistas relatam ansiedade com risco elétrico. Trabalho em altura gera medo mesmo com EPIs. Chamados de emergência interrompem planejamento. Reconhecimento insuficiente do risco da função.",
     created_at: "2025-02-16",
   },
+  // Constrular
+  {
+    id: "psa9", company_id: "comp5", workstation_id: "w35",
+    evaluator_name: "Dr. Henrique Nogueira",
+    nasa_tlx_score: 76,
+    nasa_tlx_details: { mental_demand: 35, physical_demand: 92, temporal_demand: 80, performance: 55, effort: 85, frustration: 70 },
+    hse_it_score: 2.4,
+    hse_it_details: { demands: 4.5, control: 2.0, support: 2.3, relationships: 2.8, role: 2.2, change: 1.8 },
+    copenhagen_score: 72,
+    copenhagen_details: { quantitative_demands: 82, work_pace: 88, cognitive_demands: 30, emotional_demands: 50, influence: 18, possibilities_development: 25, meaning_work: 45, commitment: 40, predictability: 35, social_support: 42 },
+    observations: "Estoquistas relatam dor lombar crônica e fadiga muscular. Metas de separação diária consideradas excessivas. Rotatividade alta (38% ao ano). Queixas de falta de equipamentos para movimentação de carga.",
+    created_at: "2025-02-12",
+  },
+  {
+    id: "psa10", company_id: "comp5", workstation_id: "w36",
+    evaluator_name: "Dr. Henrique Nogueira",
+    nasa_tlx_score: 72,
+    nasa_tlx_details: { mental_demand: 50, physical_demand: 88, temporal_demand: 78, performance: 52, effort: 80, frustration: 68 },
+    hse_it_score: 2.6,
+    hse_it_details: { demands: 4.2, control: 2.2, support: 2.5, relationships: 3.0, role: 2.5, change: 2.0 },
+    copenhagen_score: 68,
+    copenhagen_details: { quantitative_demands: 78, work_pace: 82, cognitive_demands: 45, emotional_demands: 55, influence: 22, possibilities_development: 28, meaning_work: 52, commitment: 45, predictability: 38, social_support: 48 },
+    observations: "Motoristas relatam estresse com trânsito e pressão de horários. Dor lombar generalizada. Dificuldade de entrega em locais sem acesso para caminhão. Insatisfação com estado de conservação dos veículos.",
+    created_at: "2025-02-14",
+  },
 ];
 
 export const mockReports: Report[] = [
