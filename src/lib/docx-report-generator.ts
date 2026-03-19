@@ -2040,7 +2040,7 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
 
 const PDF_W_MM = 210;
 const PDF_H_MM = 297;
-const PDF_RENDER_WIDTH_PX = 794; // 210mm at 96 DPI
+const PDF_RENDER_WIDTH_PX = 1100; // wider base → content fits better on A4
 
 /**
  * Shows a full-screen overlay so the user doesn't see the raw render container.
@@ -2098,26 +2098,26 @@ function createOnScreenContainer(html: string): HTMLDivElement {
       [data-pdf-render="true"] .pdf-root {
         font-family: 'Segoe UI', Calibri, Arial, sans-serif;
         color: #1e293b;
-        line-height: 1.6;
+        line-height: 1.4;
         background: #fff;
         width: ${PDF_RENDER_WIDTH_PX}px;
-        padding: 40px 50px;
+        padding: 20px 28px;
       }
       [data-pdf-render="true"] .pdf-root table {
-        border-collapse: collapse; width: 100%; margin: 8px 0;
+        border-collapse: collapse; width: 100%; margin: 4px 0;
       }
       [data-pdf-render="true"] .pdf-root td,
       [data-pdf-render="true"] .pdf-root th {
-        border: 1px solid #D1D5DB; padding: 6px 8px; font-size: 12px; vertical-align: top;
+        border: 1px solid #D1D5DB; padding: 4px 6px; font-size: 11px; vertical-align: top;
       }
       [data-pdf-render="true"] .pdf-root th {
         background: #f1f5f9; font-weight: bold;
       }
-      [data-pdf-render="true"] .pdf-root h1 { font-size: 22px; color: #1e293b; margin: 16px 0 8px; }
-      [data-pdf-render="true"] .pdf-root h2 { font-size: 18px; color: #1e293b; margin: 20px 0 8px; }
-      [data-pdf-render="true"] .pdf-root h3 { font-size: 15px; color: #475569; margin: 14px 0 6px; }
-      [data-pdf-render="true"] .pdf-root p { font-size: 13px; margin: 6px 0; }
-      [data-pdf-render="true"] .pdf-root hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
+      [data-pdf-render="true"] .pdf-root h1 { font-size: 18px; color: #1e293b; margin: 12px 0 6px; }
+      [data-pdf-render="true"] .pdf-root h2 { font-size: 15px; color: #1e293b; margin: 14px 0 6px; }
+      [data-pdf-render="true"] .pdf-root h3 { font-size: 13px; color: #475569; margin: 10px 0 4px; }
+      [data-pdf-render="true"] .pdf-root p { font-size: 11px; margin: 4px 0; }
+      [data-pdf-render="true"] .pdf-root hr { border: none; border-top: 1px solid #e2e8f0; margin: 8px 0; }
       [data-pdf-render="true"] .pdf-root img { max-width: 100%; height: auto; }
     </style>
     <div class="pdf-root">${html}</div>
@@ -2256,10 +2256,10 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
     const html2canvas = (await import("html2canvas")).default;
     const { jsPDF } = await import("jspdf");
 
-    // Attempt 1: scale 2
-    console.log("[PDF] Attempt 1: scale 2");
+    // Attempt 1: scale 1.5
+    console.log("[PDF] Attempt 1: scale 1.5");
     let canvas = await html2canvas(container, {
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
@@ -2276,12 +2276,12 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
       return;
     }
 
-    // Attempt 2: scale 3 with extra wait
-    console.log("[PDF] Attempt 1 blank. Retrying at scale 3...");
+    // Attempt 2: scale 2 with extra wait
+    console.log("[PDF] Attempt 1 blank. Retrying at scale 2...");
     await new Promise<void>((r) => setTimeout(r, 500));
 
     canvas = await html2canvas(container, {
-      scale: 3,
+      scale: 2,
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
