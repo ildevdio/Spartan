@@ -812,13 +812,24 @@ ${coverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant)}
 ${companyDataTable(company)}
 
 <div class="rpt-section">3. OBJETIVOS</div>
+
+<div class="rpt-section3">3.1 Objetivo Geral</div>
+<p>Realizar a Análise Ergonômica do Trabalho (AET) na empresa <strong>${company.trade_name || company.name}</strong>, avaliando de forma sistemática e aprofundada as condições de trabalho nos postos analisados, com o propósito de identificar, classificar e propor medidas de controle para os riscos ergonômicos existentes, em conformidade com os requisitos da Norma Regulamentadora nº 17 e demais legislações aplicáveis.</p>
+
+<div class="rpt-section3">3.2 Objetivos Específicos</div>
 <ul>
-  <li>Realizar a Análise Ergonômica do Trabalho (AET) conforme as diretrizes da NR-17;</li>
-  <li>Identificar e avaliar os riscos ergonômicos nos postos de trabalho analisados;</li>
-  <li>Classificar os riscos utilizando métodos ergonômicos validados internacionalmente;</li>
-  <li>Propor recomendações de melhoria baseadas em evidências científicas;</li>
-  <li>Contribuir para a melhoria contínua das condições de trabalho na organização.</li>
+  <li>Analisar a demanda ergonômica, as tarefas prescritas e as atividades reais de cada posto de trabalho, identificando discrepâncias entre o trabalho prescrito e o trabalho efetivamente realizado;</li>
+  <li>Avaliar as posturas adotadas, os esforços físicos e biomecânicos, a organização temporal do trabalho (jornada, pausas, turnos, ritmo) e os fatores ambientais (iluminação, temperatura, ruído);</li>
+  <li>Aplicar métodos ergonômicos validados internacionalmente — <strong>${methods || "REBA, RULA, ROSA, OWAS"}</strong> — para quantificação objetiva dos riscos musculoesqueléticos;</li>
+  <li>Classificar os riscos identificados conforme a Matriz de Avaliação de Riscos (Probabilidade × Gravidade), permitindo priorização de ações;</li>
+  <li>Avaliar os fatores psicossociais e cognitivos que possam impactar a saúde mental e o desempenho dos trabalhadores, utilizando instrumentos como COPSOQ II, NASA-TLX e HSE-IT;</li>
+  <li>Elaborar recomendações técnicas hierarquizadas (eliminação, substituição, controles de engenharia, medidas administrativas e EPIs) para mitigação dos riscos;</li>
+  <li>Subsidiar o Programa de Gerenciamento de Riscos (PGR/NR-01) e o Programa de Controle Médico de Saúde Ocupacional (PCMSO/NR-07) com dados ergonômicos atualizados;</li>
+  <li>Fornecer elementos técnicos para programas de treinamento e conscientização dos trabalhadores quanto à prevenção de LER/DORT e demais patologias ocupacionais.</li>
 </ul>
+
+<div class="rpt-section3">3.3 Abrangência</div>
+<p>O presente estudo abrange <strong>${workstations.length}</strong> posto(s) de trabalho, organizados em <strong>${[...new Set(workstations.map(w => w.sector?.name || "Geral"))].length}</strong> setor(es), totalizando <strong>${analyses.length}</strong> avaliação(ões) ergonômica(s) e <strong>${photos.length}</strong> registro(s) fotográfico(s). A análise contempla aspectos biomecânicos, organizacionais, cognitivos e psicossociais, conforme preconizado pelas normas técnicas vigentes.</p>
 
 <div class="page-break"></div>
 <div class="rpt-section">4. REFERÊNCIAS NORMATIVAS</div>
@@ -835,24 +846,72 @@ ${companyDataTable(company)}
 </table>
 
 <div class="rpt-section">5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO</div>
-<p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description.toLowerCase() || "atividades comerciais/industriais"}. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
+<p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description.toLowerCase() || "atividades comerciais/industriais"}, com CNAE principal <strong>${company.cnae_principal || "—"}</strong> e grau de risco <strong>${company.activity_risk || "—"}</strong>. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
+
+<p>A análise da demanda foi conduzida por meio de observação direta dos postos de trabalho, entrevistas semiestruturadas com trabalhadores e gestores, análise documental (PPRA/PGR, PCMSO, CIPA, atestados médicos) e levantamento fotográfico das condições ergonômicas. As queixas mais frequentes foram compiladas e confrontadas com os achados objetivos das avaliações biomecânicas.</p>
+
 ${workstations.map(ws => {
   const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
-  return `<div class="rpt-section3">Posto: ${ws.name}</div>
-<p><strong>Descrição da atividade:</strong> ${ws.activity_description || ws.description}</p>
-<p><strong>Tarefas executadas:</strong></p>
-<ul>${wsTasks.map(t => `<li>${t.description}</li>`).join("") || `<li>${ws.tasks_performed || "Atividades gerais do posto"}</li>`}</ul>`;
+  const wsAnalyses = analyses.filter(a => a.workstation_id === ws.id);
+  const wsRisks = risks.filter(r => wsAnalyses.some(a => a.id === r.analysis_id));
+  const sectorObj = ws.sector || sector;
+  return \`<div class="rpt-section3">Posto: \${ws.name}</div>
+<table class="rpt-table">
+  <tr><td class="label" style="width:180px;">Setor</td><td>\${(sectorObj as any)?.name || "Geral"}</td></tr>
+  <tr><td class="label">Descrição da Atividade</td><td>\${ws.activity_description || ws.description || "—"}</td></tr>
+  <tr><td class="label">Tarefas Executadas</td><td>\${wsTasks.map(t => t.description).join("; ") || ws.tasks_performed || "Atividades gerais do posto"}</td></tr>
+  <tr><td class="label">Análises Realizadas</td><td>\${wsAnalyses.length > 0 ? wsAnalyses.map(a => \`\${a.method} (Score: \${a.score})\`).join(", ") : "Pendente"}</td></tr>
+  <tr><td class="label">Riscos Identificados</td><td>\${wsRisks.length > 0 ? wsRisks.map(r => \`\${r.description} (\${riskLevelLabel(r.risk_level)})\`).join("; ") : "A avaliar"}</td></tr>
+</table>\`;
 }).join("")}
 
 <div class="page-break"></div>
 <div class="rpt-section">6. REFERENCIAL TEÓRICO</div>
+
+<div class="rpt-section3">6.1 Conceitos Fundamentais de Ergonomia</div>
 <p>A Ergonomia, segundo a International Ergonomics Association (IEA), é a disciplina científica que trata da compreensão das interações entre seres humanos e outros elementos de um sistema, aplicando teorias, princípios, dados e métodos para otimizar o bem-estar humano e o desempenho global do sistema.</p>
 <p>De acordo com Iida (2005), a ergonomia estuda a adaptação do trabalho ao ser humano, abrangendo não apenas máquinas e equipamentos, mas toda a situação em que ocorre o relacionamento entre o homem e seu trabalho, incluindo o ambiente físico e os aspectos organizacionais.</p>
+<p>A Ergonomia subdivide-se em três domínios especializados, cada um com escopo e metodologias próprias:</p>
 <ul>
-  <li><strong>Ergonomia Física:</strong> Características anatômicas, antropométricas, fisiológicas e biomecânicas relacionadas à atividade física, incluindo posturas de trabalho, manuseio de materiais, movimentos repetitivos, distúrbios musculoesqueléticos e projeto do posto de trabalho;</li>
-  <li><strong>Ergonomia Cognitiva:</strong> Processos mentais como percepção, memória, raciocínio e resposta motora, que afetam as interações entre seres humanos e outros elementos do sistema, incluindo carga mental de trabalho, tomada de decisão e estresse;</li>
-  <li><strong>Ergonomia Organizacional:</strong> Otimização de sistemas sociotécnicos, incluindo estruturas organizacionais, políticas e processos, como comunicação, gestão de recursos, trabalho em turnos e trabalho cooperativo.</li>
+  <li><strong>Ergonomia Física:</strong> Trata das características anatômicas, antropométricas, fisiológicas e biomecânicas relacionadas à atividade física. Engloba posturas de trabalho, manuseio de materiais, movimentos repetitivos, distúrbios musculoesqueléticos (LER/DORT), projeto do posto de trabalho, forças exercidas e fadiga muscular;</li>
+  <li><strong>Ergonomia Cognitiva:</strong> Aborda os processos mentais — percepção, memória, raciocínio lógico e resposta motora — que afetam as interações entre seres humanos e demais elementos do sistema. Inclui carga mental de trabalho, tomada de decisão, estresse ocupacional, vigilância, atenção sustentada e interface humano-máquina;</li>
+  <li><strong>Ergonomia Organizacional:</strong> Concentra-se na otimização de sistemas sociotécnicos, incluindo estruturas organizacionais, políticas e processos. Contempla comunicação interna, gestão de recursos humanos, trabalho em turnos e noturno, jornada de trabalho, cooperação interpessoal e cultura organizacional.</li>
 </ul>
+
+<div class="rpt-section3">6.2 Distúrbios Osteomusculares Relacionados ao Trabalho (DORT)</div>
+<p>Os Distúrbios Osteomusculares Relacionados ao Trabalho (DORT), anteriormente denominados LER (Lesões por Esforços Repetitivos), constituem um grupo de afecções do sistema musculoesquelético que acometem músculos, tendões, fáscias, ligamentos, articulações e nervos. Segundo a IN INSS nº 98/2003, estas patologias são de origem multifatorial, podendo estar associadas a:</p>
+<ul>
+  <li>Movimentos repetitivos e alta frequência gestual;</li>
+  <li>Esforço físico excessivo e manuseio de cargas;</li>
+  <li>Posturas estáticas prolongadas ou inadequadas;</li>
+  <li>Compressão mecânica localizada;</li>
+  <li>Vibrações de corpo inteiro ou segmentar;</li>
+  <li>Fatores organizacionais e psicossociais (pressão por produtividade, monotonia, ausência de pausas).</li>
+</ul>
+<p>A prevenção de DORT exige uma abordagem integrada que combine adaptação do posto de trabalho, organização temporal das tarefas, treinamento dos trabalhadores e acompanhamento médico periódico.</p>
+
+<div class="rpt-section3">6.3 Análise Ergonômica do Trabalho (AET) — Abordagem Metodológica</div>
+<p>A AET segue a abordagem sistêmica preconizada por Guérin et al. (2001) e Wisner (1994), articulando três níveis de análise:</p>
+<table class="rpt-table">
+  <tr><th style="width:180px;">Nível de Análise</th><th>Descrição</th><th>Métodos e Instrumentos</th></tr>
+  <tr><td class="label">Análise da Demanda</td><td>Compreensão do contexto organizacional, queixas dos trabalhadores, dados epidemiológicos e indicadores de saúde e produtividade.</td><td>Entrevistas, questionários, análise documental</td></tr>
+  <tr><td class="label">Análise da Tarefa</td><td>Descrição do trabalho prescrito, normas, procedimentos, equipamentos, ferramentas e organização temporal (jornada, pausas, turnos).</td><td>Observação sistemática, análise de procedimentos</td></tr>
+  <tr><td class="label">Análise da Atividade</td><td>Observação do trabalho real, posturas, gestos, estratégias operatórias, regulações, comunicação e modos operatórios adotados pelos trabalhadores.</td><td>${methods || "REBA, RULA, ROSA, OWAS"}, filmagem, cronoanálise</td></tr>
+</table>
+
+<div class="rpt-section3">6.4 Métodos de Avaliação Ergonômica Utilizados</div>
+<p>Os métodos selecionados para este estudo são ferramentas validadas e amplamente reconhecidas na literatura científica internacional:</p>
+<table class="rpt-table">
+  <tr><th>Método</th><th>Aplicação</th><th>Faixas de Classificação</th><th>Referência</th></tr>
+  <tr><td class="label">REBA</td><td>Avaliação postural de corpo inteiro, indicado para tarefas dinâmicas e variadas</td><td>1: Insignificante | 2-3: Baixo | 4-7: Médio | 8-10: Alto | 11+: Muito Alto</td><td>Hignett & McAtamney (2000)</td></tr>
+  <tr><td class="label">RULA</td><td>Avaliação de membros superiores em posturas com carga estática</td><td>1-2: Aceitável | 3-4: Investigar | 5-6: Mudança breve | 7: Imediata</td><td>McAtamney & Corlett (1993)</td></tr>
+  <tr><td class="label">ROSA</td><td>Riscos em postos informatizados (escritório)</td><td>1-2: Desprezível | 3-4: Baixo | 5-6: Médio | 7+: Alto</td><td>Sonne et al. (2012)</td></tr>
+  <tr><td class="label">OWAS</td><td>Análise postural por amostragem temporal</td><td>1: Normal | 2: Leve | 3: Severo | 4: Muito Severo</td><td>Karhu et al. (1977)</td></tr>
+  <tr><td class="label">OCRA</td><td>Movimentos repetitivos dos membros superiores</td><td>≤2.2: Aceitável | 2.3-3.5: Incerto | >3.5: Presente</td><td>Colombini et al. (2002)</td></tr>
+</table>
+
+<div class="rpt-section3">6.5 Conceito de Grupo Homogêneo de Exposição (GHE)</div>
+<p>O agrupamento por GHE, conforme metodologia do PGR (NR-01), consiste em reunir trabalhadores que compartilham perfil semelhante de exposição a riscos ocupacionais. Este agrupamento considera função, setor, tarefas executadas, ferramentas utilizadas, condições ambientais e duração da exposição. A adoção de GHEs permite uma avaliação representativa e otimizada, reduzindo a necessidade de avaliações individuais sem comprometer a qualidade do diagnóstico ergonômico.</p>
 
 <div class="page-break"></div>
 <div class="rpt-section">7. ESTUDO ERGONÔMICO DO TRABALHO</div>
