@@ -2085,6 +2085,8 @@ function splitHtmlByPageBreaks(html: string): string[] {
 /**
  * CSS injected into the render container for PDF fidelity.
  */
+const PDF_A4_HEIGHT_PX = Math.floor(PDF_RENDER_WIDTH_PX * PDF_H_MM / PDF_W_MM); // ~1123px
+
 const PDF_INJECT_CSS = `
   [data-pdf-render="true"] * { box-sizing: border-box; }
   [data-pdf-render="true"] .pdf-page {
@@ -2097,16 +2099,32 @@ const PDF_INJECT_CSS = `
     padding: 20px 30px;
     overflow: hidden;
   }
-  [data-pdf-render="true"] .pdf-page img { max-width: 100%; height: auto; }
-  /* Preserve cover page gradient and white text */
-  [data-pdf-render="true"] .pdf-page .rpt-cover {
+  /* Cover page: fill entire A4 height, no padding, gradient edge-to-edge */
+  [data-pdf-render="true"] .pdf-page.pdf-page--cover {
+    padding: 0;
+    min-height: ${Math.floor(PDF_RENDER_WIDTH_PX * PDF_H_MM / PDF_W_MM)}px;
+  }
+  [data-pdf-render="true"] .pdf-page.pdf-page--cover .rpt-cover {
+    min-height: ${Math.floor(PDF_RENDER_WIDTH_PX * PDF_H_MM / PDF_W_MM)}px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     background-color: #0A1F44 !important;
     background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%) !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 60px 40px !important;
   }
   [data-pdf-render="true"] .pdf-page .rpt-cover h1 { color: white !important; }
   [data-pdf-render="true"] .pdf-page .rpt-cover h2 { color: #B2EBF2 !important; }
   [data-pdf-render="true"] .pdf-page .rpt-cover .company { color: white !important; }
   [data-pdf-render="true"] .pdf-page .rpt-cover .meta { color: #B2EBF2 !important; }
+  /* Index page: fill entire A4 height */
+  [data-pdf-render="true"] .pdf-page.pdf-page--index {
+    min-height: ${Math.floor(PDF_RENDER_WIDTH_PX * PDF_H_MM / PDF_W_MM)}px;
+  }
+  [data-pdf-render="true"] .pdf-page img { max-width: 100%; height: auto; }
 `;
 
 /**
