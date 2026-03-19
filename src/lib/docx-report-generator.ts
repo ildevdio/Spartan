@@ -2098,26 +2098,26 @@ function createOnScreenContainer(html: string): HTMLDivElement {
       [data-pdf-render="true"] .pdf-root {
         font-family: 'Segoe UI', Calibri, Arial, sans-serif;
         color: #1e293b;
-        line-height: 1.6;
+        line-height: 1.4;
         background: #fff;
         width: ${PDF_RENDER_WIDTH_PX}px;
-        padding: 40px 50px;
+        padding: 20px 28px;
       }
       [data-pdf-render="true"] .pdf-root table {
-        border-collapse: collapse; width: 100%; margin: 8px 0;
+        border-collapse: collapse; width: 100%; margin: 4px 0;
       }
       [data-pdf-render="true"] .pdf-root td,
       [data-pdf-render="true"] .pdf-root th {
-        border: 1px solid #D1D5DB; padding: 6px 8px; font-size: 12px; vertical-align: top;
+        border: 1px solid #D1D5DB; padding: 4px 6px; font-size: 11px; vertical-align: top;
       }
       [data-pdf-render="true"] .pdf-root th {
         background: #f1f5f9; font-weight: bold;
       }
-      [data-pdf-render="true"] .pdf-root h1 { font-size: 22px; color: #1e293b; margin: 16px 0 8px; }
-      [data-pdf-render="true"] .pdf-root h2 { font-size: 18px; color: #1e293b; margin: 20px 0 8px; }
-      [data-pdf-render="true"] .pdf-root h3 { font-size: 15px; color: #475569; margin: 14px 0 6px; }
-      [data-pdf-render="true"] .pdf-root p { font-size: 13px; margin: 6px 0; }
-      [data-pdf-render="true"] .pdf-root hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
+      [data-pdf-render="true"] .pdf-root h1 { font-size: 18px; color: #1e293b; margin: 12px 0 6px; }
+      [data-pdf-render="true"] .pdf-root h2 { font-size: 15px; color: #1e293b; margin: 14px 0 6px; }
+      [data-pdf-render="true"] .pdf-root h3 { font-size: 13px; color: #475569; margin: 10px 0 4px; }
+      [data-pdf-render="true"] .pdf-root p { font-size: 11px; margin: 4px 0; }
+      [data-pdf-render="true"] .pdf-root hr { border: none; border-top: 1px solid #e2e8f0; margin: 8px 0; }
       [data-pdf-render="true"] .pdf-root img { max-width: 100%; height: auto; }
     </style>
     <div class="pdf-root">${html}</div>
