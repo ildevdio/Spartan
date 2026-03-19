@@ -829,6 +829,7 @@ ${workstations.map(ws => {
   <li><strong>Ergonomia Organizacional:</strong> Otimização de sistemas sociotécnicos, estruturas organizacionais e processos</li>
 </ul>
 
+<div class="page-break"></div>
 <div class="rpt-section">7. ESTUDO ERGONÔMICO DO TRABALHO</div>
 <p>A realização do Estudo Ergonômico do Trabalho (EET) é indispensável não apenas pelo cumprimento da NR-17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral.</p>
 <p>O presente estudo foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT, contemplando <strong>${workstations.length}</strong> posto(s) de trabalho, <strong>${analyses.length}</strong> análise(s) ergonômica(s) e <strong>${photos.length}</strong> registro(s) fotográfico(s) de postura.</p>
