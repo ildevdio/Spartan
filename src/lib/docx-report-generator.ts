@@ -2097,15 +2097,17 @@ const PDF_INJECT_CSS = `
     background: #fff;
     width: ${PDF_RENDER_WIDTH_PX}px;
     padding: 20px 30px;
-    overflow: hidden;
+    overflow: visible;
   }
   /* Cover page: fill entire A4 height, no padding, gradient edge-to-edge */
   [data-pdf-render="true"] .pdf-page.pdf-page--cover {
     padding: 0;
-    min-height: ${Math.floor(PDF_RENDER_WIDTH_PX * PDF_H_MM / PDF_W_MM)}px;
+    min-height: ${PDF_A4_HEIGHT_PX}px;
+    max-height: ${PDF_A4_HEIGHT_PX}px;
+    overflow: hidden;
   }
   [data-pdf-render="true"] .pdf-page.pdf-page--cover .rpt-cover {
-    min-height: ${Math.floor(PDF_RENDER_WIDTH_PX * PDF_H_MM / PDF_W_MM)}px;
+    min-height: ${PDF_A4_HEIGHT_PX}px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -2122,7 +2124,7 @@ const PDF_INJECT_CSS = `
   [data-pdf-render="true"] .pdf-page .rpt-cover .meta { color: #B2EBF2 !important; }
   /* Index page: fill entire A4 height */
   [data-pdf-render="true"] .pdf-page.pdf-page--index {
-    min-height: ${Math.floor(PDF_RENDER_WIDTH_PX * PDF_H_MM / PDF_W_MM)}px;
+    min-height: ${PDF_A4_HEIGHT_PX}px;
   }
   [data-pdf-render="true"] .pdf-page img { max-width: 100%; height: auto; }
 `;
@@ -2146,9 +2148,7 @@ function createOnScreenContainer(htmlSections: string[]): HTMLDivElement {
   });
 
   const pagesHtml = htmlSections.map((sectionHtml, idx) => {
-    // Detect cover page (first section with .rpt-cover)
     const isCover = idx === 0 && sectionHtml.includes('rpt-cover');
-    // Detect index page (second section, or first section with table of contents pattern)
     const isIndex = (idx === 1 && !sectionHtml.includes('rpt-cover')) || sectionHtml.includes('SUMÁRIO') || sectionHtml.includes('ÍNDICE');
     const extraClass = isCover ? ' pdf-page--cover' : isIndex ? ' pdf-page--index' : '';
     return `<div class="pdf-page${extraClass}">${sectionHtml}</div>`;
@@ -2211,7 +2211,8 @@ function hasContent(canvas: HTMLCanvasElement): boolean {
 
 /**
  * Capture a single .pdf-page element and add it to the PDF.
- * If the section is taller than one A4 page, it gets sliced into multiple pages.
+ * For sections taller than one A4 page, we split the DOM into sub-pages
+ * by measuring child elements to avoid cutting content mid-element.
  */
 async function capturePageElement(
   pageEl: HTMLElement,
@@ -2219,48 +2220,131 @@ async function capturePageElement(
   pdf: import("jspdf").jsPDF,
   pageIndex: number,
   scale: number
-): Promise<boolean> {
-  const canvas = await html2canvasFn(pageEl, {
-    scale,
-    useCORS: true,
-    backgroundColor: "#ffffff",
-    logging: false,
-    width: pageEl.scrollWidth,
-    height: pageEl.scrollHeight,
-    windowWidth: pageEl.scrollWidth,
-    windowHeight: pageEl.scrollHeight,
-    scrollX: 0,
-    scrollY: 0,
-  });
+): Promise<number> {
+  const elHeight = pageEl.scrollHeight;
+  const maxPageH = PDF_A4_HEIGHT_PX;
+  
+  // If the section fits in one page, capture directly
+  if (elHeight <= maxPageH + 20) {
+    const canvas = await html2canvasFn(pageEl, {
+      scale,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      width: pageEl.scrollWidth,
+      height: pageEl.scrollHeight,
+      windowWidth: pageEl.scrollWidth,
+      windowHeight: pageEl.scrollHeight,
+      scrollX: 0,
+      scrollY: 0,
+    });
 
-  if (!hasContent(canvas)) return false;
+    if (!hasContent(canvas)) return 0;
 
-  // A4 page height in canvas pixels
-  const pageHeightPx = Math.floor((canvas.width * PDF_H_MM) / PDF_W_MM);
-  let y = 0;
-  let sliceIdx = 0;
-
-  while (y < canvas.height) {
-    if (pageIndex > 0 || sliceIdx > 0) pdf.addPage();
-
-    const sliceH = Math.min(pageHeightPx, canvas.height - y);
-    const pageCanvas = document.createElement("canvas");
-    pageCanvas.width = canvas.width;
-    pageCanvas.height = sliceH;
-
-    const ctx2 = pageCanvas.getContext("2d")!;
-    ctx2.fillStyle = "#ffffff";
-    ctx2.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-    ctx2.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
-
-    const heightMm = (sliceH * PDF_W_MM) / canvas.width;
-    pdf.addImage(pageCanvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, PDF_W_MM, heightMm);
-
-    y += pageHeightPx;
-    sliceIdx++;
+    if (pageIndex > 0) pdf.addPage();
+    const heightMm = (canvas.height * PDF_W_MM) / canvas.width;
+    pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, PDF_W_MM, heightMm);
+    return 1;
   }
 
-  return true;
+  // Section is taller than one A4 page — split by DOM child elements
+  console.log(`[PDF] Section is ${elHeight}px tall (max ${maxPageH}px), splitting by DOM elements...`);
+  
+  // Collect direct children and their positions
+  const children = Array.from(pageEl.children) as HTMLElement[];
+  const parentTop = pageEl.getBoundingClientRect().top;
+  
+  // Group children into "page chunks" that fit within maxPageH
+  const pageChunks: { startIdx: number; endIdx: number }[] = [];
+  let currentChunkStart = 0;
+  let currentChunkBottom = 0;
+  
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    const childRect = child.getBoundingClientRect();
+    const childTop = childRect.top - parentTop;
+    const childBottom = childRect.bottom - parentTop;
+    
+    if (currentChunkBottom === 0) {
+      // First element in chunk
+      currentChunkBottom = childBottom;
+      continue;
+    }
+    
+    // Would this element push us past the page height?
+    if (childBottom - (children[currentChunkStart].getBoundingClientRect().top - parentTop) > maxPageH) {
+      // End current chunk at previous element
+      pageChunks.push({ startIdx: currentChunkStart, endIdx: i - 1 });
+      currentChunkStart = i;
+      currentChunkBottom = childBottom;
+    } else {
+      currentChunkBottom = childBottom;
+    }
+  }
+  // Push last chunk
+  if (currentChunkStart < children.length) {
+    pageChunks.push({ startIdx: currentChunkStart, endIdx: children.length - 1 });
+  }
+  
+  console.log(`[PDF] Split into ${pageChunks.length} sub-page(s) by DOM elements`);
+  
+  let pagesAdded = 0;
+  
+  for (let chunkIdx = 0; chunkIdx < pageChunks.length; chunkIdx++) {
+    const chunk = pageChunks[chunkIdx];
+    
+    // Create a temporary container with only the elements for this chunk
+    const tempDiv = document.createElement("div");
+    tempDiv.className = "pdf-page";
+    Object.assign(tempDiv.style, {
+      width: `${PDF_RENDER_WIDTH_PX}px`,
+      padding: "20px 30px",
+      background: "#fff",
+      fontFamily: "'Segoe UI', Arial, sans-serif",
+      fontSize: "13px",
+      color: "#1e293b",
+      lineHeight: "1.6",
+      position: "fixed",
+      top: "0",
+      left: "0",
+      zIndex: "999996",
+      overflow: "visible",
+      pointerEvents: "none",
+    });
+    
+    for (let i = chunk.startIdx; i <= chunk.endIdx; i++) {
+      tempDiv.appendChild(children[i].cloneNode(true));
+    }
+    
+    document.body.appendChild(tempDiv);
+    
+    // Wait a frame for layout
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
+    
+    const canvas = await html2canvasFn(tempDiv, {
+      scale,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      width: tempDiv.scrollWidth,
+      height: tempDiv.scrollHeight,
+      windowWidth: tempDiv.scrollWidth,
+      windowHeight: tempDiv.scrollHeight,
+      scrollX: 0,
+      scrollY: 0,
+    });
+    
+    tempDiv.remove();
+    
+    if (!hasContent(canvas)) continue;
+    
+    if (pageIndex + pagesAdded > 0) pdf.addPage();
+    const heightMm = (canvas.height * PDF_W_MM) / canvas.width;
+    pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, PDF_W_MM, heightMm);
+    pagesAdded++;
+  }
+  
+  return pagesAdded;
 }
 
 /**
@@ -2310,15 +2394,15 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
 
     let totalPages = 0;
     for (let i = 0; i < pageElements.length; i++) {
-      console.log(`[PDF] Capturing section ${i + 1}/${pageElements.length}...`);
-      const ok = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1);
-      if (ok) {
-        totalPages++;
+      console.log(`[PDF] Capturing section ${i + 1}/${pageElements.length} (height: ${pageElements[i].scrollHeight}px)...`);
+      const added = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1);
+      if (added > 0) {
+        totalPages += added;
       } else {
         // Retry at higher scale
         console.log(`[PDF] Section ${i + 1} blank at scale 1, retrying at scale 1.5...`);
-        const ok2 = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1.5);
-        if (ok2) totalPages++;
+        const added2 = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1.5);
+        if (added2 > 0) totalPages += added2;
       }
     }
 
