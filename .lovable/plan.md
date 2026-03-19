@@ -1,40 +1,40 @@
 
+Objetivo: eliminar cortes nos módulos/seções 4, 5, 6, 7+ e garantir que nenhuma informação seja perdida nas páginas seguintes.
 
-# Correção: Cada Seção em Sua Própria Página no PDF
+Diagnóstico (com base no código atual):
+1) O motor já separa por `<div class="page-break">`, mas o HTML do AET ainda tem blocos muito longos sem quebra explícita (ex.: seções 1–7 no mesmo bloco e blocos extensos de tabelas/REBA).
+2) Quando um bloco fica alto, `capturePageElement` fatia por pixel (`pageHeightPx`), o que pode cortar conteúdo no meio de tabela/linha/título.
+3) Em alguns trechos, o template junta múltiplos itens sem break (ex.: listas de seções/sheets), gerando canvases gigantes e aumentando chance de corte.
 
-## Problema
-O algoritmo `sliceIntoPdf` corta o canvas em fatias iguais baseado na altura A4 em pixels, ignorando completamente os `<div class="page-break">` do HTML. Resultado: a capa mistura com o índice, seções começam no meio da página, conteúdo cortado.
+Plano de correção:
+1) Paginação semântica antes da captura (no `docx-report-generator.ts`)
+- Trocar a divisão “só por page-break” por uma divisão híbrida:
+  - respeitar `page-break` existente
+  - iniciar nova página também em `.rpt-section` (seções principais)
+  - permitir `.rpt-section2/.rpt-section3` permanecerem com seu bloco, exceto quando exceder limite
+- Resultado: módulos 4, 5, 6, 7 passam a iniciar em páginas dedicadas e não “colados” em um bloco longo.
 
-## Solução
-Modificar o fluxo de PDF para respeitar os page-breaks do HTML. Em vez de renderizar todo o HTML em um único canvas gigante e fatiar cegamente, vamos:
+2) Anti-corte por conteúdo (substituir slicing cego em blocos altos)
+- Em vez de apenas fatiar canvas por altura fixa:
+  - paginar o DOM por altura útil A4 (medindo elementos filhos)
+  - mover elementos inteiros para a próxima página quando não couberem
+  - tratar tabela como unidade “não quebrável” por padrão
+  - para tabela muito alta: quebrar por linhas (`tr`) mantendo cabeçalho repetido na nova página
+- Fallback somente se necessário: slicing por canvas como última opção.
 
-1. **Dividir o HTML em blocos por page-break** antes de renderizar
-2. **Renderizar cada bloco separadamente** com html2canvas
-3. **Cada bloco = uma página A4** no PDF
+3) Ajustes no template AET para reforçar quebras
+- Inserir break explícito entre itens que hoje ficam contínuos e geram páginas enormes (principalmente blocos repetidos como fichas/sheets/tabelas extensas).
+- Garantir que capa e índice continuem páginas isoladas (já está quase certo), e que as seções seguintes tenham início limpo.
 
-### Arquivo: `src/lib/docx-report-generator.ts`
+4) CSS de render para evitar clipping
+- Remover/reduzir pontos de clipping no container de PDF (ex.: `overflow: hidden` em páginas comuns quando prejudicar medição/render).
+- Manter cover/index full-page e gradiente azul da capa preservado.
 
-#### Mudança 1: Nova função `splitHtmlByPageBreaks`
-- Antes de injetar o HTML no container, dividir o HTML string nos pontos de `<div class="page-break"></div>`
-- Cada fragmento vira um bloco separado
-
-#### Mudança 2: Reescrever `createOnScreenContainer` 
-- Em vez de colocar todo o HTML em um único `.pdf-root`, criar um container com múltiplos `.pdf-page` divs
-- Cada `.pdf-page` tem largura fixa de 794px e é limitado em altura para caber em uma página A4
-
-#### Mudança 3: Reescrever a função `generateAndDownloadPdf`
-- Iterar sobre cada `.pdf-page` no container
-- Capturar cada um com html2canvas individualmente
-- Adicionar cada captura como uma página no jsPDF
-- Isso garante: capa = página 1, índice = página 2, etc.
-
-#### Mudança 4: Remover `sliceIntoPdf` (não mais necessária)
-- A função de fatiamento cega é substituída pela captura por seção
-
-### Resultado esperado
-- Página 1: apenas a capa (com gradiente azul)
-- Página 2: apenas o índice
-- Página 3+: cada seção começa em sua própria página
-- Zoom correto mantido (794px, scale 1)
-- Gradiente da capa preservado
-
+5) Validação forte (na `/test-pdf`)
+- Testar AET completo com foco em módulos 4–7+.
+- Verificar:
+  - nenhum texto/linha de tabela cortado
+  - início de seção em página correta
+  - continuidade correta quando uma seção precisa de 2+ páginas
+  - capa = página 1, índice = página 2, gradiente íntegro
+- Adicionar logs de diagnóstico por página (altura medida, elementos movidos, quebras aplicadas) para fechar o problema definitivamente.
