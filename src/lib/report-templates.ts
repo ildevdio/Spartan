@@ -798,6 +798,7 @@ ${companyDataTable(company)}
   <li>Contribuir para a melhoria contínua das condições de trabalho na organização.</li>
 </ul>
 
+<div class="page-break"></div>
 <div class="rpt-section">4. REFERÊNCIAS NORMATIVAS</div>
 <table class="rpt-table">
   <tr><th>Norma</th><th>Descrição</th></tr>
