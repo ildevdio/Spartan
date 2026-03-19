@@ -480,6 +480,14 @@ const riskData: Array<{ probability: number; exposure: number; consequence: numb
   { probability: 1, exposure: 10, consequence: 1 },  // w26 Advogado
   { probability: 3, exposure: 6, consequence: 3 },   // w27 TST
   { probability: 3, exposure: 6, consequence: 1 },   // w28 Enfermeiro
+  // Constrular
+  { probability: 3, exposure: 10, consequence: 1 },  // w30 Aux Contábil
+  { probability: 3, exposure: 6, consequence: 1 },   // w31 Assist Comercial
+  { probability: 1, exposure: 6, consequence: 1 },   // w32 Vendedor Externo
+  { probability: 3, exposure: 10, consequence: 1 },  // w33 Engenheiro
+  { probability: 3, exposure: 6, consequence: 3 },   // w34 Técnico Edificações
+  { probability: 10, exposure: 6, consequence: 6 },  // w35 Estoquista - crítico
+  { probability: 6, exposure: 10, consequence: 6 },  // w36 Motorista Entrega
 ];
 
 export const mockRiskAssessments: RiskAssessment[] = mockAnalyses.map((a, i) => {
