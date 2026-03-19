@@ -784,9 +784,11 @@ ${coverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant)}
 <p>A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa.</p>
 <p>Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17, com o objetivo de subsidiar a elaboração da Análise Ergonômica do Trabalho.</p>
 
+<div class="page-break"></div>
 <div class="rpt-section">2. DADOS DA EMPRESA</div>
 ${companyDataTable(company)}
 
+<div class="page-break"></div>
 <div class="rpt-section">3. OBJETIVOS</div>
 <ul>
   <li>Realizar a Análise Ergonômica do Trabalho (AET) conforme as diretrizes da NR-17;</li>
@@ -796,6 +798,7 @@ ${companyDataTable(company)}
   <li>Contribuir para a melhoria contínua das condições de trabalho na organização.</li>
 </ul>
 
+<div class="page-break"></div>
 <div class="rpt-section">4. REFERÊNCIAS NORMATIVAS</div>
 <table class="rpt-table">
   <tr><th>Norma</th><th>Descrição</th></tr>
@@ -806,6 +809,7 @@ ${companyDataTable(company)}
   <tr><td class="label">CLT Art. 157-158</td><td>Obrigações do empregador e empregados quanto à segurança</td></tr>
 </table>
 
+<div class="page-break"></div>
 <div class="rpt-section">5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO</div>
 <p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description.toLowerCase() || "atividades comerciais/industriais"}. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
 ${workstations.map(ws => {
@@ -816,6 +820,7 @@ ${workstations.map(ws => {
 <ul>${wsTasks.map(t => `<li>${t.description}</li>`).join("") || `<li>${ws.tasks_performed || "Atividades gerais do posto"}</li>`}</ul>`;
 }).join("")}
 
+<div class="page-break"></div>
 <div class="rpt-section">6. REFERENCIAL TEÓRICO</div>
 <p>A Ergonomia, segundo a International Ergonomics Association (IEA), é a disciplina científica que trata da compreensão das interações entre seres humanos e outros elementos de um sistema, aplicando teorias, princípios, dados e métodos para otimizar o bem-estar humano e o desempenho global do sistema.</p>
 <ul>
@@ -824,6 +829,7 @@ ${workstations.map(ws => {
   <li><strong>Ergonomia Organizacional:</strong> Otimização de sistemas sociotécnicos, estruturas organizacionais e processos</li>
 </ul>
 
+<div class="page-break"></div>
 <div class="rpt-section">7. ESTUDO ERGONÔMICO DO TRABALHO</div>
 <p>A realização do Estudo Ergonômico do Trabalho (EET) é indispensável não apenas pelo cumprimento da NR-17, mas também por atuar como instrumento complementar ao PGR e ao PCMSO. Sua aplicação fortalece a empresa na prevenção de doenças ocupacionais, na manutenção da produtividade e na correção de inadequações ergonômicas do ambiente laboral.</p>
 <p>O presente estudo foi elaborado com base nas análises e resultados desenvolvidos pela MG CONSULT, contemplando <strong>${workstations.length}</strong> posto(s) de trabalho, <strong>${analyses.length}</strong> análise(s) ergonômica(s) e <strong>${photos.length}</strong> registro(s) fotográfico(s) de postura.</p>
@@ -853,9 +859,10 @@ ${analyses.filter(a => a.method === "REBA").map(a => {
   if (!ws) return '';
   const wsIdx = workstations.indexOf(ws);
   const risk = risks.find(r => r.analysis_id === a.id);
-  return rebaAssessmentSheet(ws, wsIdx, a, risk, ctx);
+  return '<div class="page-break"></div>' + rebaAssessmentSheet(ws, wsIdx, a, risk, ctx);
 }).join('')}` : ''}
 
+<div class="page-break"></div>
 <div class="rpt-section">8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS</div>
 <p><strong>REBA</strong> — Rapid Entire Body Assessment: Estima o risco de distúrbios musculoesqueléticos. Classificação: 1-3 Baixo | 4-7 Médio | 8-10 Alto | 11+ Muito Alto.</p>
 <p><strong>RULA</strong> — Rapid Upper Limb Assessment: Avalia exposição dos membros superiores. Classificação: 1-2 Aceitável | 3-4 Investigar | 5-6 Mudar breve | 7 Mudar imediatamente.</p>
@@ -864,6 +871,7 @@ ${analyses.filter(a => a.method === "REBA").map(a => {
 <p><strong>OWAS</strong> — Ovako Working Posture Analysing System: Classificação postural. 1: Normal | 2: Leve | 3: Severo | 4: Muito severo.</p>
 ${equipmentTable()}
 
+<div class="page-break"></div>
 <div class="rpt-section">9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA</div>
 <p>A empresa <strong>${company.trade_name || company.name}</strong> tem seus trabalhadores classificados em Grupos Homogêneos de Exposição (GHE), conforme metodologia do PGR.</p>
 ${gheTable(workstations, ctx)}
@@ -887,6 +895,7 @@ ${workstations.map((ws, idx) => {
 ${occupationalRiskInventoryTable(risks, analyses, ws, psychosocial)}`;
 }).join('<div class="page-break"></div>')}
 
+<div class="page-break"></div>
 <div class="rpt-section">10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</div>
 ${psychosocial.length > 0 ? `<p>Instrumentos aplicados: ${psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II</strong>, ' : ''}${psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : ''}${psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : ''}</p>
 ${psychosocial.map(psa => {
@@ -910,6 +919,7 @@ ${psychosocial.map(psa => {
   return html;
 }).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial realizada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX e HSE-IT.</div>'}
 
+<div class="page-break"></div>
 <div class="rpt-section">11. RESPONSABILIDADE TÉCNICA</div>
 <p>O presente documento foi elaborado sob a responsabilidade técnica da MG CONSULT.</p>
 <p>${company.city}, ${getToday()}.</p>
