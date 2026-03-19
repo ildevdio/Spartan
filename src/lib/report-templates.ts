@@ -862,6 +862,7 @@ ${analyses.filter(a => a.method === "REBA").map(a => {
   return '<div class="page-break"></div>' + rebaAssessmentSheet(ws, wsIdx, a, risk, ctx);
 }).join('')}` : ''}
 
+<div class="page-break"></div>
 <div class="rpt-section">8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS</div>
 <p><strong>REBA</strong> — Rapid Entire Body Assessment: Estima o risco de distúrbios musculoesqueléticos. Classificação: 1-3 Baixo | 4-7 Médio | 8-10 Alto | 11+ Muito Alto.</p>
 <p><strong>RULA</strong> — Rapid Upper Limb Assessment: Avalia exposição dos membros superiores. Classificação: 1-2 Aceitável | 3-4 Investigar | 5-6 Mudar breve | 7 Mudar imediatamente.</p>
