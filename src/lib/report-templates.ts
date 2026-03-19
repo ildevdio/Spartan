@@ -985,27 +985,61 @@ ${occupationalRiskInventoryTable(risks, analyses, ws, psychosocial)}`;
 
 <div class="page-break"></div>
 <div class="rpt-section">10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</div>
-${psychosocial.length > 0 ? `<p>Instrumentos aplicados: ${psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II</strong>, ' : ''}${psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : ''}${psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : ''}</p>
-${psychosocial.map(psa => {
+
+<div class="rpt-section3">10.1 Fundamentação Teórica</div>
+<p>Os riscos psicossociais no trabalho referem-se a aspectos da concepção, organização e gestão do trabalho, bem como do seu contexto social e ambiental, que têm potencial de causar danos psicológicos, físicos ou sociais aos trabalhadores (OIT, 2010). Segundo a Agência Europeia para a Segurança e Saúde no Trabalho (EU-OSHA), os fatores psicossociais são a segunda categoria de problemas de saúde relacionados ao trabalho mais frequentemente relatada na Europa.</p>
+<p>A NR-01 (Portaria SEPRT nº 6.730/2020), em seu item 1.5.3.1, incluiu os fatores de risco psicossociais entre os agentes a serem considerados no Programa de Gerenciamento de Riscos (PGR), reforçando a obrigatoriedade de sua avaliação sistemática. A NR-17, por sua vez, em seu Anexo II, estabelece parâmetros sobre organização do trabalho, conteúdo das tarefas, exigências de tempo e ritmo que impactam diretamente a saúde mental dos trabalhadores.</p>
+
+<div class="rpt-section3">10.2 Fatores de Risco Psicossocial Avaliados</div>
+<table class="rpt-table">
+  <tr><th style="width:200px;">Fator de Risco</th><th>Descrição</th><th style="width:120px;">Consequências</th></tr>
+  <tr><td class="label">Demandas Quantitativas</td><td>Volume de trabalho excessivo em relação ao tempo disponível e ao efetivo de trabalhadores</td><td>Fadiga, estresse</td></tr>
+  <tr><td class="label">Ritmo de Trabalho</td><td>Velocidade e intensidade exigidas para cumprimento das tarefas e metas de produção</td><td>Ansiedade, DORT</td></tr>
+  <tr><td class="label">Demandas Emocionais</td><td>Exigência de controle emocional, lidar com situações difíceis, conflitos interpessoais</td><td>Burnout, depressão</td></tr>
+  <tr><td class="label">Demandas Cognitivas</td><td>Necessidade de concentração, atenção sustentada, memória e tomada de decisão</td><td>Fadiga mental</td></tr>
+  <tr><td class="label">Autonomia e Controle</td><td>Grau de influência do trabalhador sobre suas tarefas, ritmo e métodos de trabalho</td><td>Desmotivação</td></tr>
+  <tr><td class="label">Suporte Social</td><td>Qualidade das relações interpessoais, apoio de colegas e chefia</td><td>Isolamento</td></tr>
+  <tr><td class="label">Reconhecimento</td><td>Valorização do trabalho, feedback, perspectivas de desenvolvimento profissional</td><td>Insatisfação</td></tr>
+</table>
+
+<div class="rpt-section3">10.3 Instrumentos de Avaliação Utilizados</div>
+<p>Para a avaliação dos fatores psicossociais, foram selecionados instrumentos validados e reconhecidos internacionalmente:</p>
+<table class="rpt-table">
+  <tr><th>Instrumento</th><th>Descrição</th><th>Dimensões Avaliadas</th></tr>
+  <tr><td class="label">COPSOQ II</td><td>Copenhagen Psychosocial Questionnaire — questionário multidimensional desenvolvido pelo NRCWE (Dinamarca), validado em mais de 30 países. Avalia fatores de risco e proteção psicossociais por meio de escalas 0-100.</td><td>Demandas, Organização do Trabalho, Relações Interpessoais, Interface Trabalho-Indivíduo, Valores, Saúde e Bem-estar</td></tr>
+  <tr><td class="label">NASA-TLX</td><td>NASA Task Load Index — instrumento desenvolvido pela NASA para avaliação subjetiva da carga de trabalho em seis dimensões, com sistema de pesos e ponderação.</td><td>Demanda Mental, Física, Temporal, Performance, Esforço, Frustração</td></tr>
+  <tr><td class="label">HSE-IT</td><td>Health and Safety Executive Indicator Tool — ferramenta do órgão de saúde e segurança do Reino Unido para rastreamento de fatores de estresse ocupacional.</td><td>Demandas, Controle, Apoio, Relacionamentos, Papel, Mudança</td></tr>
+  <tr><td class="label">JSS/Karasek</td><td>Job Stress Scale — baseado no modelo Demanda-Controle de Karasek (1979), classifica o trabalho em quatro quadrantes de risco.</td><td>Demandas Psicológicas, Controle (Autoridade Decisória + Uso de Habilidades)</td></tr>
+</table>
+
+<div class="rpt-section3">10.4 Resultados da Avaliação Psicossocial</div>
+${psychosocial.length > 0 ? '<p>Instrumentos aplicados: ' + (psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II</strong>, ' : '') + (psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : '') + (psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : '') + '</p>' +
+psychosocial.map(psa => {
   let html = '';
   if (psa.copenhagen_details) {
     const cd = psa.copenhagen_details;
-    html += `<table class="rpt-table"><tr><th class="teal">Dimensão COPSOQ II</th><th class="teal">Score (0-100)</th></tr>
-      ${([ ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support] ] as [string, number][]).map(([d, v]) => `<tr><td>${d}</td><td><strong>${v}</strong></td></tr>`).join("")}
-      <tr><td class="label">Score Geral</td><td><strong>${psa.copenhagen_score}</strong></td></tr></table>`;
+    html += '<table class="rpt-table"><tr><th class="teal">Dimensão COPSOQ II</th><th class="teal">Score (0-100)</th><th class="teal">Nível</th></tr>' +
+      ([ ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support] ] as [string, number][]).map(([d, v]) => {
+        const level = v <= 33 ? "Favorável" : v <= 66 ? "Intermediário" : "Desfavorável";
+        const color = v <= 33 ? "#C8E6C9" : v <= 66 ? "#FFF9C4" : "#FFCDD2";
+        return '<tr><td>' + d + '</td><td><strong>' + v + '</strong></td><td style="background:' + color + '; font-weight:bold; text-align:center;">' + level + '</td></tr>';
+      }).join("") +
+      '<tr><td class="label">Score Geral</td><td colspan="2"><strong>' + psa.copenhagen_score + '</strong></td></tr></table>';
   }
   if (psa.nasa_tlx_details) {
-    html += `<table class="rpt-table"><tr><th class="alt">NASA-TLX</th><th class="alt">Score</th></tr>
-      <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
-      <tr><td>Demanda Física</td><td>${psa.nasa_tlx_details.physical_demand}</td></tr>
-      <tr><td>Demanda Temporal</td><td>${psa.nasa_tlx_details.temporal_demand}</td></tr>
-      <tr><td>Performance</td><td>${psa.nasa_tlx_details.performance}</td></tr>
-      <tr><td>Esforço</td><td>${psa.nasa_tlx_details.effort}</td></tr>
-      <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
-      <tr><td class="label">Score Geral</td><td><strong>${psa.nasa_tlx_score}</strong></td></tr></table>`;
+    html += '<table class="rpt-table"><tr><th class="alt">NASA-TLX</th><th class="alt">Score (0-100)</th><th class="alt">Interpretação</th></tr>' +
+      '<tr><td>Demanda Mental</td><td>' + psa.nasa_tlx_details.mental_demand + '</td><td>' + (psa.nasa_tlx_details.mental_demand > 70 ? "Carga elevada" : psa.nasa_tlx_details.mental_demand > 40 ? "Carga moderada" : "Carga baixa") + '</td></tr>' +
+      '<tr><td>Demanda Física</td><td>' + psa.nasa_tlx_details.physical_demand + '</td><td>' + (psa.nasa_tlx_details.physical_demand > 70 ? "Carga elevada" : psa.nasa_tlx_details.physical_demand > 40 ? "Carga moderada" : "Carga baixa") + '</td></tr>' +
+      '<tr><td>Demanda Temporal</td><td>' + psa.nasa_tlx_details.temporal_demand + '</td><td>' + (psa.nasa_tlx_details.temporal_demand > 70 ? "Carga elevada" : psa.nasa_tlx_details.temporal_demand > 40 ? "Carga moderada" : "Carga baixa") + '</td></tr>' +
+      '<tr><td>Performance</td><td>' + psa.nasa_tlx_details.performance + '</td><td>' + (psa.nasa_tlx_details.performance > 70 ? "Satisfatória" : psa.nasa_tlx_details.performance > 40 ? "Moderada" : "Insatisfatória") + '</td></tr>' +
+      '<tr><td>Esforço</td><td>' + psa.nasa_tlx_details.effort + '</td><td>' + (psa.nasa_tlx_details.effort > 70 ? "Elevado" : psa.nasa_tlx_details.effort > 40 ? "Moderado" : "Baixo") + '</td></tr>' +
+      '<tr><td>Frustração</td><td>' + psa.nasa_tlx_details.frustration + '</td><td>' + (psa.nasa_tlx_details.frustration > 70 ? "Elevada" : psa.nasa_tlx_details.frustration > 40 ? "Moderada" : "Baixa") + '</td></tr>' +
+      '<tr><td class="label">Score Geral</td><td colspan="2"><strong>' + psa.nasa_tlx_score + '</strong></td></tr></table>';
   }
   return html;
-}).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial realizada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX e HSE-IT.</div>'}
+}).join("") : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial foi realizada até o momento para esta empresa.</div>' +
+'<p>Recomenda-se a aplicação dos instrumentos COPSOQ II, NASA-TLX e/ou HSE-IT para avaliação dos fatores de risco psicossocial, conforme exigência da NR-01 e da NR-17.</p>' +
+'<div class="rpt-callout">A avaliação dos fatores psicossociais é fundamental para a construção de um diagnóstico ergonômico completo, uma vez que o estresse ocupacional, a carga mental excessiva e os conflitos interpessoais são reconhecidos como agravantes de distúrbios musculoesqueléticos (DORT/LER), conforme demonstrado por estudos epidemiológicos (Bongers et al., 1993; Huang et al., 2002).</div>'}
 
 <div class="page-break"></div>
 <div class="rpt-section">11. RESPONSABILIDADE TÉCNICA</div>
