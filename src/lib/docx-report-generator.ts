@@ -2145,9 +2145,14 @@ function createOnScreenContainer(htmlSections: string[]): HTMLDivElement {
     pointerEvents: "none",
   });
 
-  const pagesHtml = htmlSections.map(
-    (sectionHtml) => `<div class="pdf-page">${sectionHtml}</div>`
-  ).join("");
+  const pagesHtml = htmlSections.map((sectionHtml, idx) => {
+    // Detect cover page (first section with .rpt-cover)
+    const isCover = idx === 0 && sectionHtml.includes('rpt-cover');
+    // Detect index page (second section, or first section with table of contents pattern)
+    const isIndex = (idx === 1 && !sectionHtml.includes('rpt-cover')) || sectionHtml.includes('SUMÁRIO') || sectionHtml.includes('ÍNDICE');
+    const extraClass = isCover ? ' pdf-page--cover' : isIndex ? ' pdf-page--index' : '';
+    return `<div class="pdf-page${extraClass}">${sectionHtml}</div>`;
+  }).join("");
 
   container.innerHTML = `<style>${PDF_INJECT_CSS}</style>${pagesHtml}`;
   document.body.appendChild(container);
