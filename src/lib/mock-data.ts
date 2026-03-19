@@ -6,6 +6,7 @@ export const mockCompanies: Company[] = [
   { id: "comp2", name: "MedTraum Saúde Ocupacional", trade_name: "MEDTRAUM", cnpj: "98.765.432/0001-10", cnae_principal: "86.30-5-03", cnae_secundario: "", activity_risk: "03", address: "Av. Santos Dumont, 500", neighborhood: "Centro", city: "Fortaleza", state: "CE", cep: "60150-160", description: "Clínica de saúde ocupacional e medicina do trabalho", created_at: "2025-01-10" },
   { id: "comp3", name: "Empresa Teste Ltda", trade_name: "EMPRESA TESTE", cnpj: "12.345.678/0001-90", cnae_principal: "10.91-1-02", cnae_secundario: "", activity_risk: "03", address: "Rua Principal, 100", neighborhood: "Jardins", city: "São Paulo", state: "SP", cep: "01310-100", description: "Empresa de teste para validação de relatórios AET completos com múltiplos setores e postos de trabalho", created_at: "2025-02-01" },
   { id: "comp4", name: "Grupo Industrial Nordeste S.A.", trade_name: "GIN INDUSTRIAL", cnpj: "45.678.901/0001-23", cnae_principal: "25.99-3-99", cnae_secundario: "28.13-5-00", activity_risk: "03", address: "Rod. CE-040, Km 22, Distrito Industrial", neighborhood: "Precabura", city: "Eusébio", state: "CE", cep: "61760-000", description: "Grupo industrial diversificado com operações de metalurgia, química, TI, manutenção, transporte e serviços administrativos", created_at: "2025-01-05" },
+  { id: "comp5", name: "Distribuidora Constrular Materiais de Construção Ltda.", trade_name: "CONSTRULAR DISTRIBUIÇÃO", cnpj: "67.890.123/0001-45", cnae_principal: "47.44-0-99", cnae_secundario: "46.79-6-02", activity_risk: "02", address: "Av. Augusto dos Anjos, 1500, Galpão A", neighborhood: "Parangaba", city: "Fortaleza", state: "CE", cep: "60740-000", description: "Distribuidora de materiais de construção com operações de venda, estoque, entrega e administração. Atende varejo e atacado.", created_at: "2025-01-08" },
 ];
 
 export const mockSectors: Sector[] = [
@@ -27,6 +28,11 @@ export const mockSectors: Sector[] = [
   { id: "s15", company_id: "comp4", name: "Transporte e Frota", description: "Operação de veículos pesados, empilhadeiras e plataformas elevatórias. Carga e descarga de materiais. Gestão de frota.", created_at: "2025-01-15" },
   { id: "s16", company_id: "comp4", name: "Recursos Humanos e Jurídico", description: "Gestão de pessoas, folha de pagamento, recrutamento, contencioso trabalhista e compliance regulatório.", created_at: "2025-01-18" },
   { id: "s17", company_id: "comp4", name: "Saúde e Segurança do Trabalho", description: "SESMT com ambulatório, controle de EPIs, investigação de acidentes, programas de prevenção e treinamentos normativos.", created_at: "2025-01-18" },
+  // Constrular Distribuição - 4 setores
+  { id: "s20", company_id: "comp5", name: "Administrativo", description: "Escritório administrativo com contabilidade, faturamento, compras e atendimento ao cliente corporativo", created_at: "2025-01-10" },
+  { id: "s21", company_id: "comp5", name: "Comercial", description: "Loja de materiais de construção com showroom, balcão de vendas e área de autoatendimento", created_at: "2025-01-10" },
+  { id: "s22", company_id: "comp5", name: "Engenharia", description: "Setor de projetos, orçamentos técnicos e assistência técnica para clientes construtoras", created_at: "2025-01-12" },
+  { id: "s23", company_id: "comp5", name: "Expedição", description: "Galpão de estocagem com 2.500m², recebimento de mercadorias, separação de pedidos e despacho para entrega", created_at: "2025-01-12" },
 ];
 
 export const mockWorkstations: Workstation[] = [
@@ -69,6 +75,14 @@ export const mockWorkstations: Workstation[] = [
   // Saúde e Segurança do Trabalho (s17)
   { id: "w27", sector_id: "s17", name: "Técnico de Segurança do Trabalho", description: "Sala do SESMT com equipamentos de medição (dosímetro, decibelímetro, bomba de amostragem)", activity_description: "Implementação e fiscalização de programas de SST conforme NRs", tasks_performed: "Inspecionar áreas, investigar incidentes, ministrar DDS, controlar entrega de EPIs, elaborar PGR/PCMSO, medir ruído e calor", created_at: "2025-01-25" },
   { id: "w28", sector_id: "s17", name: "Enfermeiro do Trabalho", description: "Ambulatório médico com maca, desfibrilador, oxímetro e medicamentos de emergência", activity_description: "Atendimento de primeiros socorros, acompanhamento de saúde ocupacional e campanhas preventivas", tasks_performed: "Atender emergências, realizar curativos, acompanhar exames periódicos, vacinar colaboradores, controlar prontuários no SOC", created_at: "2025-01-25" },
+  // Constrular Distribuição - 7 postos
+  { id: "w30", sector_id: "s20", name: "Auxiliar Contábil", description: "Estação de trabalho com monitor 24\", impressora e arquivo de documentos fiscais", activity_description: "Lançamentos contábeis, conciliação bancária e emissão de notas fiscais de entrada/saída", tasks_performed: "Lançar NFs no ERP, conciliar extratos bancários, classificar despesas, arquivar documentos, atender auditorias", created_at: "2025-01-15" },
+  { id: "w31", sector_id: "s21", name: "Assistente Comercial", description: "Balcão de vendas com terminal PDV, catálogos e amostras de produtos", activity_description: "Atendimento ao cliente no balcão, elaboração de orçamentos e processamento de pedidos", tasks_performed: "Atender clientes presencialmente, elaborar orçamentos, consultar estoque no sistema, processar vendas no PDV, organizar showroom", created_at: "2025-01-15" },
+  { id: "w32", sector_id: "s21", name: "Vendedor Externo", description: "Veículo utilitário com tablet e catálogo digital para visitas a construtoras", activity_description: "Visitas técnicas a construtoras e lojas de varejo para prospecção e fechamento de vendas", tasks_performed: "Visitar clientes, apresentar portfólio, negociar preços e prazos, inserir pedidos no tablet, acompanhar entregas", created_at: "2025-01-18" },
+  { id: "w33", sector_id: "s22", name: "Engenheiro de Projetos", description: "Sala técnica com estação de trabalho CAD, plotter e mesa de desenho", activity_description: "Elaboração de projetos técnicos e orçamentos para obras de construção civil", tasks_performed: "Projetar em AutoCAD/Revit, quantificar materiais, elaborar orçamentos técnicos, visitar obras, emitir laudos", created_at: "2025-01-18" },
+  { id: "w34", sector_id: "s22", name: "Técnico em Edificações", description: "Escritório compartilhado com equipamentos de medição (trena laser, nível)", activity_description: "Suporte técnico em medições, acompanhamento de obras e assistência pós-venda", tasks_performed: "Realizar medições em obra, conferir especificações, orientar aplicação de materiais, elaborar relatórios técnicos, fotografar etapas", created_at: "2025-01-20" },
+  { id: "w35", sector_id: "s23", name: "Estoquista", description: "Galpão com estantes de 5m, empilhadeira manual e sistema WMS", activity_description: "Recebimento, conferência, armazenagem e controle de estoque de materiais de construção", tasks_performed: "Receber mercadorias, conferir NFs, armazenar em prateleiras com empilhadeira manual, inventariar estoque, separar devoluções", created_at: "2025-01-20" },
+  { id: "w36", sector_id: "s23", name: "Motorista de Entrega", description: "Caminhão 3/4 com plataforma elevatória e carreta de mão", activity_description: "Entrega de materiais de construção em obras e residências na região metropolitana", tasks_performed: "Carregar veículo, roteirizar entregas, conduzir caminhão, descarregar materiais com carreta de mão, coletar assinatura de recebimento", created_at: "2025-01-22" },
 ];
 
 export const mockTasks: Task[] = [
@@ -130,6 +144,21 @@ export const mockTasks: Task[] = [
   { id: "t54", workstation_id: "w27", description: "Ministrar DDS e controlar EPIs", created_at: "2025-01-25" },
   { id: "t55", workstation_id: "w28", description: "Atender emergências e realizar curativos", created_at: "2025-01-25" },
   { id: "t56", workstation_id: "w28", description: "Acompanhar exames periódicos e vacinar", created_at: "2025-01-25" },
+  // Constrular
+  { id: "t57", workstation_id: "w30", description: "Lançar NFs e conciliar extratos bancários", created_at: "2025-01-15" },
+  { id: "t58", workstation_id: "w30", description: "Classificar despesas e arquivar documentos", created_at: "2025-01-15" },
+  { id: "t59", workstation_id: "w31", description: "Atender clientes e elaborar orçamentos", created_at: "2025-01-15" },
+  { id: "t60", workstation_id: "w31", description: "Processar vendas no PDV e organizar showroom", created_at: "2025-01-15" },
+  { id: "t61", workstation_id: "w32", description: "Visitar construtoras e negociar vendas", created_at: "2025-01-18" },
+  { id: "t62", workstation_id: "w32", description: "Inserir pedidos no tablet e acompanhar entregas", created_at: "2025-01-18" },
+  { id: "t63", workstation_id: "w33", description: "Projetar em AutoCAD e quantificar materiais", created_at: "2025-01-18" },
+  { id: "t64", workstation_id: "w33", description: "Visitar obras e emitir laudos técnicos", created_at: "2025-01-18" },
+  { id: "t65", workstation_id: "w34", description: "Realizar medições em obra com trena laser", created_at: "2025-01-20" },
+  { id: "t66", workstation_id: "w34", description: "Elaborar relatórios técnicos e fotografar etapas", created_at: "2025-01-20" },
+  { id: "t67", workstation_id: "w35", description: "Receber mercadorias e conferir NFs", created_at: "2025-01-20" },
+  { id: "t68", workstation_id: "w35", description: "Armazenar com empilhadeira e inventariar estoque", created_at: "2025-01-20" },
+  { id: "t69", workstation_id: "w36", description: "Carregar veículo e roteirizar entregas", created_at: "2025-01-22" },
+  { id: "t70", workstation_id: "w36", description: "Descarregar materiais e coletar assinatura", created_at: "2025-01-22" },
 ];
 
 export const mockPosturePhotos: PosturePhoto[] = [
@@ -295,6 +324,48 @@ export const mockPosturePhotos: PosturePhoto[] = [
   { id: "pp133", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Aferindo pressão arterial de paciente sentado", timestamp: "2025-02-14T11:00:00", created_at: "2025-02-14" },
   { id: "pp134", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Elevação de braço", notes: "Alcançando materiais no armário de medicamentos", timestamp: "2025-02-15T08:00:00", created_at: "2025-02-15" },
   { id: "pp135", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Postura em pé prolongada", notes: "Aplicando vacinas em campanha de imunização (~60 colaboradores)", timestamp: "2025-02-15T10:00:00", created_at: "2025-02-15" },
+  // Constrular - w30 Auxiliar Contábil (5 fotos)
+  { id: "pp136", workstation_id: "w30", image_url: "/placeholder.svg", posture_type: "Postura sentada prolongada", notes: "Lançando NFs no ERP por 4h consecutivas", timestamp: "2025-02-10T08:00:00", created_at: "2025-02-10" },
+  { id: "pp137", workstation_id: "w30", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Conferindo documentos físicos na mesa", timestamp: "2025-02-10T10:00:00", created_at: "2025-02-10" },
+  { id: "pp138", workstation_id: "w30", image_url: "/placeholder.svg", posture_type: "Extensão de punho bilateral", notes: "Digitação contínua sem apoio de punho", timestamp: "2025-02-10T14:00:00", created_at: "2025-02-10" },
+  { id: "pp139", workstation_id: "w30", image_url: "/placeholder.svg", posture_type: "Rotação de tronco", notes: "Acessando gaveta do arquivo lateral", timestamp: "2025-02-11T09:00:00", created_at: "2025-02-11" },
+  { id: "pp140", workstation_id: "w30", image_url: "/placeholder.svg", posture_type: "Inclinação lateral", notes: "Pegando papéis na impressora ao lado da mesa", timestamp: "2025-02-11T11:00:00", created_at: "2025-02-11" },
+  // w31 Assistente Comercial (5 fotos)
+  { id: "pp141", workstation_id: "w31", image_url: "/placeholder.svg", posture_type: "Postura em pé prolongada", notes: "Atendendo clientes no balcão por 3h contínuas", timestamp: "2025-02-10T08:00:00", created_at: "2025-02-10" },
+  { id: "pp142", workstation_id: "w31", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Consultando catálogo de produtos no balcão", timestamp: "2025-02-10T09:30:00", created_at: "2025-02-10" },
+  { id: "pp143", workstation_id: "w31", image_url: "/placeholder.svg", posture_type: "Extensão de braço", notes: "Mostrando produtos na prateleira alta do showroom", timestamp: "2025-02-10T11:00:00", created_at: "2025-02-10" },
+  { id: "pp144", workstation_id: "w31", image_url: "/placeholder.svg", posture_type: "Agachamento", notes: "Pegando amostra de piso cerâmico na prateleira inferior", timestamp: "2025-02-11T08:30:00", created_at: "2025-02-11" },
+  { id: "pp145", workstation_id: "w31", image_url: "/placeholder.svg", posture_type: "Rotação cervical", notes: "Alternando entre cliente e tela do PDV", timestamp: "2025-02-11T10:00:00", created_at: "2025-02-11" },
+  // w32 Vendedor Externo (5 fotos)
+  { id: "pp146", workstation_id: "w32", image_url: "/placeholder.svg", posture_type: "Postura sentada com vibração", notes: "Conduzindo utilitário em vias urbanas por 2h", timestamp: "2025-02-12T08:00:00", created_at: "2025-02-12" },
+  { id: "pp147", workstation_id: "w32", image_url: "/placeholder.svg", posture_type: "Postura em pé com inclinação", notes: "Apresentando catálogo no canteiro de obras", timestamp: "2025-02-12T10:00:00", created_at: "2025-02-12" },
+  { id: "pp148", workstation_id: "w32", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Preenchendo pedido no tablet apoiado sobre capô", timestamp: "2025-02-12T11:30:00", created_at: "2025-02-12" },
+  { id: "pp149", workstation_id: "w32", image_url: "/placeholder.svg", posture_type: "Subida/descida do veículo", notes: "Entrando e saindo do utilitário (~15x/dia)", timestamp: "2025-02-13T09:00:00", created_at: "2025-02-13" },
+  { id: "pp150", workstation_id: "w32", image_url: "/placeholder.svg", posture_type: "Carregamento de amostras", notes: "Transportando caixa de amostras de 8kg do porta-malas", timestamp: "2025-02-13T14:00:00", created_at: "2025-02-13" },
+  // w33 Engenheiro de Projetos (5 fotos)
+  { id: "pp151", workstation_id: "w33", image_url: "/placeholder.svg", posture_type: "Postura sentada prolongada", notes: "Projetando em AutoCAD por 5h com poucas pausas", timestamp: "2025-02-14T08:00:00", created_at: "2025-02-14" },
+  { id: "pp152", workstation_id: "w33", image_url: "/placeholder.svg", posture_type: "Flexão cervical acentuada", notes: "Analisando planta impressa na mesa de desenho", timestamp: "2025-02-14T10:00:00", created_at: "2025-02-14" },
+  { id: "pp153", workstation_id: "w33", image_url: "/placeholder.svg", posture_type: "Extensão de punho", notes: "Uso prolongado de mouse durante modelagem 3D", timestamp: "2025-02-14T14:00:00", created_at: "2025-02-14" },
+  { id: "pp154", workstation_id: "w33", image_url: "/placeholder.svg", posture_type: "Postura em pé em obra", notes: "Visitando obra para levantamento de medidas", timestamp: "2025-02-15T09:00:00", created_at: "2025-02-15" },
+  { id: "pp155", workstation_id: "w33", image_url: "/placeholder.svg", posture_type: "Rotação cervical", notes: "Alternando entre monitor e plotter durante impressão", timestamp: "2025-02-15T11:00:00", created_at: "2025-02-15" },
+  // w34 Técnico em Edificações (5 fotos)
+  { id: "pp156", workstation_id: "w34", image_url: "/placeholder.svg", posture_type: "Agachamento em obra", notes: "Medindo nível do piso com nível laser ao chão", timestamp: "2025-02-14T08:00:00", created_at: "2025-02-14" },
+  { id: "pp157", workstation_id: "w34", image_url: "/placeholder.svg", posture_type: "Extensão cervical", notes: "Verificando prumo de parede com trena laser apontada para cima", timestamp: "2025-02-14T09:30:00", created_at: "2025-02-14" },
+  { id: "pp158", workstation_id: "w34", image_url: "/placeholder.svg", posture_type: "Postura em pé com caminhada", notes: "Percorrendo obra de 3 pavimentos para inspeção", timestamp: "2025-02-14T11:00:00", created_at: "2025-02-14" },
+  { id: "pp159", workstation_id: "w34", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Fotografando detalhes de instalação hidráulica", timestamp: "2025-02-15T08:30:00", created_at: "2025-02-15" },
+  { id: "pp160", workstation_id: "w34", image_url: "/placeholder.svg", posture_type: "Postura sentada", notes: "Elaborando relatório técnico no escritório", timestamp: "2025-02-15T14:00:00", created_at: "2025-02-15" },
+  // w35 Estoquista (5 fotos)
+  { id: "pp161", workstation_id: "w35", image_url: "/placeholder.svg", posture_type: "Elevação de carga pesada", notes: "Empilhando sacos de cimento de 50kg com auxílio de carrinho", timestamp: "2025-02-10T07:30:00", created_at: "2025-02-10" },
+  { id: "pp162", workstation_id: "w35", image_url: "/placeholder.svg", posture_type: "Agachamento repetitivo", notes: "Separando materiais nas prateleiras inferiores", timestamp: "2025-02-10T09:00:00", created_at: "2025-02-10" },
+  { id: "pp163", workstation_id: "w35", image_url: "/placeholder.svg", posture_type: "Elevação de braço acima do ombro", notes: "Armazenando caixas de conexões na prateleira de 2,5m", timestamp: "2025-02-10T10:30:00", created_at: "2025-02-10" },
+  { id: "pp164", workstation_id: "w35", image_url: "/placeholder.svg", posture_type: "Postura em pé com caminhada", notes: "Caminhando entre corredores durante inventário (~5km/dia)", timestamp: "2025-02-11T08:00:00", created_at: "2025-02-11" },
+  { id: "pp165", workstation_id: "w35", image_url: "/placeholder.svg", posture_type: "Flexão de tronco com carga", notes: "Carregando tubo PVC de 6m com colega", timestamp: "2025-02-11T10:00:00", created_at: "2025-02-11" },
+  // w36 Motorista de Entrega (5 fotos)
+  { id: "pp166", workstation_id: "w36", image_url: "/placeholder.svg", posture_type: "Postura sentada com vibração", notes: "Conduzindo caminhão 3/4 em ruas esburacadas por 3h", timestamp: "2025-02-12T07:00:00", created_at: "2025-02-12" },
+  { id: "pp167", workstation_id: "w36", image_url: "/placeholder.svg", posture_type: "Elevação de carga pesada", notes: "Descarregando caixas de argamassa de 20kg com carreta de mão", timestamp: "2025-02-12T10:00:00", created_at: "2025-02-12" },
+  { id: "pp168", workstation_id: "w36", image_url: "/placeholder.svg", posture_type: "Flexão de tronco acentuada", notes: "Amarrando carga na plataforma do caminhão", timestamp: "2025-02-12T11:30:00", created_at: "2025-02-12" },
+  { id: "pp169", workstation_id: "w36", image_url: "/placeholder.svg", posture_type: "Subida/descida da cabine", notes: "Subindo e descendo da cabine (~25x/dia em entregas múltiplas)", timestamp: "2025-02-13T08:00:00", created_at: "2025-02-13" },
+  { id: "pp170", workstation_id: "w36", image_url: "/placeholder.svg", posture_type: "Carregamento manual escada", notes: "Subindo escada com sacos de 25kg em entrega residencial sem elevador", timestamp: "2025-02-13T14:00:00", created_at: "2025-02-13" },
 ];
 
 export const mockPostureAnalyses: PostureAnalysis[] = [
@@ -327,6 +398,14 @@ export const mockPostureAnalyses: PostureAnalysis[] = [
   { id: "pa25", workstation_id: "w26", joint_angles: { neck: 28, shoulder: 12, elbow: 88, trunk: 18, hip: 88, knee: 85 }, ergonomic_scores: { ROSA: 5 }, risk_level: "medium", created_at: "2025-02-13" },
   { id: "pa26", workstation_id: "w27", joint_angles: { neck: 20, shoulder: 40, elbow: 85, trunk: 25, hip: 82, knee: 160 }, ergonomic_scores: { REBA: 6, RULA: 5 }, risk_level: "medium", created_at: "2025-02-15" },
   { id: "pa27", workstation_id: "w28", joint_angles: { neck: 22, shoulder: 30, elbow: 90, trunk: 22, hip: 85, knee: 170 }, ergonomic_scores: { REBA: 5, RULA: 4 }, risk_level: "medium", created_at: "2025-02-15" },
+  // Constrular
+  { id: "pa28", workstation_id: "w30", joint_angles: { neck: 25, shoulder: 10, elbow: 90, trunk: 15, hip: 90, knee: 88 }, ergonomic_scores: { ROSA: 5 }, risk_level: "medium", created_at: "2025-02-11" },
+  { id: "pa29", workstation_id: "w31", joint_angles: { neck: 18, shoulder: 25, elbow: 85, trunk: 15, hip: 88, knee: 170 }, ergonomic_scores: { REBA: 5, RULA: 4 }, risk_level: "medium", created_at: "2025-02-11" },
+  { id: "pa30", workstation_id: "w32", joint_angles: { neck: 20, shoulder: 15, elbow: 95, trunk: 12, hip: 92, knee: 85 }, ergonomic_scores: { REBA: 4 }, risk_level: "low", created_at: "2025-02-13" },
+  { id: "pa31", workstation_id: "w33", joint_angles: { neck: 28, shoulder: 12, elbow: 88, trunk: 18, hip: 88, knee: 85 }, ergonomic_scores: { ROSA: 5 }, risk_level: "medium", created_at: "2025-02-15" },
+  { id: "pa32", workstation_id: "w34", joint_angles: { neck: 22, shoulder: 35, elbow: 80, trunk: 28, hip: 80, knee: 140 }, ergonomic_scores: { REBA: 6, RULA: 5 }, risk_level: "medium", created_at: "2025-02-15" },
+  { id: "pa33", workstation_id: "w35", joint_angles: { neck: 18, shoulder: 60, elbow: 70, trunk: 42, hip: 72, knee: 125 }, ergonomic_scores: { REBA: 10, RULA: 7 }, risk_level: "critical", created_at: "2025-02-11" },
+  { id: "pa34", workstation_id: "w36", joint_angles: { neck: 30, shoulder: 50, elbow: 75, trunk: 38, hip: 78, knee: 150 }, ergonomic_scores: { REBA: 9, RULA: 7 }, risk_level: "high", created_at: "2025-02-13" },
 ];
 
 export const mockAnalyses: Analysis[] = [
@@ -360,6 +439,14 @@ export const mockAnalyses: Analysis[] = [
   { id: "a26", workstation_id: "w26", method: "ROSA", score: 5, notes: "Postura sentada prolongada (>8h com poucas pausas). Flexão cervical para leitura de livros. Extensão de braço para estante. Demanda cognitiva e emocional elevadas.", body_parts: { chair: 3, monitor: 3, keyboard: 2, mouse: 3, telephone: 2 }, analysis_status: "completed", created_at: "2025-02-13" },
   { id: "a27", workstation_id: "w27", method: "REBA", score: 6, notes: "Alternância entre escritório e área industrial. Caminhada extensa (3km/dia). Agachamento para inspeções. Exposição a diversos agentes ocupacionais durante inspeções.", body_parts: { trunk: 3, neck: 2, legs: 3, upper_arm: 3, lower_arm: 2, wrist: 1 }, analysis_status: "completed", created_at: "2025-02-15" },
   { id: "a28", workstation_id: "w28", method: "REBA", score: 5, notes: "Alternância postura em pé e sentada. Flexão de tronco em atendimentos. Risco biológico em curativos. Postura em pé prolongada durante campanhas de vacinação.", body_parts: { trunk: 3, neck: 2, legs: 2, upper_arm: 2, lower_arm: 2, wrist: 2 }, analysis_status: "completed", created_at: "2025-02-15" },
+  // Constrular
+  { id: "a29", workstation_id: "w30", method: "ROSA", score: 5, notes: "Postura sentada prolongada com digitação intensa. Cadeira sem apoio lombar. Mouse sem apoio de punho. Rotação de tronco frequente para acessar arquivo.", body_parts: { chair: 4, monitor: 3, keyboard: 3, mouse: 3, telephone: 2 }, analysis_status: "completed", created_at: "2025-02-11" },
+  { id: "a30", workstation_id: "w31", method: "REBA", score: 5, notes: "Postura em pé prolongada no balcão (>4h). Agachamento para pegar amostras. Elevação de braços para prateleiras altas do showroom. Alternância constante entre posição de pé e terminal PDV.", body_parts: { trunk: 2, neck: 2, legs: 3, upper_arm: 3, lower_arm: 2, wrist: 1 }, analysis_status: "completed", created_at: "2025-02-11" },
+  { id: "a31", workstation_id: "w32", method: "REBA", score: 4, notes: "Exposição a vibração durante condução. Postura variada entre veículo e visitas. Carregamento de amostras de 8kg. Preenchimento de pedidos em tablet sem apoio.", body_parts: { trunk: 2, neck: 2, legs: 2, upper_arm: 2, lower_arm: 2, wrist: 2 }, analysis_status: "completed", created_at: "2025-02-13" },
+  { id: "a32", workstation_id: "w33", method: "ROSA", score: 5, notes: "Postura sentada prolongada com uso intensivo de CAD (>5h). Flexão cervical para plantas impressas. Extensão de punho com mouse durante modelagem. Visitas a obras com terrenos irregulares.", body_parts: { chair: 3, monitor: 4, keyboard: 2, mouse: 4, telephone: 1 }, analysis_status: "completed", created_at: "2025-02-15" },
+  { id: "a33", workstation_id: "w34", method: "REBA", score: 6, notes: "Alternância escritório e campo. Agachamento para medições no nível do piso. Extensão cervical para verificar prumos. Exposição a poeira e sol em canteiros de obras.", body_parts: { trunk: 3, neck: 3, legs: 3, upper_arm: 2, lower_arm: 2, wrist: 1 }, analysis_status: "completed", created_at: "2025-02-15" },
+  { id: "a34", workstation_id: "w35", method: "REBA", score: 10, notes: "Manuseio de cargas pesadas (cimento 50kg, tubos 6m). Agachamento repetitivo. Elevação acima do ombro. Caminhada contínua (~5km/dia). Exposição a poeira de cimento e materiais granulados.", body_parts: { trunk: 5, neck: 2, legs: 4, upper_arm: 4, lower_arm: 3, wrist: 2 }, analysis_status: "completed", created_at: "2025-02-11" },
+  { id: "a35", workstation_id: "w36", method: "REBA", score: 9, notes: "Vibração de corpo inteiro no caminhão. Manuseio de cargas pesadas (argamassa 20kg, cimento 50kg). Subida de escadas com carga em entregas residenciais. Exposição a calor e trânsito.", body_parts: { trunk: 4, neck: 3, legs: 3, upper_arm: 4, lower_arm: 3, wrist: 2 }, analysis_status: "completed", created_at: "2025-02-13" },
 ];
 
 const riskData: Array<{ probability: number; exposure: number; consequence: number }> = [
@@ -393,6 +480,14 @@ const riskData: Array<{ probability: number; exposure: number; consequence: numb
   { probability: 1, exposure: 10, consequence: 1 },  // w26 Advogado
   { probability: 3, exposure: 6, consequence: 3 },   // w27 TST
   { probability: 3, exposure: 6, consequence: 1 },   // w28 Enfermeiro
+  // Constrular
+  { probability: 3, exposure: 10, consequence: 1 },  // w30 Aux Contábil
+  { probability: 3, exposure: 6, consequence: 1 },   // w31 Assist Comercial
+  { probability: 1, exposure: 6, consequence: 1 },   // w32 Vendedor Externo
+  { probability: 3, exposure: 10, consequence: 1 },  // w33 Engenheiro
+  { probability: 3, exposure: 6, consequence: 3 },   // w34 Técnico Edificações
+  { probability: 10, exposure: 6, consequence: 6 },  // w35 Estoquista - crítico
+  { probability: 6, exposure: 10, consequence: 6 },  // w36 Motorista Entrega
 ];
 
 export const mockRiskAssessments: RiskAssessment[] = mockAnalyses.map((a, i) => {
@@ -442,6 +537,14 @@ export const mockActionPlans: ActionPlan[] = [
   { id: "ap26", risk_assessment_id: "r26", description: "Recomendar pausas regulares. Adquirir suporte para livros. Orientar ergonomia de escritório", responsible: "TST Roberto Lima", deadline: "2025-04-10", status: "completed", created_at: "2025-02-14" },
   { id: "ap27", risk_assessment_id: "r27", description: "Fornecer calçado de segurança com palmilha anatômica. Organizar kit de campo ergonômico. Implementar rodízio entre inspeção de campo e escritório", responsible: "Coord. André Moreira", deadline: "2025-04-20", status: "approved", created_at: "2025-02-16" },
   { id: "ap28", risk_assessment_id: "r28", description: "Adquirir maca com regulagem de altura. Instalar dispenser de álcool gel em altura ergonômica. Fornecer banqueta alta para atendimentos prolongados", responsible: "Dra. Lúcia Andrade", deadline: "2025-04-15", status: "approved", created_at: "2025-02-16" },
+  // Constrular
+  { id: "ap29", risk_assessment_id: "r29", description: "Substituir cadeira por modelo com apoio lombar. Adquirir apoio de punho para teclado e mouse. Instalar suporte para documentos", responsible: "TST Marcos Vieira", deadline: "2025-04-15", status: "completed", created_at: "2025-02-12" },
+  { id: "ap30", risk_assessment_id: "r30", description: "Instalar tapete anti-fadiga no balcão. Adquirir escada com plataforma para showroom. Ajustar altura do terminal PDV", responsible: "TST Marcos Vieira", deadline: "2025-04-20", status: "approved", created_at: "2025-02-12" },
+  { id: "ap31", risk_assessment_id: "r31", description: "Fornecer apoio lombar para veículo. Adquirir carrinho dobrável para amostras. Orientar pausas durante condução", responsible: "TST Marcos Vieira", deadline: "2025-04-10", status: "completed", created_at: "2025-02-14" },
+  { id: "ap32", risk_assessment_id: "r32", description: "Adquirir suporte para monitor com regulagem de altura. Instalar apoio de punho para mouse. Recomendar micropausas via software", responsible: "TST Marcos Vieira", deadline: "2025-04-15", status: "approved", created_at: "2025-02-16" },
+  { id: "ap33", risk_assessment_id: "r33", description: "Fornecer calçado de segurança com palmilha para campo. Adquirir joelheira para medições no piso. Orientar proteção solar e hidratação", responsible: "TST Marcos Vieira", deadline: "2025-04-20", status: "approved", created_at: "2025-02-16" },
+  { id: "ap34", risk_assessment_id: "r34", description: "URGENTE: Adquirir empilhadeira elétrica para cargas >30kg. Reorganizar estoque: materiais pesados abaixo de 1m. Implementar ginástica laboral. Fornecer cinto ergonômico para lombar. Treinar técnica de levantamento NR-17", responsible: "Coord. Felipe Santos", deadline: "2025-03-30", status: "in_progress", created_at: "2025-02-12" },
+  { id: "ap35", risk_assessment_id: "r35", description: "Instalar plataforma elevatória no caminhão. Adquirir carrinho elétrico para entregas em andares. Implementar limite de peso por entrega (max 150kg/viagem). Fornecer cinta lombar", responsible: "Coord. Felipe Santos", deadline: "2025-04-30", status: "pending", created_at: "2025-02-14" },
 ];
 
 export const mockPsychosocialAnalyses: PsychosocialAnalysis[] = [
@@ -550,6 +653,31 @@ export const mockPsychosocialAnalyses: PsychosocialAnalysis[] = [
     copenhagen_details: { quantitative_demands: 70, work_pace: 65, cognitive_demands: 75, emotional_demands: 60, influence: 30, possibilities_development: 40, meaning_work: 65, commitment: 55, predictability: 35, social_support: 50 },
     observations: "Eletricistas relatam ansiedade com risco elétrico. Trabalho em altura gera medo mesmo com EPIs. Chamados de emergência interrompem planejamento. Reconhecimento insuficiente do risco da função.",
     created_at: "2025-02-16",
+  },
+  // Constrular
+  {
+    id: "psa9", company_id: "comp5", workstation_id: "w35",
+    evaluator_name: "Dr. Henrique Nogueira",
+    nasa_tlx_score: 76,
+    nasa_tlx_details: { mental_demand: 35, physical_demand: 92, temporal_demand: 80, performance: 55, effort: 85, frustration: 70 },
+    hse_it_score: 2.4,
+    hse_it_details: { demands: 4.5, control: 2.0, support: 2.3, relationships: 2.8, role: 2.2, change: 1.8 },
+    copenhagen_score: 72,
+    copenhagen_details: { quantitative_demands: 82, work_pace: 88, cognitive_demands: 30, emotional_demands: 50, influence: 18, possibilities_development: 25, meaning_work: 45, commitment: 40, predictability: 35, social_support: 42 },
+    observations: "Estoquistas relatam dor lombar crônica e fadiga muscular. Metas de separação diária consideradas excessivas. Rotatividade alta (38% ao ano). Queixas de falta de equipamentos para movimentação de carga.",
+    created_at: "2025-02-12",
+  },
+  {
+    id: "psa10", company_id: "comp5", workstation_id: "w36",
+    evaluator_name: "Dr. Henrique Nogueira",
+    nasa_tlx_score: 72,
+    nasa_tlx_details: { mental_demand: 50, physical_demand: 88, temporal_demand: 78, performance: 52, effort: 80, frustration: 68 },
+    hse_it_score: 2.6,
+    hse_it_details: { demands: 4.2, control: 2.2, support: 2.5, relationships: 3.0, role: 2.5, change: 2.0 },
+    copenhagen_score: 68,
+    copenhagen_details: { quantitative_demands: 78, work_pace: 82, cognitive_demands: 45, emotional_demands: 55, influence: 22, possibilities_development: 28, meaning_work: 52, commitment: 45, predictability: 38, social_support: 48 },
+    observations: "Motoristas relatam estresse com trânsito e pressão de horários. Dor lombar generalizada. Dificuldade de entrega em locais sem acesso para caminhão. Insatisfação com estado de conservação dos veículos.",
+    created_at: "2025-02-14",
   },
 ];
 
