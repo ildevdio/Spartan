@@ -18,6 +18,15 @@ export const mockSectors: Sector[] = [
   { id: "s6", company_id: "comp3", name: "Administrativo", description: "Setor administrativo com atividades de escritório, gestão financeira e atendimento telefônico", created_at: "2025-02-05" },
   { id: "s7", company_id: "comp3", name: "Produção", description: "Setor de produção industrial com manuseio de máquinas, montagem e embalagem de produtos", created_at: "2025-02-05" },
   { id: "s8", company_id: "comp3", name: "Logística", description: "Setor de logística responsável por recebimento, armazenagem, separação e expedição de materiais", created_at: "2025-02-05" },
+  // GIN Industrial - 8 setores diversificados
+  { id: "s10", company_id: "comp4", name: "Usinagem e Metalurgia", description: "Fabricação de peças metálicas por usinagem CNC, torneamento, fresamento e retífica. Ambiente com ruído elevado, partículas metálicas e fluidos de corte.", created_at: "2025-01-10" },
+  { id: "s11", company_id: "comp4", name: "Soldagem e Caldeiraria", description: "Soldagem MIG/TIG/Eletrodo, corte plasma, conformação e montagem de estruturas metálicas. Exposição a fumos metálicos e radiação UV.", created_at: "2025-01-10" },
+  { id: "s12", company_id: "comp4", name: "Laboratório Químico", description: "Análises de controle de qualidade de matérias-primas e produtos acabados. Manipulação de reagentes ácidos, básicos e solventes orgânicos.", created_at: "2025-01-12" },
+  { id: "s13", company_id: "comp4", name: "Tecnologia da Informação", description: "Desenvolvimento de software, suporte técnico, infraestrutura de rede e segurança da informação. Trabalho predominantemente sentado com uso intensivo de computador.", created_at: "2025-01-12" },
+  { id: "s14", company_id: "comp4", name: "Manutenção Industrial", description: "Manutenção preventiva e corretiva de máquinas, sistemas elétricos, pneumáticos e hidráulicos. Trabalho em altura e espaços confinados.", created_at: "2025-01-15" },
+  { id: "s15", company_id: "comp4", name: "Transporte e Frota", description: "Operação de veículos pesados, empilhadeiras e plataformas elevatórias. Carga e descarga de materiais. Gestão de frota.", created_at: "2025-01-15" },
+  { id: "s16", company_id: "comp4", name: "Recursos Humanos e Jurídico", description: "Gestão de pessoas, folha de pagamento, recrutamento, contencioso trabalhista e compliance regulatório.", created_at: "2025-01-18" },
+  { id: "s17", company_id: "comp4", name: "Saúde e Segurança do Trabalho", description: "SESMT com ambulatório, controle de EPIs, investigação de acidentes, programas de prevenção e treinamentos normativos.", created_at: "2025-01-18" },
 ];
 
 export const mockWorkstations: Workstation[] = [
