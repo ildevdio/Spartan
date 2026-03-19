@@ -2096,35 +2096,23 @@ function createOnScreenContainer(html: string): HTMLDivElement {
     <style>
       [data-pdf-render="true"] * { box-sizing: border-box; }
       [data-pdf-render="true"] .pdf-root {
-        font-family: 'Segoe UI', Calibri, Arial, sans-serif;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 13px;
         color: #1e293b;
-        line-height: 1.5;
+        line-height: 1.6;
         background: #fff;
         width: ${PDF_RENDER_WIDTH_PX}px;
-        padding: 30px 36px;
+        padding: 30px 40px;
       }
-      [data-pdf-render="true"] .pdf-root table {
-        border-collapse: collapse; width: 100%; margin: 6px 0;
-      }
-      [data-pdf-render="true"] .pdf-root td,
-      [data-pdf-render="true"] .pdf-root th {
-        border: 1px solid #D1D5DB; padding: 5px 7px; font-size: 12px; vertical-align: top;
-      }
-      [data-pdf-render="true"] .pdf-root th {
-        background: #f1f5f9; font-weight: bold;
-      }
-      [data-pdf-render="true"] .pdf-root h1 { font-size: 20px; margin: 14px 0 7px; }
-      [data-pdf-render="true"] .pdf-root h2 { font-size: 16px; margin: 16px 0 7px; }
-      [data-pdf-render="true"] .pdf-root h3 { font-size: 14px; color: #475569; margin: 12px 0 5px; }
-      [data-pdf-render="true"] .pdf-root p { font-size: 12px; margin: 5px 0; }
-      [data-pdf-render="true"] .pdf-root hr { border: none; border-top: 1px solid #e2e8f0; margin: 10px 0; }
+      /* Do NOT override report-template styles — let sharedStyles() from the HTML control
+         fonts, colors, paddings, margins, etc. This ensures PDF = preview parity. */
       [data-pdf-render="true"] .pdf-root img { max-width: 100%; height: auto; }
-      /* Preserve inline colors — cover page h1/h2 must stay white */
+      /* Preserve cover page white text */
       [data-pdf-render="true"] .pdf-root .rpt-cover h1 { color: white !important; }
       [data-pdf-render="true"] .pdf-root .rpt-cover h2 { color: #B2EBF2 !important; }
       [data-pdf-render="true"] .pdf-root .rpt-cover .company { color: white !important; }
       [data-pdf-render="true"] .pdf-root .rpt-cover .meta { color: #B2EBF2 !important; }
-      /* Ensure page breaks work for html2canvas slicing */
+      /* Page breaks for slicing */
       [data-pdf-render="true"] .pdf-root .page-break { height: 0; margin: 0; padding: 0; }
     </style>
     <div class="pdf-root">${html}</div>
