@@ -342,6 +342,24 @@ export const mockAnalyses: Analysis[] = [
   { id: "a9", workstation_id: "w9", method: "REBA", score: 7, notes: "Movimentos repetitivos de punho com parafusadeira. Flexão cervical para inspeção visual. Manuseio de carga de 8 kg. Pinça fina prolongada.", body_parts: { trunk: 3, neck: 3, legs: 1, upper_arm: 2, lower_arm: 3, wrist: 4 }, analysis_status: "completed", created_at: "2025-03-13" },
   { id: "a10", workstation_id: "w10", method: "REBA", score: 6, notes: "Vibração de corpo inteiro na empilhadeira. Rotação cervical extrema em manobras de ré. Extensão cervical ao posicionar carga em altura. Piso irregular gera impacto na coluna.", body_parts: { trunk: 3, neck: 4, legs: 2, upper_arm: 2, lower_arm: 2, wrist: 1 }, analysis_status: "completed", created_at: "2025-03-15" },
   { id: "a11", workstation_id: "w11", method: "REBA", score: 10, notes: "Agachamento repetitivo para prateleiras baixas. Elevação de braço acima do ombro para prateleiras altas. Transporte manual de carga de 12 kg. Caminhada contínua (~8 km/dia). Flexão lateral para leitura de etiquetas.", body_parts: { trunk: 5, neck: 2, legs: 4, upper_arm: 4, lower_arm: 2, wrist: 2 }, analysis_status: "completed", created_at: "2025-03-15" },
+  // GIN Industrial
+  { id: "a12", workstation_id: "w12", method: "REBA", score: 7, notes: "Postura em pé prolongada (>7h). Flexão de tronco ao fixar peças no mandril. Agachamento para coletar peças no nível do chão. Exposição a ruído de 85 dB(A) e névoa de fluido de corte.", body_parts: { trunk: 3, neck: 3, legs: 3, upper_arm: 2, lower_arm: 2, wrist: 2 }, analysis_status: "completed", created_at: "2025-02-11" },
+  { id: "a13", workstation_id: "w13", method: "REBA", score: 8, notes: "Flexão de tronco acentuada ao fixar peças na morsa. Movimentos repetitivos de punho na rebarbação. Elevação de carga de 15kg. Ruído de 88 dB(A).", body_parts: { trunk: 4, neck: 3, legs: 2, upper_arm: 3, lower_arm: 3, wrist: 3 }, analysis_status: "completed", created_at: "2025-02-11" },
+  { id: "a14", workstation_id: "w14", method: "REBA", score: 6, notes: "Postura em pé estática por períodos prolongados. Flexão cervical para leitura de instrumentos. Exposição a névoa de fluido sintético.", body_parts: { trunk: 3, neck: 3, legs: 2, upper_arm: 2, lower_arm: 2, wrist: 2 }, analysis_status: "completed", created_at: "2025-02-13" },
+  { id: "a15", workstation_id: "w15", method: "REBA", score: 11, notes: "Soldagem em posição sobre-cabeça (4G) com elevação sustentada de braços. Agachamento prolongado para juntas na base. Exposição a fumos metálicos, radiação UV e calor radiante. Vibração mão-braço ao esmerilhar.", body_parts: { trunk: 5, neck: 3, legs: 3, upper_arm: 5, lower_arm: 2, wrist: 3 }, analysis_status: "completed", created_at: "2025-02-11" },
+  { id: "a16", workstation_id: "w16", method: "REBA", score: 10, notes: "Manuseio de chapas e perfis pesados (>25kg). Agachamento com torção ao montar estruturas no solo. Vibração mão-braço com lixadeira. Exposição a ruído de 92 dB(A).", body_parts: { trunk: 5, neck: 2, legs: 4, upper_arm: 3, lower_arm: 3, wrist: 3 }, analysis_status: "completed", created_at: "2025-02-13" },
+  { id: "a17", workstation_id: "w17", method: "REBA", score: 5, notes: "Postura em pé com flexão cervical na capela. Movimentos finos de precisão em titulação. Exposição a vapores ácidos e solventes. Bancada de pesagem abaixo do nível ergonômico.", body_parts: { trunk: 2, neck: 3, legs: 2, upper_arm: 2, lower_arm: 2, wrist: 2 }, analysis_status: "completed", created_at: "2025-02-15" },
+  { id: "a18", workstation_id: "w18", method: "ROSA", score: 5, notes: "Postura sentada prolongada monitorando corridas cromatográficas. Flexão cervical ao injetar amostras. Movimentos de precisão na manutenção de colunas. Exposição a solventes orgânicos.", body_parts: { chair: 3, monitor: 4, keyboard: 2, mouse: 2, telephone: 1 }, analysis_status: "completed", created_at: "2025-02-15" },
+  { id: "a19", workstation_id: "w19", method: "ROSA", score: 4, notes: "Postura sentada contínua (>6h). Boa estação ergonômica com mesa regulável. Extensão de punho bilateral durante digitação intensa. Rotação cervical entre dois monitores.", body_parts: { chair: 2, monitor: 3, keyboard: 3, mouse: 2, telephone: 1 }, analysis_status: "completed", created_at: "2025-02-11" },
+  { id: "a20", workstation_id: "w20", method: "REBA", score: 8, notes: "Alternância entre postura sentada e trabalho físico em racks. Agachamento em rack inferior. Elevação acima do ombro em racks altos. Passagem de cabos sob piso elevado. Ambiente climatizado a 20°C.", body_parts: { trunk: 4, neck: 3, legs: 3, upper_arm: 4, lower_arm: 2, wrist: 2 }, analysis_status: "completed", created_at: "2025-02-13" },
+  { id: "a21", workstation_id: "w21", method: "REBA", score: 9, notes: "Trabalho em altura (leito de cabos a 4m). Elevação sustentada de braços em painéis. Agachamento no CCM. Risco elétrico NR-10. Exposição a campos eletromagnéticos.", body_parts: { trunk: 3, neck: 3, legs: 3, upper_arm: 5, lower_arm: 2, wrist: 2 }, analysis_status: "completed", created_at: "2025-02-15" },
+  { id: "a22", workstation_id: "w22", method: "REBA", score: 10, notes: "Manuseio de componentes pesados (motor 30kg). Postura em decúbito dorsal sob esteiras. Vibração mão-braço com chave de impacto. Agachamento prolongado em bases de bombas. Exposição a graxa e solventes.", body_parts: { trunk: 5, neck: 2, legs: 3, upper_arm: 3, lower_arm: 3, wrist: 3 }, analysis_status: "completed", created_at: "2025-02-15" },
+  { id: "a23", workstation_id: "w23", method: "REBA", score: 6, notes: "Postura sentada prolongada com vibração de corpo inteiro. Rotação cervical repetitiva. Subida/descida da cabine (~20x/dia). Exposição a calor e gases de exaustão. Trabalho noturno em viagens.", body_parts: { trunk: 3, neck: 4, legs: 2, upper_arm: 1, lower_arm: 2, wrist: 1 }, analysis_status: "completed", created_at: "2025-02-17" },
+  { id: "a24", workstation_id: "w24", method: "REBA", score: 8, notes: "Extensão cervical sustentada monitorando carga suspensa. Postura em pé com braço elevado operando controle remoto. Risco de queda de carga. Exposição a ruído do galpão 87 dB(A).", body_parts: { trunk: 3, neck: 5, legs: 2, upper_arm: 4, lower_arm: 2, wrist: 1 }, analysis_status: "completed", created_at: "2025-02-17" },
+  { id: "a25", workstation_id: "w25", method: "ROSA", score: 5, notes: "Postura sentada prolongada em cadeira sem apoio lombar adequado. Mouse sem apoio de punho. Rotação de tronco para acessar arquivo. Demanda cognitiva alta em períodos de fechamento de folha.", body_parts: { chair: 4, monitor: 3, keyboard: 2, mouse: 3, telephone: 2 }, analysis_status: "completed", created_at: "2025-02-11" },
+  { id: "a26", workstation_id: "w26", method: "ROSA", score: 5, notes: "Postura sentada prolongada (>8h com poucas pausas). Flexão cervical para leitura de livros. Extensão de braço para estante. Demanda cognitiva e emocional elevadas.", body_parts: { chair: 3, monitor: 3, keyboard: 2, mouse: 3, telephone: 2 }, analysis_status: "completed", created_at: "2025-02-13" },
+  { id: "a27", workstation_id: "w27", method: "REBA", score: 6, notes: "Alternância entre escritório e área industrial. Caminhada extensa (3km/dia). Agachamento para inspeções. Exposição a diversos agentes ocupacionais durante inspeções.", body_parts: { trunk: 3, neck: 2, legs: 3, upper_arm: 3, lower_arm: 2, wrist: 1 }, analysis_status: "completed", created_at: "2025-02-15" },
+  { id: "a28", workstation_id: "w28", method: "REBA", score: 5, notes: "Alternância postura em pé e sentada. Flexão de tronco em atendimentos. Risco biológico em curativos. Postura em pé prolongada durante campanhas de vacinação.", body_parts: { trunk: 3, neck: 2, legs: 2, upper_arm: 2, lower_arm: 2, wrist: 2 }, analysis_status: "completed", created_at: "2025-02-15" },
 ];
 
 const riskData: Array<{ probability: number; exposure: number; consequence: number }> = [
@@ -357,6 +375,24 @@ const riskData: Array<{ probability: number; exposure: number; consequence: numb
   { probability: 6, exposure: 6, consequence: 3 },
   { probability: 3, exposure: 6, consequence: 6 },
   { probability: 10, exposure: 6, consequence: 6 },
+  // GIN Industrial
+  { probability: 6, exposure: 10, consequence: 3 },  // w12 Torneiro
+  { probability: 6, exposure: 10, consequence: 6 },  // w13 Fresador
+  { probability: 3, exposure: 10, consequence: 3 },  // w14 Retificador
+  { probability: 10, exposure: 6, consequence: 15 }, // w15 Soldador - crítico
+  { probability: 10, exposure: 6, consequence: 6 },  // w16 Caldeireiro
+  { probability: 3, exposure: 10, consequence: 1 },  // w17 Analista Químico
+  { probability: 3, exposure: 10, consequence: 1 },  // w18 Cromatografia
+  { probability: 1, exposure: 10, consequence: 1 },  // w19 Dev Software
+  { probability: 6, exposure: 6, consequence: 3 },   // w20 Infra TI
+  { probability: 6, exposure: 6, consequence: 15 },  // w21 Eletricista - risco elétrico
+  { probability: 10, exposure: 6, consequence: 6 },  // w22 Mecânico
+  { probability: 6, exposure: 10, consequence: 3 },  // w23 Motorista
+  { probability: 6, exposure: 6, consequence: 15 },  // w24 Ponte Rolante - risco queda carga
+  { probability: 3, exposure: 10, consequence: 1 },  // w25 RH
+  { probability: 1, exposure: 10, consequence: 1 },  // w26 Advogado
+  { probability: 3, exposure: 6, consequence: 3 },   // w27 TST
+  { probability: 3, exposure: 6, consequence: 1 },   // w28 Enfermeiro
 ];
 
 export const mockRiskAssessments: RiskAssessment[] = mockAnalyses.map((a, i) => {
