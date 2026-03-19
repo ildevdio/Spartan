@@ -871,6 +871,7 @@ ${analyses.filter(a => a.method === "REBA").map(a => {
 <p><strong>OWAS</strong> — Ovako Working Posture Analysing System: Classificação postural. 1: Normal | 2: Leve | 3: Severo | 4: Muito severo.</p>
 ${equipmentTable()}
 
+<div class="page-break"></div>
 <div class="rpt-section">9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA</div>
 <p>A empresa <strong>${company.trade_name || company.name}</strong> tem seus trabalhadores classificados em Grupos Homogêneos de Exposição (GHE), conforme metodologia do PGR.</p>
 ${gheTable(workstations, ctx)}
