@@ -2102,12 +2102,16 @@ function createOnScreenContainer(html: string): HTMLDivElement {
         line-height: 1.6;
         background: #fff;
         width: ${PDF_RENDER_WIDTH_PX}px;
-        padding: 30px 40px;
+        padding: 20px 30px;
       }
       /* Do NOT override report-template styles — let sharedStyles() from the HTML control
          fonts, colors, paddings, margins, etc. This ensures PDF = preview parity. */
       [data-pdf-render="true"] .pdf-root img { max-width: 100%; height: auto; }
-      /* Preserve cover page white text */
+      /* Preserve cover page gradient and white text */
+      [data-pdf-render="true"] .pdf-root .rpt-cover {
+        background-color: #0A1F44 !important;
+        background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%) !important;
+      }
       [data-pdf-render="true"] .pdf-root .rpt-cover h1 { color: white !important; }
       [data-pdf-render="true"] .pdf-root .rpt-cover h2 { color: #B2EBF2 !important; }
       [data-pdf-render="true"] .pdf-root .rpt-cover .company { color: white !important; }
