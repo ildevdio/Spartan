@@ -2036,261 +2036,290 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
   }
 }
 
-const PDF_PAGE_WIDTH_MM = 210;
-const PDF_PAGE_HEIGHT_MM = 297;
+// ============ PDF GENERATION — ROBUST ON-SCREEN CAPTURE ============
 
-function getPdfSourceHtml(ctx: DocxReportContext): string {
-  const previewNode = document.querySelector(".report-preview-content") as HTMLDivElement | null;
-  const previewHtml = previewNode?.innerHTML?.trim();
+const PDF_W_MM = 210;
+const PDF_H_MM = 297;
+const PDF_RENDER_WIDTH_PX = 794; // 210mm at 96 DPI
 
-  if (previewHtml && previewHtml.length > 20) {
-    return previewHtml;
-  }
-
-  return generateReportHTML({
-    company: ctx.company,
-    sector: ctx.sector,
-    workstation: ctx.workstation,
-    workstations: ctx.workstations,
-    analyses: ctx.analyses,
-    photos: ctx.photos,
-    reportType: ctx.reportType,
+/**
+ * Shows a full-screen overlay so the user doesn't see the raw render container.
+ */
+function showPdfOverlay(): HTMLDivElement {
+  const overlay = document.createElement("div");
+  overlay.id = "__pdf_overlay__";
+  Object.assign(overlay.style, {
+    position: "fixed",
+    inset: "0",
+    zIndex: "999998",
+    background: "rgba(255,255,255,0.95)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: "sans-serif",
+    fontSize: "18px",
+    color: "#333",
+    backdropFilter: "blur(4px)",
   });
+  overlay.innerHTML = `
+    <div style="text-align:center">
+      <div style="width:40px;height:40px;border:3px solid #1565C0;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>
+      <div>Gerando PDF...</div>
+      <div style="font-size:12px;color:#888;margin-top:4px">Não feche esta janela</div>
+    </div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  `;
+  document.body.appendChild(overlay);
+  return overlay;
 }
 
-function createPdfRenderContainer(html: string): HTMLDivElement {
+/**
+ * Creates the render container ON-SCREEN (visible to html2canvas) but hidden behind the overlay.
+ */
+function createOnScreenContainer(html: string): HTMLDivElement {
   const container = document.createElement("div");
   container.setAttribute("data-pdf-render", "true");
-  container.style.position = "fixed";
-  container.style.left = "-10000px";
-  container.style.top = "0";
-  container.style.width = "210mm";
-  container.style.minHeight = "297mm";
-  container.style.background = "#ffffff";
-  container.style.opacity = "1";
-  container.style.pointerEvents = "none";
-  container.style.zIndex = "-1";
+  Object.assign(container.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    width: `${PDF_RENDER_WIDTH_PX}px`,
+    minHeight: "100vh",
+    background: "#ffffff",
+    zIndex: "999997", // behind overlay but on-screen
+    overflow: "visible",
+    opacity: "1",
+    pointerEvents: "none",
+  });
 
   container.innerHTML = `
     <style>
       [data-pdf-render="true"] * { box-sizing: border-box; }
-      [data-pdf-render="true"] .pdf-export-root {
-        font-family: Calibri, Arial, sans-serif;
+      [data-pdf-render="true"] .pdf-root {
+        font-family: 'Segoe UI', Calibri, Arial, sans-serif;
         color: #1e293b;
         line-height: 1.6;
         background: #fff;
-        width: 210mm;
-        padding: 15mm 18mm;
+        width: ${PDF_RENDER_WIDTH_PX}px;
+        padding: 40px 50px;
       }
-      [data-pdf-render="true"] .pdf-export-root table {
-        border-collapse: collapse;
-        width: 100%;
-        margin: 8px 0;
-        page-break-inside: avoid;
+      [data-pdf-render="true"] .pdf-root table {
+        border-collapse: collapse; width: 100%; margin: 8px 0;
       }
-      [data-pdf-render="true"] .pdf-export-root td,
-      [data-pdf-render="true"] .pdf-export-root th {
-        border: 1px solid #D1D5DB;
-        padding: 6px 8px;
-        font-size: 12px;
-        vertical-align: top;
+      [data-pdf-render="true"] .pdf-root td,
+      [data-pdf-render="true"] .pdf-root th {
+        border: 1px solid #D1D5DB; padding: 6px 8px; font-size: 12px; vertical-align: top;
       }
-      [data-pdf-render="true"] .pdf-export-root th {
-        background: #f1f5f9;
-        font-weight: bold;
+      [data-pdf-render="true"] .pdf-root th {
+        background: #f1f5f9; font-weight: bold;
       }
-      [data-pdf-render="true"] .pdf-export-root h1 { font-size: 22px; color: #1e293b; margin: 16px 0 8px; }
-      [data-pdf-render="true"] .pdf-export-root h2 { font-size: 18px; color: #1e293b; margin: 20px 0 8px; }
-      [data-pdf-render="true"] .pdf-export-root h3 { font-size: 15px; color: #475569; margin: 14px 0 6px; }
-      [data-pdf-render="true"] .pdf-export-root p { font-size: 13px; margin: 6px 0; }
-      [data-pdf-render="true"] .pdf-export-root hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
-      [data-pdf-render="true"] .pdf-export-root img { max-width: 100%; height: auto; }
-      [data-pdf-render="true"] .pdf-export-root .page-break { page-break-before: always; }
+      [data-pdf-render="true"] .pdf-root h1 { font-size: 22px; color: #1e293b; margin: 16px 0 8px; }
+      [data-pdf-render="true"] .pdf-root h2 { font-size: 18px; color: #1e293b; margin: 20px 0 8px; }
+      [data-pdf-render="true"] .pdf-root h3 { font-size: 15px; color: #475569; margin: 14px 0 6px; }
+      [data-pdf-render="true"] .pdf-root p { font-size: 13px; margin: 6px 0; }
+      [data-pdf-render="true"] .pdf-root hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
+      [data-pdf-render="true"] .pdf-root img { max-width: 100%; height: auto; }
     </style>
-    <div class="pdf-export-root">${html}</div>
+    <div class="pdf-root">${html}</div>
   `;
 
   document.body.appendChild(container);
   return container;
 }
 
-async function waitForImages(root: HTMLElement): Promise<void> {
-  const images = Array.from(root.querySelectorAll("img"));
-  if (images.length === 0) return;
+/**
+ * Wait for all images, fonts, and layout to fully render.
+ */
+async function waitForFullRender(root: HTMLElement): Promise<void> {
+  // Wait for fonts
+  try {
+    await (document as any).fonts?.ready;
+  } catch {}
 
+  // Wait for all images
+  const imgs = Array.from(root.querySelectorAll("img"));
   await Promise.all(
-    images.map(
+    imgs.map(
       (img) =>
         new Promise<void>((resolve) => {
-          if (img.complete) {
-            resolve();
-            return;
-          }
+          if (img.complete && img.naturalHeight > 0) return resolve();
           img.onload = () => resolve();
           img.onerror = () => resolve();
         })
     )
   );
-}
 
-async function waitForStableRender(root: HTMLElement): Promise<void> {
-  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-
-  const fonts = (document as unknown as { fonts?: { ready?: Promise<unknown> } }).fonts;
-  if (fonts?.ready) {
-    await fonts.ready.catch(() => undefined);
+  // Let the browser paint — 3 animation frames + a timeout
+  for (let i = 0; i < 3; i++) {
+    await new Promise<void>((r) => requestAnimationFrame(() => r()));
   }
-
-  await waitForImages(root);
-  await new Promise<void>((resolve) => setTimeout(resolve, 150));
+  await new Promise<void>((r) => setTimeout(r, 300));
 }
 
-function canvasHasVisibleContent(canvas: HTMLCanvasElement): boolean {
+/**
+ * Check the canvas actually has visible (non-white) content.
+ */
+function hasContent(canvas: HTMLCanvasElement): boolean {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
-  if (!ctx) return false;
-  if (canvas.width < 100 || canvas.height < 100) return false;
+  if (!ctx || canvas.width < 50 || canvas.height < 50) return false;
 
-  const step = Math.max(8, Math.floor(Math.sqrt((canvas.width * canvas.height) / 1800)));
+  const step = Math.max(4, Math.floor(Math.sqrt((canvas.width * canvas.height) / 5000)));
   let total = 0;
   let nonWhite = 0;
 
   for (let y = 0; y < canvas.height; y += step) {
     for (let x = 0; x < canvas.width; x += step) {
-      total += 1;
-      const pixel = ctx.getImageData(x, y, 1, 1).data;
-      const alpha = pixel[3];
-      const isNearWhite = pixel[0] > 246 && pixel[1] > 246 && pixel[2] > 246;
-      if (alpha > 8 && !isNearWhite) {
-        nonWhite += 1;
+      total++;
+      const px = ctx.getImageData(x, y, 1, 1).data;
+      if (px[3] > 8 && !(px[0] > 245 && px[1] > 245 && px[2] > 245)) {
+        nonWhite++;
       }
     }
   }
 
-  return total > 0 && nonWhite / total > 0.005;
+  const ratio = total > 0 ? nonWhite / total : 0;
+  console.log(`[PDF] Content check: ${nonWhite}/${total} non-white pixels (${(ratio * 100).toFixed(2)}%)`);
+  return ratio > 0.003;
 }
 
-function saveCanvasAsPaginatedPdf(
+/**
+ * Slice a tall canvas into A4 pages and save as PDF.
+ */
+function sliceIntoPdf(
   canvas: HTMLCanvasElement,
   jsPDFCtor: typeof import("jspdf").jsPDF,
-  fileName: string,
-  quality = 0.95
+  fileName: string
 ): void {
   const pdf = new jsPDFCtor({ unit: "mm", format: "a4", orientation: "portrait" });
-  const pageHeightPx = Math.floor((canvas.width * PDF_PAGE_HEIGHT_MM) / PDF_PAGE_WIDTH_MM);
+  const pageHeightPx = Math.floor((canvas.width * PDF_H_MM) / PDF_W_MM);
 
-  let sourceY = 0;
-  let pageIndex = 0;
+  let y = 0;
+  let page = 0;
 
-  while (sourceY < canvas.height) {
-    if (pageIndex > 0) {
-      pdf.addPage();
-    }
+  while (y < canvas.height) {
+    if (page > 0) pdf.addPage();
 
-    const sliceHeightPx = Math.min(pageHeightPx, canvas.height - sourceY);
+    const sliceH = Math.min(pageHeightPx, canvas.height - y);
     const pageCanvas = document.createElement("canvas");
     pageCanvas.width = canvas.width;
-    pageCanvas.height = sliceHeightPx;
+    pageCanvas.height = sliceH;
 
-    const pageCtx = pageCanvas.getContext("2d");
-    if (!pageCtx) {
-      throw new Error("Não foi possível preparar página do PDF.");
-    }
+    const ctx = pageCanvas.getContext("2d")!;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+    ctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
 
-    pageCtx.fillStyle = "#ffffff";
-    pageCtx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-    pageCtx.drawImage(canvas, 0, sourceY, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+    const heightMm = (sliceH * PDF_W_MM) / canvas.width;
+    pdf.addImage(pageCanvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, PDF_W_MM, heightMm);
 
-    const renderHeightMm = (sliceHeightPx * PDF_PAGE_WIDTH_MM) / canvas.width;
-    const pageImage = pageCanvas.toDataURL("image/jpeg", quality);
-    pdf.addImage(pageImage, "JPEG", 0, 0, PDF_PAGE_WIDTH_MM, renderHeightMm);
-
-    sourceY += pageHeightPx;
-    pageIndex += 1;
+    y += pageHeightPx;
+    page++;
   }
 
+  console.log(`[PDF] Generated ${page} page(s)`);
   pdf.save(fileName);
 }
 
-async function tryGeneratePdfWithCanvas(container: HTMLElement, fileName: string, scale: number): Promise<boolean> {
-  const html2canvas = (await import("html2canvas")).default;
-  const { jsPDF } = await import("jspdf");
-
-  const width = Math.ceil(container.scrollWidth);
-  const height = Math.ceil(container.scrollHeight);
-  if (width < 100 || height < 100) return false;
-
-  const canvas = await html2canvas(container, {
-    scale,
-    useCORS: true,
-    backgroundColor: "#ffffff",
-    logging: false,
-    width,
-    height,
-    windowWidth: width,
-    windowHeight: height,
-    scrollX: 0,
-    scrollY: 0,
-  });
-
-  if (!canvasHasVisibleContent(canvas)) {
-    return false;
-  }
-
-  saveCanvasAsPaginatedPdf(canvas, jsPDF, fileName, scale >= 3 ? 0.98 : 0.95);
-  return true;
-}
-
-async function fallbackGeneratePdfWithJsPdfHtml(container: HTMLElement, fileName: string): Promise<void> {
-  const { jsPDF } = await import("jspdf");
-
-  await new Promise<void>((resolve, reject) => {
-    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-
-    pdf.html(container, {
-      x: 0,
-      y: 0,
-      width: PDF_PAGE_WIDTH_MM,
-      windowWidth: container.scrollWidth,
-      autoPaging: "text",
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-      },
-      callback: (doc) => {
-        if (doc.getNumberOfPages() < 1) {
-          reject(new Error("PDF inválido (sem páginas)."));
-          return;
-        }
-        doc.save(fileName);
-        resolve();
-      },
-    });
-  });
-}
-
+/**
+ * Main PDF generation function.
+ * Strategy: render ON-SCREEN behind an overlay, capture with html2canvas, validate, slice into pages.
+ */
 export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<void> {
-  const html = getPdfSourceHtml(ctx);
-  const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
-
-  const container = createPdfRenderContainer(html);
+  const overlay = showPdfOverlay();
+  let container: HTMLDivElement | null = null;
 
   try {
-    await waitForStableRender(container);
+    // Get HTML source — prefer live preview content, fallback to generated
+    const previewNode = document.querySelector(".report-preview-content") as HTMLDivElement | null;
+    const html =
+      previewNode?.innerHTML?.trim() && previewNode.innerHTML.trim().length > 50
+        ? previewNode.innerHTML
+        : generateReportHTML({
+            company: ctx.company,
+            sector: ctx.sector,
+            workstation: ctx.workstation,
+            workstations: ctx.workstations,
+            analyses: ctx.analyses,
+            photos: ctx.photos,
+            reportType: ctx.reportType,
+          });
 
-    const firstAttemptOk = await tryGeneratePdfWithCanvas(container, fileName, 2);
-    if (firstAttemptOk) return;
+    const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
 
-    const secondAttemptOk = await tryGeneratePdfWithCanvas(container, fileName, 3);
-    if (secondAttemptOk) return;
+    // Create ON-SCREEN container (the key fix — not off-screen!)
+    container = createOnScreenContainer(html);
 
-    await fallbackGeneratePdfWithJsPdfHtml(container, fileName);
+    // Wait for everything to render
+    await waitForFullRender(container);
+
+    // Import libraries
+    const html2canvas = (await import("html2canvas")).default;
+    const { jsPDF } = await import("jspdf");
+
+    // Attempt 1: scale 2
+    console.log("[PDF] Attempt 1: scale 2");
+    let canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      width: container.scrollWidth,
+      height: container.scrollHeight,
+      windowWidth: container.scrollWidth,
+      windowHeight: container.scrollHeight,
+      scrollX: 0,
+      scrollY: 0,
+    });
+
+    if (hasContent(canvas)) {
+      sliceIntoPdf(canvas, jsPDF, fileName);
+      return;
+    }
+
+    // Attempt 2: scale 3 with extra wait
+    console.log("[PDF] Attempt 1 blank. Retrying at scale 3...");
+    await new Promise<void>((r) => setTimeout(r, 500));
+
+    canvas = await html2canvas(container, {
+      scale: 3,
+      useCORS: true,
+      backgroundColor: "#ffffff",
+      logging: false,
+      width: container.scrollWidth,
+      height: container.scrollHeight,
+      windowWidth: container.scrollWidth,
+      windowHeight: container.scrollHeight,
+      scrollX: 0,
+      scrollY: 0,
+    });
+
+    if (hasContent(canvas)) {
+      sliceIntoPdf(canvas, jsPDF, fileName);
+      return;
+    }
+
+    // Attempt 3: jsPDF.html() fallback
+    console.log("[PDF] Attempt 2 blank. Using jsPDF.html() fallback...");
+    await new Promise<void>((resolve, reject) => {
+      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+      pdf.html(container!, {
+        x: 0,
+        y: 0,
+        width: PDF_W_MM,
+        windowWidth: container!.scrollWidth,
+        autoPaging: "text",
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+        callback: (doc) => {
+          doc.save(fileName);
+          resolve();
+        },
+      });
+    });
   } catch (error) {
-    console.error("Falha na geração de PDF a partir do HTML do relatório.", error);
-    throw new Error("Não foi possível gerar o PDF com conteúdo visível. Tente novamente.");
+    console.error("[PDF] Generation failed:", error);
+    throw new Error("Não foi possível gerar o PDF. Tente novamente.");
   } finally {
-    container.remove();
+    container?.remove();
+    overlay.remove();
   }
 }
