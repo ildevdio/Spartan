@@ -782,13 +782,35 @@ ${coverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant)}
 <div class="rpt-section">1. INTRODUÇÃO</div>
 <p>Na busca por elevar a produtividade, a qualidade, a segurança e o conforto durante a execução das atividades — sejam elas rotineiras ou mais complexas — a ergonomia tem ganhado cada vez mais espaço dentro das organizações. Seu uso tornou-se essencial para reduzir falhas e otimizar processos nos setores produtivos, administrativos e, sobretudo, nos aspectos que envolvem comportamento e interação humana.</p>
 <p>A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa.</p>
-<p>Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17, com o objetivo de subsidiar a elaboração da Análise Ergonômica do Trabalho.</p>
+<p>Atendendo à demanda da empresa <strong>${company.trade_name || company.name}</strong>, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17, com o objetivo de subsidiar a elaboração da Análise Ergonômica do Trabalho (AET).</p>
+
+<div class="rpt-section3">1.1 Fundamentação Legal</div>
+<p>A elaboração da AET está fundamentada nas seguintes disposições legais e normativas:</p>
+<ul>
+  <li><strong>NR-17 (Ergonomia)</strong> — Estabelece parâmetros que permitam a adaptação das condições de trabalho às características psicofisiológicas dos trabalhadores, de modo a proporcionar conforto, segurança, saúde e desempenho eficiente no trabalho;</li>
+  <li><strong>NR-01 (PGR)</strong> — Determina a obrigatoriedade do Gerenciamento de Riscos Ocupacionais, incluindo os fatores ergonômicos no inventário de riscos;</li>
+  <li><strong>CLT, Art. 157</strong> — Obriga o empregador a cumprir e fazer cumprir as normas de segurança e medicina do trabalho;</li>
+  <li><strong>Constituição Federal, Art. 7º, XXII</strong> — Garante o direito à redução dos riscos inerentes ao trabalho, por meio de normas de saúde, higiene e segurança;</li>
+  <li><strong>Lei nº 8.213/91, Art. 19-21</strong> — Dispõe sobre os planos de benefícios da Previdência Social e define o acidente de trabalho e as doenças ocupacionais.</li>
+</ul>
+
+<div class="rpt-section3">1.2 Escopo e Metodologia</div>
+<p>O presente documento abrange a avaliação ergonômica de <strong>${workstations.length}</strong> posto(s) de trabalho distribuídos em <strong>${[...new Set(workstations.map(w => w.sector?.name || "Geral"))].length}</strong> setor(es) da empresa. A metodologia adotada seguiu as seguintes etapas:</p>
+<ol>
+  <li><strong>Análise da demanda:</strong> Levantamento das necessidades e queixas dos trabalhadores, análise documental e entrevistas com gestores;</li>
+  <li><strong>Análise da tarefa:</strong> Descrição das atividades prescritas, ferramentas utilizadas, organização do trabalho e condições ambientais;</li>
+  <li><strong>Análise da atividade:</strong> Observação direta das posturas, movimentos, esforços físicos e cognitivos durante a execução real do trabalho;</li>
+  <li><strong>Diagnóstico ergonômico:</strong> Aplicação de métodos validados (${methods || "REBA, RULA, ROSA, OWAS"}) para quantificação dos riscos;</li>
+  <li><strong>Recomendações:</strong> Proposição de medidas de controle hierarquizadas conforme prioridade e viabilidade técnica.</li>
+</ol>
+
+<div class="rpt-section3">1.3 Estrutura do Documento</div>
+<p>Este relatório está organizado em 12 seções principais e 6 anexos obrigatórios, contemplando desde a caracterização da empresa até o plano de ação ergonômico e os registros fotográficos dos postos avaliados. As fichas de avaliação REBA e os inventários de riscos ocupacionais são apresentados de forma individualizada por Grupo Homogêneo de Exposição (GHE).</p>
 
 <div class="page-break"></div>
 <div class="rpt-section">2. DADOS DA EMPRESA</div>
 ${companyDataTable(company)}
 
-<div class="page-break"></div>
 <div class="rpt-section">3. OBJETIVOS</div>
 <ul>
   <li>Realizar a Análise Ergonômica do Trabalho (AET) conforme as diretrizes da NR-17;</li>
@@ -804,12 +826,14 @@ ${companyDataTable(company)}
   <tr><th>Norma</th><th>Descrição</th></tr>
   <tr><td class="label">NR-17</td><td>Ergonomia — Parâmetros de adaptação das condições de trabalho</td></tr>
   <tr><td class="label">NR-01</td><td>Disposições Gerais e Gerenciamento de Riscos Ocupacionais (PGR)</td></tr>
+  <tr><td class="label">NR-15</td><td>Atividades e Operações Insalubres</td></tr>
+  <tr><td class="label">NR-07</td><td>PCMSO — Programa de Controle Médico de Saúde Ocupacional</td></tr>
   <tr><td class="label">ISO 11228</td><td>Ergonomia — Movimentação manual de cargas</td></tr>
   <tr><td class="label">ISO 11226</td><td>Ergonomia — Avaliação de posturas de trabalho estáticas</td></tr>
   <tr><td class="label">CLT Art. 157-158</td><td>Obrigações do empregador e empregados quanto à segurança</td></tr>
+  <tr><td class="label">IN INSS nº 98/2003</td><td>Norma Técnica sobre Lesões por Esforços Repetitivos (LER/DORT)</td></tr>
 </table>
 
-<div class="page-break"></div>
 <div class="rpt-section">5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO</div>
 <p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description.toLowerCase() || "atividades comerciais/industriais"}. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
 ${workstations.map(ws => {
@@ -823,10 +847,11 @@ ${workstations.map(ws => {
 <div class="page-break"></div>
 <div class="rpt-section">6. REFERENCIAL TEÓRICO</div>
 <p>A Ergonomia, segundo a International Ergonomics Association (IEA), é a disciplina científica que trata da compreensão das interações entre seres humanos e outros elementos de um sistema, aplicando teorias, princípios, dados e métodos para otimizar o bem-estar humano e o desempenho global do sistema.</p>
+<p>De acordo com Iida (2005), a ergonomia estuda a adaptação do trabalho ao ser humano, abrangendo não apenas máquinas e equipamentos, mas toda a situação em que ocorre o relacionamento entre o homem e seu trabalho, incluindo o ambiente físico e os aspectos organizacionais.</p>
 <ul>
-  <li><strong>Ergonomia Física:</strong> Características anatômicas, antropométricas, fisiológicas e biomecânicas</li>
-  <li><strong>Ergonomia Cognitiva:</strong> Processos mentais como percepção, memória, raciocínio e resposta motora</li>
-  <li><strong>Ergonomia Organizacional:</strong> Otimização de sistemas sociotécnicos, estruturas organizacionais e processos</li>
+  <li><strong>Ergonomia Física:</strong> Características anatômicas, antropométricas, fisiológicas e biomecânicas relacionadas à atividade física, incluindo posturas de trabalho, manuseio de materiais, movimentos repetitivos, distúrbios musculoesqueléticos e projeto do posto de trabalho;</li>
+  <li><strong>Ergonomia Cognitiva:</strong> Processos mentais como percepção, memória, raciocínio e resposta motora, que afetam as interações entre seres humanos e outros elementos do sistema, incluindo carga mental de trabalho, tomada de decisão e estresse;</li>
+  <li><strong>Ergonomia Organizacional:</strong> Otimização de sistemas sociotécnicos, incluindo estruturas organizacionais, políticas e processos, como comunicação, gestão de recursos, trabalho em turnos e trabalho cooperativo.</li>
 </ul>
 
 <div class="page-break"></div>
