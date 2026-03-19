@@ -2276,12 +2276,12 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
       return;
     }
 
-    // Attempt 2: scale 3 with extra wait
-    console.log("[PDF] Attempt 1 blank. Retrying at scale 3...");
+    // Attempt 2: scale 2 with extra wait
+    console.log("[PDF] Attempt 1 blank. Retrying at scale 2...");
     await new Promise<void>((r) => setTimeout(r, 500));
 
     canvas = await html2canvas(container, {
-      scale: 3,
+      scale: 2,
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
