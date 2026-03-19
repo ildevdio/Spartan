@@ -812,13 +812,24 @@ ${coverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant)}
 ${companyDataTable(company)}
 
 <div class="rpt-section">3. OBJETIVOS</div>
+
+<div class="rpt-section3">3.1 Objetivo Geral</div>
+<p>Realizar a Análise Ergonômica do Trabalho (AET) na empresa <strong>${company.trade_name || company.name}</strong>, avaliando de forma sistemática e aprofundada as condições de trabalho nos postos analisados, com o propósito de identificar, classificar e propor medidas de controle para os riscos ergonômicos existentes, em conformidade com os requisitos da Norma Regulamentadora nº 17 e demais legislações aplicáveis.</p>
+
+<div class="rpt-section3">3.2 Objetivos Específicos</div>
 <ul>
-  <li>Realizar a Análise Ergonômica do Trabalho (AET) conforme as diretrizes da NR-17;</li>
-  <li>Identificar e avaliar os riscos ergonômicos nos postos de trabalho analisados;</li>
-  <li>Classificar os riscos utilizando métodos ergonômicos validados internacionalmente;</li>
-  <li>Propor recomendações de melhoria baseadas em evidências científicas;</li>
-  <li>Contribuir para a melhoria contínua das condições de trabalho na organização.</li>
+  <li>Analisar a demanda ergonômica, as tarefas prescritas e as atividades reais de cada posto de trabalho, identificando discrepâncias entre o trabalho prescrito e o trabalho efetivamente realizado;</li>
+  <li>Avaliar as posturas adotadas, os esforços físicos e biomecânicos, a organização temporal do trabalho (jornada, pausas, turnos, ritmo) e os fatores ambientais (iluminação, temperatura, ruído);</li>
+  <li>Aplicar métodos ergonômicos validados internacionalmente — <strong>${methods || "REBA, RULA, ROSA, OWAS"}</strong> — para quantificação objetiva dos riscos musculoesqueléticos;</li>
+  <li>Classificar os riscos identificados conforme a Matriz de Avaliação de Riscos (Probabilidade × Gravidade), permitindo priorização de ações;</li>
+  <li>Avaliar os fatores psicossociais e cognitivos que possam impactar a saúde mental e o desempenho dos trabalhadores, utilizando instrumentos como COPSOQ II, NASA-TLX e HSE-IT;</li>
+  <li>Elaborar recomendações técnicas hierarquizadas (eliminação, substituição, controles de engenharia, medidas administrativas e EPIs) para mitigação dos riscos;</li>
+  <li>Subsidiar o Programa de Gerenciamento de Riscos (PGR/NR-01) e o Programa de Controle Médico de Saúde Ocupacional (PCMSO/NR-07) com dados ergonômicos atualizados;</li>
+  <li>Fornecer elementos técnicos para programas de treinamento e conscientização dos trabalhadores quanto à prevenção de LER/DORT e demais patologias ocupacionais.</li>
 </ul>
+
+<div class="rpt-section3">3.3 Abrangência</div>
+<p>O presente estudo abrange <strong>${workstations.length}</strong> posto(s) de trabalho, organizados em <strong>${[...new Set(workstations.map(w => w.sector?.name || "Geral"))].length}</strong> setor(es), totalizando <strong>${analyses.length}</strong> avaliação(ões) ergonômica(s) e <strong>${photos.length}</strong> registro(s) fotográfico(s). A análise contempla aspectos biomecânicos, organizacionais, cognitivos e psicossociais, conforme preconizado pelas normas técnicas vigentes.</p>
 
 <div class="page-break"></div>
 <div class="rpt-section">4. REFERÊNCIAS NORMATIVAS</div>
@@ -835,24 +846,76 @@ ${companyDataTable(company)}
 </table>
 
 <div class="rpt-section">5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO</div>
-<p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description.toLowerCase() || "atividades comerciais/industriais"}. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
+<p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description.toLowerCase() || "atividades comerciais/industriais"}, com CNAE principal <strong>${company.cnae_principal || "—"}</strong> e grau de risco <strong>${company.activity_risk || "—"}</strong>. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
+
+<p>A análise da demanda foi conduzida por meio de observação direta dos postos de trabalho, entrevistas semiestruturadas com trabalhadores e gestores, análise documental (PPRA/PGR, PCMSO, CIPA, atestados médicos) e levantamento fotográfico das condições ergonômicas. As queixas mais frequentes foram compiladas e confrontadas com os achados objetivos das avaliações biomecânicas.</p>
+
 ${workstations.map(ws => {
   const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
-  return `<div class="rpt-section3">Posto: ${ws.name}</div>
-<p><strong>Descrição da atividade:</strong> ${ws.activity_description || ws.description}</p>
-<p><strong>Tarefas executadas:</strong></p>
-<ul>${wsTasks.map(t => `<li>${t.description}</li>`).join("") || `<li>${ws.tasks_performed || "Atividades gerais do posto"}</li>`}</ul>`;
+  const wsAnalyses2 = analyses.filter(a => a.workstation_id === ws.id);
+  const wsRisks2 = risks.filter(r => wsAnalyses2.some(a => a.id === r.analysis_id));
+  const sectorObj = ws.sector || sector;
+  const sectorLabel = (sectorObj as any)?.name || "Geral";
+  const tasksLabel = wsTasks.map(t => t.description).join("; ") || ws.tasks_performed || "Atividades gerais do posto";
+  const analysesLabel = wsAnalyses2.length > 0 ? wsAnalyses2.map(a => a.method + " (Score: " + a.score + ")").join(", ") : "Pendente";
+  const risksLabel = wsRisks2.length > 0 ? wsRisks2.map(r => r.description + " (" + riskLevelLabel(r.risk_level) + ")").join("; ") : "A avaliar";
+  return '<div class="rpt-section3">Posto: ' + ws.name + '</div>' +
+  '<table class="rpt-table">' +
+  '<tr><td class="label" style="width:180px;">Setor</td><td>' + sectorLabel + '</td></tr>' +
+  '<tr><td class="label">Descrição da Atividade</td><td>' + (ws.activity_description || ws.description || "—") + '</td></tr>' +
+  '<tr><td class="label">Tarefas Executadas</td><td>' + tasksLabel + '</td></tr>' +
+  '<tr><td class="label">Análises Realizadas</td><td>' + analysesLabel + '</td></tr>' +
+  '<tr><td class="label">Riscos Identificados</td><td>' + risksLabel + '</td></tr>' +
+  '</table>';
 }).join("")}
 
 <div class="page-break"></div>
 <div class="rpt-section">6. REFERENCIAL TEÓRICO</div>
+
+<div class="rpt-section3">6.1 Conceitos Fundamentais de Ergonomia</div>
 <p>A Ergonomia, segundo a International Ergonomics Association (IEA), é a disciplina científica que trata da compreensão das interações entre seres humanos e outros elementos de um sistema, aplicando teorias, princípios, dados e métodos para otimizar o bem-estar humano e o desempenho global do sistema.</p>
 <p>De acordo com Iida (2005), a ergonomia estuda a adaptação do trabalho ao ser humano, abrangendo não apenas máquinas e equipamentos, mas toda a situação em que ocorre o relacionamento entre o homem e seu trabalho, incluindo o ambiente físico e os aspectos organizacionais.</p>
+<p>A Ergonomia subdivide-se em três domínios especializados, cada um com escopo e metodologias próprias:</p>
 <ul>
-  <li><strong>Ergonomia Física:</strong> Características anatômicas, antropométricas, fisiológicas e biomecânicas relacionadas à atividade física, incluindo posturas de trabalho, manuseio de materiais, movimentos repetitivos, distúrbios musculoesqueléticos e projeto do posto de trabalho;</li>
-  <li><strong>Ergonomia Cognitiva:</strong> Processos mentais como percepção, memória, raciocínio e resposta motora, que afetam as interações entre seres humanos e outros elementos do sistema, incluindo carga mental de trabalho, tomada de decisão e estresse;</li>
-  <li><strong>Ergonomia Organizacional:</strong> Otimização de sistemas sociotécnicos, incluindo estruturas organizacionais, políticas e processos, como comunicação, gestão de recursos, trabalho em turnos e trabalho cooperativo.</li>
+  <li><strong>Ergonomia Física:</strong> Trata das características anatômicas, antropométricas, fisiológicas e biomecânicas relacionadas à atividade física. Engloba posturas de trabalho, manuseio de materiais, movimentos repetitivos, distúrbios musculoesqueléticos (LER/DORT), projeto do posto de trabalho, forças exercidas e fadiga muscular;</li>
+  <li><strong>Ergonomia Cognitiva:</strong> Aborda os processos mentais — percepção, memória, raciocínio lógico e resposta motora — que afetam as interações entre seres humanos e demais elementos do sistema. Inclui carga mental de trabalho, tomada de decisão, estresse ocupacional, vigilância, atenção sustentada e interface humano-máquina;</li>
+  <li><strong>Ergonomia Organizacional:</strong> Concentra-se na otimização de sistemas sociotécnicos, incluindo estruturas organizacionais, políticas e processos. Contempla comunicação interna, gestão de recursos humanos, trabalho em turnos e noturno, jornada de trabalho, cooperação interpessoal e cultura organizacional.</li>
 </ul>
+
+<div class="rpt-section3">6.2 Distúrbios Osteomusculares Relacionados ao Trabalho (DORT)</div>
+<p>Os Distúrbios Osteomusculares Relacionados ao Trabalho (DORT), anteriormente denominados LER (Lesões por Esforços Repetitivos), constituem um grupo de afecções do sistema musculoesquelético que acometem músculos, tendões, fáscias, ligamentos, articulações e nervos. Segundo a IN INSS nº 98/2003, estas patologias são de origem multifatorial, podendo estar associadas a:</p>
+<ul>
+  <li>Movimentos repetitivos e alta frequência gestual;</li>
+  <li>Esforço físico excessivo e manuseio de cargas;</li>
+  <li>Posturas estáticas prolongadas ou inadequadas;</li>
+  <li>Compressão mecânica localizada;</li>
+  <li>Vibrações de corpo inteiro ou segmentar;</li>
+  <li>Fatores organizacionais e psicossociais (pressão por produtividade, monotonia, ausência de pausas).</li>
+</ul>
+<p>A prevenção de DORT exige uma abordagem integrada que combine adaptação do posto de trabalho, organização temporal das tarefas, treinamento dos trabalhadores e acompanhamento médico periódico.</p>
+
+<div class="rpt-section3">6.3 Análise Ergonômica do Trabalho (AET) — Abordagem Metodológica</div>
+<p>A AET segue a abordagem sistêmica preconizada por Guérin et al. (2001) e Wisner (1994), articulando três níveis de análise:</p>
+<table class="rpt-table">
+  <tr><th style="width:180px;">Nível de Análise</th><th>Descrição</th><th>Métodos e Instrumentos</th></tr>
+  <tr><td class="label">Análise da Demanda</td><td>Compreensão do contexto organizacional, queixas dos trabalhadores, dados epidemiológicos e indicadores de saúde e produtividade.</td><td>Entrevistas, questionários, análise documental</td></tr>
+  <tr><td class="label">Análise da Tarefa</td><td>Descrição do trabalho prescrito, normas, procedimentos, equipamentos, ferramentas e organização temporal (jornada, pausas, turnos).</td><td>Observação sistemática, análise de procedimentos</td></tr>
+  <tr><td class="label">Análise da Atividade</td><td>Observação do trabalho real, posturas, gestos, estratégias operatórias, regulações, comunicação e modos operatórios adotados pelos trabalhadores.</td><td>${methods || "REBA, RULA, ROSA, OWAS"}, filmagem, cronoanálise</td></tr>
+</table>
+
+<div class="rpt-section3">6.4 Métodos de Avaliação Ergonômica Utilizados</div>
+<p>Os métodos selecionados para este estudo são ferramentas validadas e amplamente reconhecidas na literatura científica internacional:</p>
+<table class="rpt-table">
+  <tr><th>Método</th><th>Aplicação</th><th>Faixas de Classificação</th><th>Referência</th></tr>
+  <tr><td class="label">REBA</td><td>Avaliação postural de corpo inteiro, indicado para tarefas dinâmicas e variadas</td><td>1: Insignificante | 2-3: Baixo | 4-7: Médio | 8-10: Alto | 11+: Muito Alto</td><td>Hignett & McAtamney (2000)</td></tr>
+  <tr><td class="label">RULA</td><td>Avaliação de membros superiores em posturas com carga estática</td><td>1-2: Aceitável | 3-4: Investigar | 5-6: Mudança breve | 7: Imediata</td><td>McAtamney & Corlett (1993)</td></tr>
+  <tr><td class="label">ROSA</td><td>Riscos em postos informatizados (escritório)</td><td>1-2: Desprezível | 3-4: Baixo | 5-6: Médio | 7+: Alto</td><td>Sonne et al. (2012)</td></tr>
+  <tr><td class="label">OWAS</td><td>Análise postural por amostragem temporal</td><td>1: Normal | 2: Leve | 3: Severo | 4: Muito Severo</td><td>Karhu et al. (1977)</td></tr>
+  <tr><td class="label">OCRA</td><td>Movimentos repetitivos dos membros superiores</td><td>≤2.2: Aceitável | 2.3-3.5: Incerto | >3.5: Presente</td><td>Colombini et al. (2002)</td></tr>
+</table>
+
+<div class="rpt-section3">6.5 Conceito de Grupo Homogêneo de Exposição (GHE)</div>
+<p>O agrupamento por GHE, conforme metodologia do PGR (NR-01), consiste em reunir trabalhadores que compartilham perfil semelhante de exposição a riscos ocupacionais. Este agrupamento considera função, setor, tarefas executadas, ferramentas utilizadas, condições ambientais e duração da exposição. A adoção de GHEs permite uma avaliação representativa e otimizada, reduzindo a necessidade de avaliações individuais sem comprometer a qualidade do diagnóstico ergonômico.</p>
 
 <div class="page-break"></div>
 <div class="rpt-section">7. ESTUDO ERGONÔMICO DO TRABALHO</div>
@@ -922,27 +985,61 @@ ${occupationalRiskInventoryTable(risks, analyses, ws, psychosocial)}`;
 
 <div class="page-break"></div>
 <div class="rpt-section">10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</div>
-${psychosocial.length > 0 ? `<p>Instrumentos aplicados: ${psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II</strong>, ' : ''}${psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : ''}${psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : ''}</p>
-${psychosocial.map(psa => {
+
+<div class="rpt-section3">10.1 Fundamentação Teórica</div>
+<p>Os riscos psicossociais no trabalho referem-se a aspectos da concepção, organização e gestão do trabalho, bem como do seu contexto social e ambiental, que têm potencial de causar danos psicológicos, físicos ou sociais aos trabalhadores (OIT, 2010). Segundo a Agência Europeia para a Segurança e Saúde no Trabalho (EU-OSHA), os fatores psicossociais são a segunda categoria de problemas de saúde relacionados ao trabalho mais frequentemente relatada na Europa.</p>
+<p>A NR-01 (Portaria SEPRT nº 6.730/2020), em seu item 1.5.3.1, incluiu os fatores de risco psicossociais entre os agentes a serem considerados no Programa de Gerenciamento de Riscos (PGR), reforçando a obrigatoriedade de sua avaliação sistemática. A NR-17, por sua vez, em seu Anexo II, estabelece parâmetros sobre organização do trabalho, conteúdo das tarefas, exigências de tempo e ritmo que impactam diretamente a saúde mental dos trabalhadores.</p>
+
+<div class="rpt-section3">10.2 Fatores de Risco Psicossocial Avaliados</div>
+<table class="rpt-table">
+  <tr><th style="width:200px;">Fator de Risco</th><th>Descrição</th><th style="width:120px;">Consequências</th></tr>
+  <tr><td class="label">Demandas Quantitativas</td><td>Volume de trabalho excessivo em relação ao tempo disponível e ao efetivo de trabalhadores</td><td>Fadiga, estresse</td></tr>
+  <tr><td class="label">Ritmo de Trabalho</td><td>Velocidade e intensidade exigidas para cumprimento das tarefas e metas de produção</td><td>Ansiedade, DORT</td></tr>
+  <tr><td class="label">Demandas Emocionais</td><td>Exigência de controle emocional, lidar com situações difíceis, conflitos interpessoais</td><td>Burnout, depressão</td></tr>
+  <tr><td class="label">Demandas Cognitivas</td><td>Necessidade de concentração, atenção sustentada, memória e tomada de decisão</td><td>Fadiga mental</td></tr>
+  <tr><td class="label">Autonomia e Controle</td><td>Grau de influência do trabalhador sobre suas tarefas, ritmo e métodos de trabalho</td><td>Desmotivação</td></tr>
+  <tr><td class="label">Suporte Social</td><td>Qualidade das relações interpessoais, apoio de colegas e chefia</td><td>Isolamento</td></tr>
+  <tr><td class="label">Reconhecimento</td><td>Valorização do trabalho, feedback, perspectivas de desenvolvimento profissional</td><td>Insatisfação</td></tr>
+</table>
+
+<div class="rpt-section3">10.3 Instrumentos de Avaliação Utilizados</div>
+<p>Para a avaliação dos fatores psicossociais, foram selecionados instrumentos validados e reconhecidos internacionalmente:</p>
+<table class="rpt-table">
+  <tr><th>Instrumento</th><th>Descrição</th><th>Dimensões Avaliadas</th></tr>
+  <tr><td class="label">COPSOQ II</td><td>Copenhagen Psychosocial Questionnaire — questionário multidimensional desenvolvido pelo NRCWE (Dinamarca), validado em mais de 30 países. Avalia fatores de risco e proteção psicossociais por meio de escalas 0-100.</td><td>Demandas, Organização do Trabalho, Relações Interpessoais, Interface Trabalho-Indivíduo, Valores, Saúde e Bem-estar</td></tr>
+  <tr><td class="label">NASA-TLX</td><td>NASA Task Load Index — instrumento desenvolvido pela NASA para avaliação subjetiva da carga de trabalho em seis dimensões, com sistema de pesos e ponderação.</td><td>Demanda Mental, Física, Temporal, Performance, Esforço, Frustração</td></tr>
+  <tr><td class="label">HSE-IT</td><td>Health and Safety Executive Indicator Tool — ferramenta do órgão de saúde e segurança do Reino Unido para rastreamento de fatores de estresse ocupacional.</td><td>Demandas, Controle, Apoio, Relacionamentos, Papel, Mudança</td></tr>
+  <tr><td class="label">JSS/Karasek</td><td>Job Stress Scale — baseado no modelo Demanda-Controle de Karasek (1979), classifica o trabalho em quatro quadrantes de risco.</td><td>Demandas Psicológicas, Controle (Autoridade Decisória + Uso de Habilidades)</td></tr>
+</table>
+
+<div class="rpt-section3">10.4 Resultados da Avaliação Psicossocial</div>
+${psychosocial.length > 0 ? '<p>Instrumentos aplicados: ' + (psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II</strong>, ' : '') + (psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : '') + (psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : '') + '</p>' +
+psychosocial.map(psa => {
   let html = '';
   if (psa.copenhagen_details) {
     const cd = psa.copenhagen_details;
-    html += `<table class="rpt-table"><tr><th class="teal">Dimensão COPSOQ II</th><th class="teal">Score (0-100)</th></tr>
-      ${([ ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support] ] as [string, number][]).map(([d, v]) => `<tr><td>${d}</td><td><strong>${v}</strong></td></tr>`).join("")}
-      <tr><td class="label">Score Geral</td><td><strong>${psa.copenhagen_score}</strong></td></tr></table>`;
+    html += '<table class="rpt-table"><tr><th class="teal">Dimensão COPSOQ II</th><th class="teal">Score (0-100)</th><th class="teal">Nível</th></tr>' +
+      ([ ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support] ] as [string, number][]).map(([d, v]) => {
+        const level = v <= 33 ? "Favorável" : v <= 66 ? "Intermediário" : "Desfavorável";
+        const color = v <= 33 ? "#C8E6C9" : v <= 66 ? "#FFF9C4" : "#FFCDD2";
+        return '<tr><td>' + d + '</td><td><strong>' + v + '</strong></td><td style="background:' + color + '; font-weight:bold; text-align:center;">' + level + '</td></tr>';
+      }).join("") +
+      '<tr><td class="label">Score Geral</td><td colspan="2"><strong>' + psa.copenhagen_score + '</strong></td></tr></table>';
   }
   if (psa.nasa_tlx_details) {
-    html += `<table class="rpt-table"><tr><th class="alt">NASA-TLX</th><th class="alt">Score</th></tr>
-      <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
-      <tr><td>Demanda Física</td><td>${psa.nasa_tlx_details.physical_demand}</td></tr>
-      <tr><td>Demanda Temporal</td><td>${psa.nasa_tlx_details.temporal_demand}</td></tr>
-      <tr><td>Performance</td><td>${psa.nasa_tlx_details.performance}</td></tr>
-      <tr><td>Esforço</td><td>${psa.nasa_tlx_details.effort}</td></tr>
-      <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
-      <tr><td class="label">Score Geral</td><td><strong>${psa.nasa_tlx_score}</strong></td></tr></table>`;
+    html += '<table class="rpt-table"><tr><th class="alt">NASA-TLX</th><th class="alt">Score (0-100)</th><th class="alt">Interpretação</th></tr>' +
+      '<tr><td>Demanda Mental</td><td>' + psa.nasa_tlx_details.mental_demand + '</td><td>' + (psa.nasa_tlx_details.mental_demand > 70 ? "Carga elevada" : psa.nasa_tlx_details.mental_demand > 40 ? "Carga moderada" : "Carga baixa") + '</td></tr>' +
+      '<tr><td>Demanda Física</td><td>' + psa.nasa_tlx_details.physical_demand + '</td><td>' + (psa.nasa_tlx_details.physical_demand > 70 ? "Carga elevada" : psa.nasa_tlx_details.physical_demand > 40 ? "Carga moderada" : "Carga baixa") + '</td></tr>' +
+      '<tr><td>Demanda Temporal</td><td>' + psa.nasa_tlx_details.temporal_demand + '</td><td>' + (psa.nasa_tlx_details.temporal_demand > 70 ? "Carga elevada" : psa.nasa_tlx_details.temporal_demand > 40 ? "Carga moderada" : "Carga baixa") + '</td></tr>' +
+      '<tr><td>Performance</td><td>' + psa.nasa_tlx_details.performance + '</td><td>' + (psa.nasa_tlx_details.performance > 70 ? "Satisfatória" : psa.nasa_tlx_details.performance > 40 ? "Moderada" : "Insatisfatória") + '</td></tr>' +
+      '<tr><td>Esforço</td><td>' + psa.nasa_tlx_details.effort + '</td><td>' + (psa.nasa_tlx_details.effort > 70 ? "Elevado" : psa.nasa_tlx_details.effort > 40 ? "Moderado" : "Baixo") + '</td></tr>' +
+      '<tr><td>Frustração</td><td>' + psa.nasa_tlx_details.frustration + '</td><td>' + (psa.nasa_tlx_details.frustration > 70 ? "Elevada" : psa.nasa_tlx_details.frustration > 40 ? "Moderada" : "Baixa") + '</td></tr>' +
+      '<tr><td class="label">Score Geral</td><td colspan="2"><strong>' + psa.nasa_tlx_score + '</strong></td></tr></table>';
   }
   return html;
-}).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial realizada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX e HSE-IT.</div>'}
+}).join("") : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial foi realizada até o momento para esta empresa.</div>' +
+'<p>Recomenda-se a aplicação dos instrumentos COPSOQ II, NASA-TLX e/ou HSE-IT para avaliação dos fatores de risco psicossocial, conforme exigência da NR-01 e da NR-17.</p>' +
+'<div class="rpt-callout">A avaliação dos fatores psicossociais é fundamental para a construção de um diagnóstico ergonômico completo, uma vez que o estresse ocupacional, a carga mental excessiva e os conflitos interpessoais são reconhecidos como agravantes de distúrbios musculoesqueléticos (DORT/LER), conforme demonstrado por estudos epidemiológicos (Bongers et al., 1993; Huang et al., 2002).</div>'}
 
 <div class="page-break"></div>
 <div class="rpt-section">11. RESPONSABILIDADE TÉCNICA</div>
