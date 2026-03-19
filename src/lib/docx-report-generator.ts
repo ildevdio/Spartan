@@ -2290,12 +2290,13 @@ function hasContent(canvas: HTMLCanvasElement): boolean {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx || canvas.width < 50 || canvas.height < 50) return false;
   const step = Math.max(4, Math.floor(Math.sqrt((canvas.width * canvas.height) / 5000)));
+  const fullData = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
   let total = 0, nonWhite = 0;
   for (let y = 0; y < canvas.height; y += step) {
     for (let x = 0; x < canvas.width; x += step) {
       total++;
-      const px = ctx.getImageData(x, y, 1, 1).data;
-      if (px[3] > 8 && !(px[0] > 245 && px[1] > 245 && px[2] > 245)) nonWhite++;
+      const i = (y * canvas.width + x) * 4;
+      if (fullData[i + 3] > 8 && !(fullData[i] > 245 && fullData[i + 1] > 245 && fullData[i + 2] > 245)) nonWhite++;
     }
   }
   return total > 0 ? (nonWhite / total) > 0.003 : false;
