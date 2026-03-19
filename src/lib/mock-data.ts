@@ -324,6 +324,48 @@ export const mockPosturePhotos: PosturePhoto[] = [
   { id: "pp133", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Aferindo pressão arterial de paciente sentado", timestamp: "2025-02-14T11:00:00", created_at: "2025-02-14" },
   { id: "pp134", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Elevação de braço", notes: "Alcançando materiais no armário de medicamentos", timestamp: "2025-02-15T08:00:00", created_at: "2025-02-15" },
   { id: "pp135", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Postura em pé prolongada", notes: "Aplicando vacinas em campanha de imunização (~60 colaboradores)", timestamp: "2025-02-15T10:00:00", created_at: "2025-02-15" },
+  // Constrular - w30 Auxiliar Contábil (5 fotos)
+  { id: "pp136", workstation_id: "w30", image_url: "/placeholder.svg", posture_type: "Postura sentada prolongada", notes: "Lançando NFs no ERP por 4h consecutivas", timestamp: "2025-02-10T08:00:00", created_at: "2025-02-10" },
+  { id: "pp137", workstation_id: "w30", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Conferindo documentos físicos na mesa", timestamp: "2025-02-10T10:00:00", created_at: "2025-02-10" },
+  { id: "pp138", workstation_id: "w30", image_url: "/placeholder.svg", posture_type: "Extensão de punho bilateral", notes: "Digitação contínua sem apoio de punho", timestamp: "2025-02-10T14:00:00", created_at: "2025-02-10" },
+  { id: "pp139", workstation_id: "w30", image_url: "/placeholder.svg", posture_type: "Rotação de tronco", notes: "Acessando gaveta do arquivo lateral", timestamp: "2025-02-11T09:00:00", created_at: "2025-02-11" },
+  { id: "pp140", workstation_id: "w30", image_url: "/placeholder.svg", posture_type: "Inclinação lateral", notes: "Pegando papéis na impressora ao lado da mesa", timestamp: "2025-02-11T11:00:00", created_at: "2025-02-11" },
+  // w31 Assistente Comercial (5 fotos)
+  { id: "pp141", workstation_id: "w31", image_url: "/placeholder.svg", posture_type: "Postura em pé prolongada", notes: "Atendendo clientes no balcão por 3h contínuas", timestamp: "2025-02-10T08:00:00", created_at: "2025-02-10" },
+  { id: "pp142", workstation_id: "w31", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Consultando catálogo de produtos no balcão", timestamp: "2025-02-10T09:30:00", created_at: "2025-02-10" },
+  { id: "pp143", workstation_id: "w31", image_url: "/placeholder.svg", posture_type: "Extensão de braço", notes: "Mostrando produtos na prateleira alta do showroom", timestamp: "2025-02-10T11:00:00", created_at: "2025-02-10" },
+  { id: "pp144", workstation_id: "w31", image_url: "/placeholder.svg", posture_type: "Agachamento", notes: "Pegando amostra de piso cerâmico na prateleira inferior", timestamp: "2025-02-11T08:30:00", created_at: "2025-02-11" },
+  { id: "pp145", workstation_id: "w31", image_url: "/placeholder.svg", posture_type: "Rotação cervical", notes: "Alternando entre cliente e tela do PDV", timestamp: "2025-02-11T10:00:00", created_at: "2025-02-11" },
+  // w32 Vendedor Externo (5 fotos)
+  { id: "pp146", workstation_id: "w32", image_url: "/placeholder.svg", posture_type: "Postura sentada com vibração", notes: "Conduzindo utilitário em vias urbanas por 2h", timestamp: "2025-02-12T08:00:00", created_at: "2025-02-12" },
+  { id: "pp147", workstation_id: "w32", image_url: "/placeholder.svg", posture_type: "Postura em pé com inclinação", notes: "Apresentando catálogo no canteiro de obras", timestamp: "2025-02-12T10:00:00", created_at: "2025-02-12" },
+  { id: "pp148", workstation_id: "w32", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Preenchendo pedido no tablet apoiado sobre capô", timestamp: "2025-02-12T11:30:00", created_at: "2025-02-12" },
+  { id: "pp149", workstation_id: "w32", image_url: "/placeholder.svg", posture_type: "Subida/descida do veículo", notes: "Entrando e saindo do utilitário (~15x/dia)", timestamp: "2025-02-13T09:00:00", created_at: "2025-02-13" },
+  { id: "pp150", workstation_id: "w32", image_url: "/placeholder.svg", posture_type: "Carregamento de amostras", notes: "Transportando caixa de amostras de 8kg do porta-malas", timestamp: "2025-02-13T14:00:00", created_at: "2025-02-13" },
+  // w33 Engenheiro de Projetos (5 fotos)
+  { id: "pp151", workstation_id: "w33", image_url: "/placeholder.svg", posture_type: "Postura sentada prolongada", notes: "Projetando em AutoCAD por 5h com poucas pausas", timestamp: "2025-02-14T08:00:00", created_at: "2025-02-14" },
+  { id: "pp152", workstation_id: "w33", image_url: "/placeholder.svg", posture_type: "Flexão cervical acentuada", notes: "Analisando planta impressa na mesa de desenho", timestamp: "2025-02-14T10:00:00", created_at: "2025-02-14" },
+  { id: "pp153", workstation_id: "w33", image_url: "/placeholder.svg", posture_type: "Extensão de punho", notes: "Uso prolongado de mouse durante modelagem 3D", timestamp: "2025-02-14T14:00:00", created_at: "2025-02-14" },
+  { id: "pp154", workstation_id: "w33", image_url: "/placeholder.svg", posture_type: "Postura em pé em obra", notes: "Visitando obra para levantamento de medidas", timestamp: "2025-02-15T09:00:00", created_at: "2025-02-15" },
+  { id: "pp155", workstation_id: "w33", image_url: "/placeholder.svg", posture_type: "Rotação cervical", notes: "Alternando entre monitor e plotter durante impressão", timestamp: "2025-02-15T11:00:00", created_at: "2025-02-15" },
+  // w34 Técnico em Edificações (5 fotos)
+  { id: "pp156", workstation_id: "w34", image_url: "/placeholder.svg", posture_type: "Agachamento em obra", notes: "Medindo nível do piso com nível laser ao chão", timestamp: "2025-02-14T08:00:00", created_at: "2025-02-14" },
+  { id: "pp157", workstation_id: "w34", image_url: "/placeholder.svg", posture_type: "Extensão cervical", notes: "Verificando prumo de parede com trena laser apontada para cima", timestamp: "2025-02-14T09:30:00", created_at: "2025-02-14" },
+  { id: "pp158", workstation_id: "w34", image_url: "/placeholder.svg", posture_type: "Postura em pé com caminhada", notes: "Percorrendo obra de 3 pavimentos para inspeção", timestamp: "2025-02-14T11:00:00", created_at: "2025-02-14" },
+  { id: "pp159", workstation_id: "w34", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Fotografando detalhes de instalação hidráulica", timestamp: "2025-02-15T08:30:00", created_at: "2025-02-15" },
+  { id: "pp160", workstation_id: "w34", image_url: "/placeholder.svg", posture_type: "Postura sentada", notes: "Elaborando relatório técnico no escritório", timestamp: "2025-02-15T14:00:00", created_at: "2025-02-15" },
+  // w35 Estoquista (5 fotos)
+  { id: "pp161", workstation_id: "w35", image_url: "/placeholder.svg", posture_type: "Elevação de carga pesada", notes: "Empilhando sacos de cimento de 50kg com auxílio de carrinho", timestamp: "2025-02-10T07:30:00", created_at: "2025-02-10" },
+  { id: "pp162", workstation_id: "w35", image_url: "/placeholder.svg", posture_type: "Agachamento repetitivo", notes: "Separando materiais nas prateleiras inferiores", timestamp: "2025-02-10T09:00:00", created_at: "2025-02-10" },
+  { id: "pp163", workstation_id: "w35", image_url: "/placeholder.svg", posture_type: "Elevação de braço acima do ombro", notes: "Armazenando caixas de conexões na prateleira de 2,5m", timestamp: "2025-02-10T10:30:00", created_at: "2025-02-10" },
+  { id: "pp164", workstation_id: "w35", image_url: "/placeholder.svg", posture_type: "Postura em pé com caminhada", notes: "Caminhando entre corredores durante inventário (~5km/dia)", timestamp: "2025-02-11T08:00:00", created_at: "2025-02-11" },
+  { id: "pp165", workstation_id: "w35", image_url: "/placeholder.svg", posture_type: "Flexão de tronco com carga", notes: "Carregando tubo PVC de 6m com colega", timestamp: "2025-02-11T10:00:00", created_at: "2025-02-11" },
+  // w36 Motorista de Entrega (5 fotos)
+  { id: "pp166", workstation_id: "w36", image_url: "/placeholder.svg", posture_type: "Postura sentada com vibração", notes: "Conduzindo caminhão 3/4 em ruas esburacadas por 3h", timestamp: "2025-02-12T07:00:00", created_at: "2025-02-12" },
+  { id: "pp167", workstation_id: "w36", image_url: "/placeholder.svg", posture_type: "Elevação de carga pesada", notes: "Descarregando caixas de argamassa de 20kg com carreta de mão", timestamp: "2025-02-12T10:00:00", created_at: "2025-02-12" },
+  { id: "pp168", workstation_id: "w36", image_url: "/placeholder.svg", posture_type: "Flexão de tronco acentuada", notes: "Amarrando carga na plataforma do caminhão", timestamp: "2025-02-12T11:30:00", created_at: "2025-02-12" },
+  { id: "pp169", workstation_id: "w36", image_url: "/placeholder.svg", posture_type: "Subida/descida da cabine", notes: "Subindo e descendo da cabine (~25x/dia em entregas múltiplas)", timestamp: "2025-02-13T08:00:00", created_at: "2025-02-13" },
+  { id: "pp170", workstation_id: "w36", image_url: "/placeholder.svg", posture_type: "Carregamento manual escada", notes: "Subindo escada com sacos de 25kg em entrega residencial sem elevador", timestamp: "2025-02-13T14:00:00", created_at: "2025-02-13" },
 ];
 
 export const mockPostureAnalyses: PostureAnalysis[] = [
