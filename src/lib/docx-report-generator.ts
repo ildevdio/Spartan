@@ -2282,8 +2282,8 @@ async function waitForFullRender(root: HTMLElement): Promise<void> {
     img.onload = () => resolve();
     img.onerror = () => resolve();
   })));
-  for (let i = 0; i < 3; i++) { await new Promise<void>((r) => requestAnimationFrame(() => r())); }
-  await new Promise<void>((r) => setTimeout(r, 300));
+  await new Promise<void>((r) => requestAnimationFrame(() => r()));
+  await new Promise<void>((r) => setTimeout(r, 80));
 }
 
 function hasContent(canvas: HTMLCanvasElement): boolean {
