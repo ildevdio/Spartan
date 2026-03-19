@@ -2074,9 +2074,45 @@ function showPdfOverlay(): HTMLDivElement {
 }
 
 /**
- * Creates the render container ON-SCREEN (visible to html2canvas) but hidden behind the overlay.
+ * Split HTML string into sections by page-break markers.
  */
-function createOnScreenContainer(html: string): HTMLDivElement {
+function splitHtmlByPageBreaks(html: string): string[] {
+  // Split on <div class="page-break"></div> or similar variants
+  const parts = html.split(/<div\s+class=["']page-break["'][^>]*>\s*<\/div>/gi);
+  return parts.map(p => p.trim()).filter(p => p.length > 0);
+}
+
+/**
+ * CSS injected into the render container for PDF fidelity.
+ */
+const PDF_INJECT_CSS = `
+  [data-pdf-render="true"] * { box-sizing: border-box; }
+  [data-pdf-render="true"] .pdf-page {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 13px;
+    color: #1e293b;
+    line-height: 1.6;
+    background: #fff;
+    width: ${PDF_RENDER_WIDTH_PX}px;
+    padding: 20px 30px;
+    overflow: hidden;
+  }
+  [data-pdf-render="true"] .pdf-page img { max-width: 100%; height: auto; }
+  /* Preserve cover page gradient and white text */
+  [data-pdf-render="true"] .pdf-page .rpt-cover {
+    background-color: #0A1F44 !important;
+    background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%) !important;
+  }
+  [data-pdf-render="true"] .pdf-page .rpt-cover h1 { color: white !important; }
+  [data-pdf-render="true"] .pdf-page .rpt-cover h2 { color: #B2EBF2 !important; }
+  [data-pdf-render="true"] .pdf-page .rpt-cover .company { color: white !important; }
+  [data-pdf-render="true"] .pdf-page .rpt-cover .meta { color: #B2EBF2 !important; }
+`;
+
+/**
+ * Creates the render container with each section as a separate .pdf-page div.
+ */
+function createOnScreenContainer(htmlSections: string[]): HTMLDivElement {
   const container = document.createElement("div");
   container.setAttribute("data-pdf-render", "true");
   Object.assign(container.style, {
@@ -2084,44 +2120,18 @@ function createOnScreenContainer(html: string): HTMLDivElement {
     top: "0",
     left: "0",
     width: `${PDF_RENDER_WIDTH_PX}px`,
-    minHeight: "100vh",
     background: "#ffffff",
-    zIndex: "999997", // behind overlay but on-screen
+    zIndex: "999997",
     overflow: "visible",
     opacity: "1",
     pointerEvents: "none",
   });
 
-  container.innerHTML = `
-    <style>
-      [data-pdf-render="true"] * { box-sizing: border-box; }
-      [data-pdf-render="true"] .pdf-root {
-        font-family: 'Segoe UI', Arial, sans-serif;
-        font-size: 13px;
-        color: #1e293b;
-        line-height: 1.6;
-        background: #fff;
-        width: ${PDF_RENDER_WIDTH_PX}px;
-        padding: 20px 30px;
-      }
-      /* Do NOT override report-template styles — let sharedStyles() from the HTML control
-         fonts, colors, paddings, margins, etc. This ensures PDF = preview parity. */
-      [data-pdf-render="true"] .pdf-root img { max-width: 100%; height: auto; }
-      /* Preserve cover page gradient and white text */
-      [data-pdf-render="true"] .pdf-root .rpt-cover {
-        background-color: #0A1F44 !important;
-        background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%) !important;
-      }
-      [data-pdf-render="true"] .pdf-root .rpt-cover h1 { color: white !important; }
-      [data-pdf-render="true"] .pdf-root .rpt-cover h2 { color: #B2EBF2 !important; }
-      [data-pdf-render="true"] .pdf-root .rpt-cover .company { color: white !important; }
-      [data-pdf-render="true"] .pdf-root .rpt-cover .meta { color: #B2EBF2 !important; }
-      /* Page breaks for slicing */
-      [data-pdf-render="true"] .pdf-root .page-break { height: 0; margin: 0; padding: 0; }
-    </style>
-    <div class="pdf-root">${html}</div>
-  `;
+  const pagesHtml = htmlSections.map(
+    (sectionHtml) => `<div class="pdf-page">${sectionHtml}</div>`
+  ).join("");
 
+  container.innerHTML = `<style>${PDF_INJECT_CSS}</style>${pagesHtml}`;
   document.body.appendChild(container);
   return container;
 }
@@ -2130,12 +2140,8 @@ function createOnScreenContainer(html: string): HTMLDivElement {
  * Wait for all images, fonts, and layout to fully render.
  */
 async function waitForFullRender(root: HTMLElement): Promise<void> {
-  // Wait for fonts
-  try {
-    await (document as any).fonts?.ready;
-  } catch {}
+  try { await (document as any).fonts?.ready; } catch {}
 
-  // Wait for all images
   const imgs = Array.from(root.querySelectorAll("img"));
   await Promise.all(
     imgs.map(
@@ -2148,7 +2154,6 @@ async function waitForFullRender(root: HTMLElement): Promise<void> {
     )
   );
 
-  // Let the browser paint — 3 animation frames + a timeout
   for (let i = 0; i < 3; i++) {
     await new Promise<void>((r) => requestAnimationFrame(() => r()));
   }
@@ -2182,53 +2187,69 @@ function hasContent(canvas: HTMLCanvasElement): boolean {
 }
 
 /**
- * Slice a tall canvas into A4 pages and save as PDF.
+ * Capture a single .pdf-page element and add it to the PDF.
+ * If the section is taller than one A4 page, it gets sliced into multiple pages.
  */
-function sliceIntoPdf(
-  canvas: HTMLCanvasElement,
-  jsPDFCtor: typeof import("jspdf").jsPDF,
-  fileName: string
-): void {
-  const pdf = new jsPDFCtor({ unit: "mm", format: "a4", orientation: "portrait" });
-  const pageHeightPx = Math.floor((canvas.width * PDF_H_MM) / PDF_W_MM);
+async function capturePageElement(
+  pageEl: HTMLElement,
+  html2canvasFn: typeof import("html2canvas").default,
+  pdf: import("jspdf").jsPDF,
+  pageIndex: number,
+  scale: number
+): Promise<boolean> {
+  const canvas = await html2canvasFn(pageEl, {
+    scale,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    logging: false,
+    width: pageEl.scrollWidth,
+    height: pageEl.scrollHeight,
+    windowWidth: pageEl.scrollWidth,
+    windowHeight: pageEl.scrollHeight,
+    scrollX: 0,
+    scrollY: 0,
+  });
 
+  if (!hasContent(canvas)) return false;
+
+  // A4 page height in canvas pixels
+  const pageHeightPx = Math.floor((canvas.width * PDF_H_MM) / PDF_W_MM);
   let y = 0;
-  let page = 0;
+  let sliceIdx = 0;
 
   while (y < canvas.height) {
-    if (page > 0) pdf.addPage();
+    if (pageIndex > 0 || sliceIdx > 0) pdf.addPage();
 
     const sliceH = Math.min(pageHeightPx, canvas.height - y);
     const pageCanvas = document.createElement("canvas");
     pageCanvas.width = canvas.width;
     pageCanvas.height = sliceH;
 
-    const ctx = pageCanvas.getContext("2d")!;
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
-    ctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+    const ctx2 = pageCanvas.getContext("2d")!;
+    ctx2.fillStyle = "#ffffff";
+    ctx2.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+    ctx2.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
 
     const heightMm = (sliceH * PDF_W_MM) / canvas.width;
     pdf.addImage(pageCanvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, PDF_W_MM, heightMm);
 
     y += pageHeightPx;
-    page++;
+    sliceIdx++;
   }
 
-  console.log(`[PDF] Generated ${page} page(s)`);
-  pdf.save(fileName);
+  return true;
 }
 
 /**
  * Main PDF generation function.
- * Strategy: render ON-SCREEN behind an overlay, capture with html2canvas, validate, slice into pages.
+ * Strategy: split HTML by page-breaks, render each section separately, capture individually.
  */
 export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<void> {
   const overlay = showPdfOverlay();
   let container: HTMLDivElement | null = null;
 
   try {
-    // Get HTML source — prefer live preview content, fallback to generated
+    // Get HTML source
     const previewNode = document.querySelector(".report-preview-content") as HTMLDivElement | null;
     const html =
       previewNode?.innerHTML?.trim() && previewNode.innerHTML.trim().length > 50
@@ -2245,75 +2266,57 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
 
     const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
 
-    // Create ON-SCREEN container (the key fix — not off-screen!)
-    container = createOnScreenContainer(html);
+    // Split HTML into sections by page-break markers
+    const sections = splitHtmlByPageBreaks(html);
+    console.log(`[PDF] Split HTML into ${sections.length} section(s)`);
 
-    // Wait for everything to render
+    // Create container with each section as a separate .pdf-page
+    container = createOnScreenContainer(sections);
+
+    // Wait for rendering
     await waitForFullRender(container);
 
     // Import libraries
     const html2canvas = (await import("html2canvas")).default;
     const { jsPDF } = await import("jspdf");
 
-    // Attempt 1: scale 1 (1:1 with A4 at 96 DPI)
-    console.log("[PDF] Attempt 1: scale 1");
-    let canvas = await html2canvas(container, {
-      scale: 1,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false,
-      width: container.scrollWidth,
-      height: container.scrollHeight,
-      windowWidth: container.scrollWidth,
-      windowHeight: container.scrollHeight,
-      scrollX: 0,
-      scrollY: 0,
-    });
+    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+    const pageElements = Array.from(container.querySelectorAll(".pdf-page")) as HTMLElement[];
 
-    if (hasContent(canvas)) {
-      sliceIntoPdf(canvas, jsPDF, fileName);
-      return;
+    console.log(`[PDF] Capturing ${pageElements.length} page element(s)...`);
+
+    let totalPages = 0;
+    for (let i = 0; i < pageElements.length; i++) {
+      console.log(`[PDF] Capturing section ${i + 1}/${pageElements.length}...`);
+      const ok = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1);
+      if (ok) {
+        totalPages++;
+      } else {
+        // Retry at higher scale
+        console.log(`[PDF] Section ${i + 1} blank at scale 1, retrying at scale 1.5...`);
+        const ok2 = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1.5);
+        if (ok2) totalPages++;
+      }
     }
 
-    // Attempt 2: scale 1.5 with extra wait
-    console.log("[PDF] Attempt 1 blank. Retrying at scale 1.5...");
-    await new Promise<void>((r) => setTimeout(r, 500));
-
-    canvas = await html2canvas(container, {
-      scale: 1.5,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-      logging: false,
-      width: container.scrollWidth,
-      height: container.scrollHeight,
-      windowWidth: container.scrollWidth,
-      windowHeight: container.scrollHeight,
-      scrollX: 0,
-      scrollY: 0,
-    });
-
-    if (hasContent(canvas)) {
-      sliceIntoPdf(canvas, jsPDF, fileName);
-      return;
-    }
-
-    // Attempt 3: jsPDF.html() fallback
-    console.log("[PDF] Attempt 2 blank. Using jsPDF.html() fallback...");
-    await new Promise<void>((resolve, reject) => {
-      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-      pdf.html(container!, {
-        x: 0,
-        y: 0,
-        width: PDF_W_MM,
-        windowWidth: container!.scrollWidth,
-        autoPaging: "text",
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-        callback: (doc) => {
-          doc.save(fileName);
-          resolve();
-        },
+    if (totalPages === 0) {
+      // Fallback: jsPDF.html()
+      console.log("[PDF] All sections blank. Using jsPDF.html() fallback...");
+      await new Promise<void>((resolve) => {
+        const fallbackPdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+        fallbackPdf.html(container!, {
+          x: 0, y: 0, width: PDF_W_MM,
+          windowWidth: container!.scrollWidth,
+          autoPaging: "text",
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+          callback: (doc) => { doc.save(fileName); resolve(); },
+        });
       });
-    });
+      return;
+    }
+
+    console.log(`[PDF] Generated ${totalPages} page(s)`);
+    pdf.save(fileName);
   } catch (error) {
     console.error("[PDF] Generation failed:", error);
     throw new Error("Não foi possível gerar o PDF. Tente novamente.");
