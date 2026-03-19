@@ -784,9 +784,11 @@ ${coverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant)}
 <p>A ergonomia é uma área do conhecimento dedicada a adaptar as condições de trabalho às características das pessoas. Seu propósito é aplicar informações sobre o funcionamento humano para promover bem-estar, eficiência e melhores resultados tanto para o trabalhador quanto para a empresa.</p>
 <p>Atendendo à demanda da empresa, foi realizado um levantamento detalhado das condições ergonômicas, seguindo os critérios da Norma Regulamentadora nº 17, com o objetivo de subsidiar a elaboração da Análise Ergonômica do Trabalho.</p>
 
+<div class="page-break"></div>
 <div class="rpt-section">2. DADOS DA EMPRESA</div>
 ${companyDataTable(company)}
 
+<div class="page-break"></div>
 <div class="rpt-section">3. OBJETIVOS</div>
 <ul>
   <li>Realizar a Análise Ergonômica do Trabalho (AET) conforme as diretrizes da NR-17;</li>
