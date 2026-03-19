@@ -28,6 +28,11 @@ export const mockSectors: Sector[] = [
   { id: "s15", company_id: "comp4", name: "Transporte e Frota", description: "Operação de veículos pesados, empilhadeiras e plataformas elevatórias. Carga e descarga de materiais. Gestão de frota.", created_at: "2025-01-15" },
   { id: "s16", company_id: "comp4", name: "Recursos Humanos e Jurídico", description: "Gestão de pessoas, folha de pagamento, recrutamento, contencioso trabalhista e compliance regulatório.", created_at: "2025-01-18" },
   { id: "s17", company_id: "comp4", name: "Saúde e Segurança do Trabalho", description: "SESMT com ambulatório, controle de EPIs, investigação de acidentes, programas de prevenção e treinamentos normativos.", created_at: "2025-01-18" },
+  // Constrular Distribuição - 4 setores
+  { id: "s20", company_id: "comp5", name: "Administrativo", description: "Escritório administrativo com contabilidade, faturamento, compras e atendimento ao cliente corporativo", created_at: "2025-01-10" },
+  { id: "s21", company_id: "comp5", name: "Comercial", description: "Loja de materiais de construção com showroom, balcão de vendas e área de autoatendimento", created_at: "2025-01-10" },
+  { id: "s22", company_id: "comp5", name: "Engenharia", description: "Setor de projetos, orçamentos técnicos e assistência técnica para clientes construtoras", created_at: "2025-01-12" },
+  { id: "s23", company_id: "comp5", name: "Expedição", description: "Galpão de estocagem com 2.500m², recebimento de mercadorias, separação de pedidos e despacho para entrega", created_at: "2025-01-12" },
 ];
 
 export const mockWorkstations: Workstation[] = [
