@@ -18,7 +18,7 @@ import PostureCapturePage from "./pages/PostureCapturePage";
 import PsicossocialPage from "./pages/PsicossocialPage";
 import QuestionariosPsicossociaisPage from "./pages/QuestionariosPsicossociaisPage";
 import ResponsavelTecnicoPage from "./pages/ResponsavelTecnicoPage";
-import TestPdfPage from "./pages/TestPdfPage";
+
 import NotFound from "./pages/NotFound";
 import { useNativeApp } from "@/hooks/use-native-app";
 const queryClient = new QueryClient();
@@ -47,7 +47,7 @@ const App = () => {
               <Route path="/psicossocial" element={<PsicossocialPage />} />
               <Route path="/questionarios-psicossociais" element={<QuestionariosPsicossociaisPage />} />
               <Route path="/responsavel-tecnico" element={<ResponsavelTecnicoPage />} />
-              <Route path="/test-pdf" element={<TestPdfPage />} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
