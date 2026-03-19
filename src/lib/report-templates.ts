@@ -895,6 +895,7 @@ ${workstations.map((ws, idx) => {
 ${occupationalRiskInventoryTable(risks, analyses, ws, psychosocial)}`;
 }).join('<div class="page-break"></div>')}
 
+<div class="page-break"></div>
 <div class="rpt-section">10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</div>
 ${psychosocial.length > 0 ? `<p>Instrumentos aplicados: ${psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II</strong>, ' : ''}${psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : ''}${psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : ''}</p>
 ${psychosocial.map(psa => {
