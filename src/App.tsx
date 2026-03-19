@@ -47,7 +47,7 @@ const App = () => {
               <Route path="/psicossocial" element={<PsicossocialPage />} />
               <Route path="/questionarios-psicossociais" element={<QuestionariosPsicossociaisPage />} />
               <Route path="/responsavel-tecnico" element={<ResponsavelTecnicoPage />} />
-              <Route path="/test-pdf" element={<TestPdfPage />} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AppLayout>
