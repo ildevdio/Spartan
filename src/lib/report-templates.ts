@@ -820,6 +820,7 @@ ${workstations.map(ws => {
 <ul>${wsTasks.map(t => `<li>${t.description}</li>`).join("") || `<li>${ws.tasks_performed || "Atividades gerais do posto"}</li>`}</ul>`;
 }).join("")}
 
+<div class="page-break"></div>
 <div class="rpt-section">6. REFERENCIAL TEÓRICO</div>
 <p>A Ergonomia, segundo a International Ergonomics Association (IEA), é a disciplina científica que trata da compreensão das interações entre seres humanos e outros elementos de um sistema, aplicando teorias, princípios, dados e métodos para otimizar o bem-estar humano e o desempenho global do sistema.</p>
 <ul>
