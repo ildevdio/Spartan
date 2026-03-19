@@ -309,6 +309,24 @@ export const mockPostureAnalyses: PostureAnalysis[] = [
   { id: "pa8", workstation_id: "w9", joint_angles: { neck: 25, shoulder: 30, elbow: 95, trunk: 22, hip: 88, knee: 170 }, ergonomic_scores: { REBA: 7, RULA: 6, OCRA: 3.8 }, risk_level: "high", created_at: "2025-03-13" },
   { id: "pa9", workstation_id: "w10", joint_angles: { neck: 35, shoulder: 20, elbow: 100, trunk: 15, hip: 95, knee: 80 }, ergonomic_scores: { REBA: 6 }, risk_level: "medium", created_at: "2025-03-15" },
   { id: "pa10", workstation_id: "w11", joint_angles: { neck: 18, shoulder: 65, elbow: 70, trunk: 40, hip: 75, knee: 120 }, ergonomic_scores: { REBA: 10, RULA: 7 }, risk_level: "critical", created_at: "2025-03-15" },
+  // GIN Industrial
+  { id: "pa11", workstation_id: "w12", joint_angles: { neck: 22, shoulder: 30, elbow: 85, trunk: 28, hip: 82, knee: 168 }, ergonomic_scores: { REBA: 7, RULA: 6 }, risk_level: "high", created_at: "2025-02-11" },
+  { id: "pa12", workstation_id: "w13", joint_angles: { neck: 25, shoulder: 35, elbow: 80, trunk: 32, hip: 78, knee: 165 }, ergonomic_scores: { REBA: 8, RULA: 7 }, risk_level: "high", created_at: "2025-02-11" },
+  { id: "pa13", workstation_id: "w14", joint_angles: { neck: 30, shoulder: 20, elbow: 90, trunk: 22, hip: 85, knee: 172 }, ergonomic_scores: { REBA: 6, RULA: 5 }, risk_level: "medium", created_at: "2025-02-13" },
+  { id: "pa14", workstation_id: "w15", joint_angles: { neck: 28, shoulder: 70, elbow: 65, trunk: 45, hip: 70, knee: 130 }, ergonomic_scores: { REBA: 11, RULA: 7 }, risk_level: "critical", created_at: "2025-02-11" },
+  { id: "pa15", workstation_id: "w16", joint_angles: { neck: 20, shoulder: 55, elbow: 75, trunk: 40, hip: 72, knee: 140 }, ergonomic_scores: { REBA: 10, RULA: 7 }, risk_level: "critical", created_at: "2025-02-13" },
+  { id: "pa16", workstation_id: "w17", joint_angles: { neck: 25, shoulder: 18, elbow: 95, trunk: 20, hip: 88, knee: 175 }, ergonomic_scores: { REBA: 5, RULA: 4 }, risk_level: "medium", created_at: "2025-02-15" },
+  { id: "pa17", workstation_id: "w18", joint_angles: { neck: 28, shoulder: 12, elbow: 92, trunk: 15, hip: 90, knee: 88 }, ergonomic_scores: { ROSA: 5 }, risk_level: "medium", created_at: "2025-02-15" },
+  { id: "pa18", workstation_id: "w19", joint_angles: { neck: 22, shoulder: 10, elbow: 90, trunk: 12, hip: 92, knee: 90 }, ergonomic_scores: { ROSA: 4 }, risk_level: "medium", created_at: "2025-02-11" },
+  { id: "pa19", workstation_id: "w20", joint_angles: { neck: 30, shoulder: 55, elbow: 70, trunk: 35, hip: 75, knee: 150 }, ergonomic_scores: { REBA: 8, ROSA: 5 }, risk_level: "high", created_at: "2025-02-13" },
+  { id: "pa20", workstation_id: "w21", joint_angles: { neck: 25, shoulder: 65, elbow: 60, trunk: 30, hip: 80, knee: 165 }, ergonomic_scores: { REBA: 9, RULA: 7 }, risk_level: "high", created_at: "2025-02-15" },
+  { id: "pa21", workstation_id: "w22", joint_angles: { neck: 20, shoulder: 50, elbow: 75, trunk: 42, hip: 68, knee: 135 }, ergonomic_scores: { REBA: 10, RULA: 7 }, risk_level: "critical", created_at: "2025-02-15" },
+  { id: "pa22", workstation_id: "w23", joint_angles: { neck: 32, shoulder: 15, elbow: 100, trunk: 18, hip: 92, knee: 85 }, ergonomic_scores: { REBA: 6 }, risk_level: "medium", created_at: "2025-02-17" },
+  { id: "pa23", workstation_id: "w24", joint_angles: { neck: 40, shoulder: 45, elbow: 80, trunk: 25, hip: 85, knee: 170 }, ergonomic_scores: { REBA: 8, RULA: 6 }, risk_level: "high", created_at: "2025-02-17" },
+  { id: "pa24", workstation_id: "w25", joint_angles: { neck: 25, shoulder: 10, elbow: 90, trunk: 15, hip: 90, knee: 88 }, ergonomic_scores: { ROSA: 5 }, risk_level: "medium", created_at: "2025-02-11" },
+  { id: "pa25", workstation_id: "w26", joint_angles: { neck: 28, shoulder: 12, elbow: 88, trunk: 18, hip: 88, knee: 85 }, ergonomic_scores: { ROSA: 5 }, risk_level: "medium", created_at: "2025-02-13" },
+  { id: "pa26", workstation_id: "w27", joint_angles: { neck: 20, shoulder: 40, elbow: 85, trunk: 25, hip: 82, knee: 160 }, ergonomic_scores: { REBA: 6, RULA: 5 }, risk_level: "medium", created_at: "2025-02-15" },
+  { id: "pa27", workstation_id: "w28", joint_angles: { neck: 22, shoulder: 30, elbow: 90, trunk: 22, hip: 85, knee: 170 }, ergonomic_scores: { REBA: 5, RULA: 4 }, risk_level: "medium", created_at: "2025-02-15" },
 ];
 
 export const mockAnalyses: Analysis[] = [
