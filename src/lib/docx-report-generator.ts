@@ -2385,7 +2385,7 @@ function mergeSections(sections: string[], idxA: number, idxB: number): string[]
   return result;
 }
 
-const MAX_QA_ITERATIONS = 2;
+const MAX_QA_ITERATIONS = 1;
 
 /**
  * Main PDF generation with automatic QA analysis and correction loop.
