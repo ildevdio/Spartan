@@ -859,7 +859,7 @@ ${analyses.filter(a => a.method === "REBA").map(a => {
   if (!ws) return '';
   const wsIdx = workstations.indexOf(ws);
   const risk = risks.find(r => r.analysis_id === a.id);
-  return rebaAssessmentSheet(ws, wsIdx, a, risk, ctx);
+  return '<div class="page-break"></div>' + rebaAssessmentSheet(ws, wsIdx, a, risk, ctx);
 }).join('')}` : ''}
 
 <div class="rpt-section">8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS</div>
