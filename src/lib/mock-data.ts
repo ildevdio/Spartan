@@ -193,6 +193,108 @@ export const mockPosturePhotos: PosturePhoto[] = [
   { id: "pp48", workstation_id: "w11", image_url: "/placeholder.svg", posture_type: "Carregamento manual de carga", notes: "Transportando caixa de 12 kg até a esteira", timestamp: "2025-03-14T10:00:00", created_at: "2025-03-14" },
   { id: "pp49", workstation_id: "w11", image_url: "/placeholder.svg", posture_type: "Caminhada contínua", notes: "Deslocamento entre corredores durante picking (~8 km/dia)", timestamp: "2025-03-15T08:00:00", created_at: "2025-03-15" },
   { id: "pp50", workstation_id: "w11", image_url: "/placeholder.svg", posture_type: "Flexão de tronco lateral", notes: "Lendo etiqueta na lateral da caixa", timestamp: "2025-03-15T09:30:00", created_at: "2025-03-15" },
+  // GIN Industrial - w12 Torneiro CNC (5 fotos)
+  { id: "pp51", workstation_id: "w12", image_url: "/placeholder.svg", posture_type: "Postura em pé prolongada", notes: "Monitorando ciclo do torno CNC por 45 min contínuos", timestamp: "2025-02-10T07:30:00", created_at: "2025-02-10" },
+  { id: "pp52", workstation_id: "w12", image_url: "/placeholder.svg", posture_type: "Flexão de tronco anterior", notes: "Fixando peça no mandril com chave allen", timestamp: "2025-02-10T08:15:00", created_at: "2025-02-10" },
+  { id: "pp53", workstation_id: "w12", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Lendo painel digital do CNC a 30cm de distância", timestamp: "2025-02-10T09:00:00", created_at: "2025-02-10" },
+  { id: "pp54", workstation_id: "w12", image_url: "/placeholder.svg", posture_type: "Elevação de braço", notes: "Trocando pastilha no porta-ferramenta superior", timestamp: "2025-02-11T07:45:00", created_at: "2025-02-11" },
+  { id: "pp55", workstation_id: "w12", image_url: "/placeholder.svg", posture_type: "Agachamento", notes: "Coletando peça acabada no coletor ao nível do chão", timestamp: "2025-02-11T10:00:00", created_at: "2025-02-11" },
+  // w13 Fresador CNC (5 fotos)
+  { id: "pp56", workstation_id: "w13", image_url: "/placeholder.svg", posture_type: "Postura em pé com inclinação", notes: "Calibrando ferramenta no spindle do centro de usinagem", timestamp: "2025-02-10T08:00:00", created_at: "2025-02-10" },
+  { id: "pp57", workstation_id: "w13", image_url: "/placeholder.svg", posture_type: "Flexão de tronco acentuada", notes: "Fixando peça no morsa hidráulico ao nível da mesa", timestamp: "2025-02-10T09:30:00", created_at: "2025-02-10" },
+  { id: "pp58", workstation_id: "w13", image_url: "/placeholder.svg", posture_type: "Movimentos repetitivos de punho", notes: "Rebarbando peça fresada com lima manual", timestamp: "2025-02-10T11:00:00", created_at: "2025-02-10" },
+  { id: "pp59", workstation_id: "w13", image_url: "/placeholder.svg", posture_type: "Rotação cervical", notes: "Alternando olhar entre tela CAM e máquina", timestamp: "2025-02-11T08:00:00", created_at: "2025-02-11" },
+  { id: "pp60", workstation_id: "w13", image_url: "/placeholder.svg", posture_type: "Elevação de carga", notes: "Removendo peça de 15kg da mesa da fresadora", timestamp: "2025-02-11T10:30:00", created_at: "2025-02-11" },
+  // w14 Retificador (5 fotos)
+  { id: "pp61", workstation_id: "w14", image_url: "/placeholder.svg", posture_type: "Postura em pé estática", notes: "Monitorando ciclo de retífica com lupa", timestamp: "2025-02-12T07:30:00", created_at: "2025-02-12" },
+  { id: "pp62", workstation_id: "w14", image_url: "/placeholder.svg", posture_type: "Flexão cervical acentuada", notes: "Medindo rugosidade com rugosímetro digital", timestamp: "2025-02-12T08:30:00", created_at: "2025-02-12" },
+  { id: "pp63", workstation_id: "w14", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Dreçando rebolo na retífica plana", timestamp: "2025-02-12T10:00:00", created_at: "2025-02-12" },
+  { id: "pp64", workstation_id: "w14", image_url: "/placeholder.svg", posture_type: "Extensão de braço", notes: "Ajustando avanço no volante lateral da retífica", timestamp: "2025-02-13T08:00:00", created_at: "2025-02-13" },
+  { id: "pp65", workstation_id: "w14", image_url: "/placeholder.svg", posture_type: "Rotação de tronco", notes: "Alcançando peças na bancada atrás da máquina", timestamp: "2025-02-13T09:30:00", created_at: "2025-02-13" },
+  // w15 Soldador MIG/MAG (5 fotos)
+  { id: "pp66", workstation_id: "w15", image_url: "/placeholder.svg", posture_type: "Flexão de tronco sustentada", notes: "Soldando junta em posição plana com flexão >45°", timestamp: "2025-02-10T07:30:00", created_at: "2025-02-10" },
+  { id: "pp67", workstation_id: "w15", image_url: "/placeholder.svg", posture_type: "Elevação de braços acima do ombro", notes: "Soldando em posição sobre-cabeça (4G)", timestamp: "2025-02-10T09:00:00", created_at: "2025-02-10" },
+  { id: "pp68", workstation_id: "w15", image_url: "/placeholder.svg", posture_type: "Agachamento prolongado", notes: "Soldando junta na base da estrutura ao nível do chão", timestamp: "2025-02-10T10:30:00", created_at: "2025-02-10" },
+  { id: "pp69", workstation_id: "w15", image_url: "/placeholder.svg", posture_type: "Rotação cervical com máscara", notes: "Posicionando máscara de solda e verificando cordão", timestamp: "2025-02-11T08:00:00", created_at: "2025-02-11" },
+  { id: "pp70", workstation_id: "w15", image_url: "/placeholder.svg", posture_type: "Vibração mão-braço", notes: "Esmerilhando cordão de solda com esmerilhadeira angular", timestamp: "2025-02-11T10:00:00", created_at: "2025-02-11" },
+  // w16 Caldeireiro (5 fotos)
+  { id: "pp71", workstation_id: "w16", image_url: "/placeholder.svg", posture_type: "Flexão de tronco sobre bancada", notes: "Traçando chapa com riscador e compasso", timestamp: "2025-02-12T07:30:00", created_at: "2025-02-12" },
+  { id: "pp72", workstation_id: "w16", image_url: "/placeholder.svg", posture_type: "Postura em pé com carga estática", notes: "Posicionando chapa de 2m na guilhotina", timestamp: "2025-02-12T09:00:00", created_at: "2025-02-12" },
+  { id: "pp73", workstation_id: "w16", image_url: "/placeholder.svg", posture_type: "Elevação de carga pesada", notes: "Carregando perfil metálico de 25kg manualmente", timestamp: "2025-02-12T10:30:00", created_at: "2025-02-12" },
+  { id: "pp74", workstation_id: "w16", image_url: "/placeholder.svg", posture_type: "Agachamento com torção", notes: "Montando estrutura no gabarito ao nível do solo", timestamp: "2025-02-13T08:00:00", created_at: "2025-02-13" },
+  { id: "pp75", workstation_id: "w16", image_url: "/placeholder.svg", posture_type: "Vibração mão-braço", notes: "Lixando superfície com lixadeira orbital", timestamp: "2025-02-13T10:00:00", created_at: "2025-02-13" },
+  // w17 Analista Químico (5 fotos)
+  { id: "pp76", workstation_id: "w17", image_url: "/placeholder.svg", posture_type: "Postura em pé com flexão cervical", notes: "Realizando titulação na capela de exaustão", timestamp: "2025-02-14T08:00:00", created_at: "2025-02-14" },
+  { id: "pp77", workstation_id: "w17", image_url: "/placeholder.svg", posture_type: "Flexão de tronco anterior", notes: "Pipetando solução na bancada baixa", timestamp: "2025-02-14T09:00:00", created_at: "2025-02-14" },
+  { id: "pp78", workstation_id: "w17", image_url: "/placeholder.svg", posture_type: "Movimentos finos de mão", notes: "Ajustando bureta para titulação manual gota a gota", timestamp: "2025-02-14T10:30:00", created_at: "2025-02-14" },
+  { id: "pp79", workstation_id: "w17", image_url: "/placeholder.svg", posture_type: "Extensão cervical", notes: "Lendo menisco na bureta posicionada acima da linha dos olhos", timestamp: "2025-02-15T08:00:00", created_at: "2025-02-15" },
+  { id: "pp80", workstation_id: "w17", image_url: "/placeholder.svg", posture_type: "Rotação de tronco", notes: "Alternando entre capela e bancada de pesagem", timestamp: "2025-02-15T09:30:00", created_at: "2025-02-15" },
+  // w18 Técnico Cromatografia (5 fotos)
+  { id: "pp81", workstation_id: "w18", image_url: "/placeholder.svg", posture_type: "Postura sentada prolongada", notes: "Monitorando corrida cromatográfica no computador por 2h", timestamp: "2025-02-14T08:00:00", created_at: "2025-02-14" },
+  { id: "pp82", workstation_id: "w18", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Injetando amostra no amostrador automático do HPLC", timestamp: "2025-02-14T10:00:00", created_at: "2025-02-14" },
+  { id: "pp83", workstation_id: "w18", image_url: "/placeholder.svg", posture_type: "Movimentos finos de precisão", notes: "Conectando coluna cromatográfica com ferrule", timestamp: "2025-02-14T11:30:00", created_at: "2025-02-14" },
+  { id: "pp84", workstation_id: "w18", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Acessando cilindro de gás hélio embaixo da bancada", timestamp: "2025-02-15T08:30:00", created_at: "2025-02-15" },
+  { id: "pp85", workstation_id: "w18", image_url: "/placeholder.svg", posture_type: "Extensão de braço", notes: "Ajustando detector UV na parte superior do HPLC", timestamp: "2025-02-15T10:00:00", created_at: "2025-02-15" },
+  // w19 Desenvolvedor Software (5 fotos)
+  { id: "pp86", workstation_id: "w19", image_url: "/placeholder.svg", posture_type: "Postura sentada contínua", notes: "Codificando por 3h sem pausa em cadeira ergonômica", timestamp: "2025-02-10T08:00:00", created_at: "2025-02-10" },
+  { id: "pp87", workstation_id: "w19", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Olhando para monitor inferior durante debug", timestamp: "2025-02-10T10:00:00", created_at: "2025-02-10" },
+  { id: "pp88", workstation_id: "w19", image_url: "/placeholder.svg", posture_type: "Extensão de punho bilateral", notes: "Digitação intensa no teclado mecânico", timestamp: "2025-02-10T14:00:00", created_at: "2025-02-10" },
+  { id: "pp89", workstation_id: "w19", image_url: "/placeholder.svg", posture_type: "Rotação cervical", notes: "Alternando entre 2 monitores (27\" lado a lado)", timestamp: "2025-02-11T09:00:00", created_at: "2025-02-11" },
+  { id: "pp90", workstation_id: "w19", image_url: "/placeholder.svg", posture_type: "Inclinação lateral", notes: "Conferindo anotações em caderno ao lado do teclado", timestamp: "2025-02-11T11:00:00", created_at: "2025-02-11" },
+  // w20 Analista Infraestrutura (5 fotos)
+  { id: "pp91", workstation_id: "w20", image_url: "/placeholder.svg", posture_type: "Agachamento em rack", notes: "Cabeando switch no rack inferior do data center", timestamp: "2025-02-12T08:00:00", created_at: "2025-02-12" },
+  { id: "pp92", workstation_id: "w20", image_url: "/placeholder.svg", posture_type: "Elevação de braço acima do ombro", notes: "Instalando patch panel no topo do rack de 42U", timestamp: "2025-02-12T09:30:00", created_at: "2025-02-12" },
+  { id: "pp93", workstation_id: "w20", image_url: "/placeholder.svg", posture_type: "Postura sentada prolongada", notes: "Monitorando console de alertas Zabbix/Grafana", timestamp: "2025-02-12T11:00:00", created_at: "2025-02-12" },
+  { id: "pp94", workstation_id: "w20", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Passando cabos sob piso elevado do data center", timestamp: "2025-02-13T08:00:00", created_at: "2025-02-13" },
+  { id: "pp95", workstation_id: "w20", image_url: "/placeholder.svg", posture_type: "Rotação cervical extrema", notes: "Verificando etiquetas de cabos atrás do rack", timestamp: "2025-02-13T10:00:00", created_at: "2025-02-13" },
+  // w21 Eletricista Industrial (5 fotos)
+  { id: "pp96", workstation_id: "w21", image_url: "/placeholder.svg", posture_type: "Elevação de braços sustentada", notes: "Conectando cabos no painel elétrico acima da cabeça", timestamp: "2025-02-14T07:30:00", created_at: "2025-02-14" },
+  { id: "pp97", workstation_id: "w21", image_url: "/placeholder.svg", posture_type: "Flexão cervical acentuada", notes: "Lendo diagrama unifilar dentro do painel", timestamp: "2025-02-14T09:00:00", created_at: "2025-02-14" },
+  { id: "pp98", workstation_id: "w21", image_url: "/placeholder.svg", posture_type: "Agachamento no CCM", notes: "Testando contator na gaveta inferior do CCM", timestamp: "2025-02-14T10:30:00", created_at: "2025-02-14" },
+  { id: "pp99", workstation_id: "w21", image_url: "/placeholder.svg", posture_type: "Postura em escada", notes: "Inspecionando leito de cabos a 4m de altura", timestamp: "2025-02-15T08:00:00", created_at: "2025-02-15" },
+  { id: "pp100", workstation_id: "w21", image_url: "/placeholder.svg", posture_type: "Rotação de tronco com ferramenta", notes: "Termografando barramento com câmera IR", timestamp: "2025-02-15T10:00:00", created_at: "2025-02-15" },
+  // w22 Mecânico de Manutenção (5 fotos)
+  { id: "pp101", workstation_id: "w22", image_url: "/placeholder.svg", posture_type: "Flexão de tronco acentuada", notes: "Desmontando redutor de velocidade no chão da fábrica", timestamp: "2025-02-14T07:30:00", created_at: "2025-02-14" },
+  { id: "pp102", workstation_id: "w22", image_url: "/placeholder.svg", posture_type: "Elevação de carga pesada", notes: "Carregando motor elétrico de 30kg para bancada", timestamp: "2025-02-14T09:00:00", created_at: "2025-02-14" },
+  { id: "pp103", workstation_id: "w22", image_url: "/placeholder.svg", posture_type: "Agachamento prolongado", notes: "Alinhando acoplamento na base da bomba hidráulica", timestamp: "2025-02-14T11:00:00", created_at: "2025-02-14" },
+  { id: "pp104", workstation_id: "w22", image_url: "/placeholder.svg", posture_type: "Postura em decúbito dorsal", notes: "Lubrificando mancal embaixo da esteira transportadora", timestamp: "2025-02-15T08:00:00", created_at: "2025-02-15" },
+  { id: "pp105", workstation_id: "w22", image_url: "/placeholder.svg", posture_type: "Vibração mão-braço", notes: "Usando chave de impacto pneumática para desapertar parafusos", timestamp: "2025-02-15T10:00:00", created_at: "2025-02-15" },
+  // w23 Motorista Carreta (5 fotos)
+  { id: "pp106", workstation_id: "w23", image_url: "/placeholder.svg", posture_type: "Postura sentada com vibração", notes: "Conduzindo carreta na rodovia por 4h contínuas", timestamp: "2025-02-16T06:00:00", created_at: "2025-02-16" },
+  { id: "pp107", workstation_id: "w23", image_url: "/placeholder.svg", posture_type: "Rotação cervical repetitiva", notes: "Checando retrovisores durante manobra em pátio", timestamp: "2025-02-16T10:00:00", created_at: "2025-02-16" },
+  { id: "pp108", workstation_id: "w23", image_url: "/placeholder.svg", posture_type: "Flexão de tronco e joelhos", notes: "Amarrando carga com catraca na carroceria", timestamp: "2025-02-16T11:30:00", created_at: "2025-02-16" },
+  { id: "pp109", workstation_id: "w23", image_url: "/placeholder.svg", posture_type: "Subida/descida da cabine", notes: "Subindo 3 degraus para acessar cabine (repetido ~20x/dia)", timestamp: "2025-02-17T07:00:00", created_at: "2025-02-17" },
+  { id: "pp110", workstation_id: "w23", image_url: "/placeholder.svg", posture_type: "Extensão lombar", notes: "Alongamento após 4h sentado — dor lombar relatada", timestamp: "2025-02-17T11:00:00", created_at: "2025-02-17" },
+  // w24 Operador Ponte Rolante (5 fotos)
+  { id: "pp111", workstation_id: "w24", image_url: "/placeholder.svg", posture_type: "Extensão cervical sustentada", notes: "Olhando para cima monitorando carga suspensa (8 ton)", timestamp: "2025-02-16T08:00:00", created_at: "2025-02-16" },
+  { id: "pp112", workstation_id: "w24", image_url: "/placeholder.svg", posture_type: "Postura em pé com braço elevado", notes: "Operando controle remoto da ponte rolante", timestamp: "2025-02-16T09:30:00", created_at: "2025-02-16" },
+  { id: "pp113", workstation_id: "w24", image_url: "/placeholder.svg", posture_type: "Rotação de tronco", notes: "Sinalizando para auxiliar de solo durante movimentação", timestamp: "2025-02-16T11:00:00", created_at: "2025-02-16" },
+  { id: "pp114", workstation_id: "w24", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Engatando estropos de nylon nas chapas", timestamp: "2025-02-17T08:00:00", created_at: "2025-02-17" },
+  { id: "pp115", workstation_id: "w24", image_url: "/placeholder.svg", posture_type: "Caminhada com carga visual", notes: "Acompanhando carga suspensa pelo galpão (~200m)", timestamp: "2025-02-17T10:00:00", created_at: "2025-02-17" },
+  // w25 Analista RH (5 fotos)
+  { id: "pp116", workstation_id: "w25", image_url: "/placeholder.svg", posture_type: "Postura sentada prolongada", notes: "Processando folha de pagamento no eSocial por 4h", timestamp: "2025-02-10T08:00:00", created_at: "2025-02-10" },
+  { id: "pp117", workstation_id: "w25", image_url: "/placeholder.svg", posture_type: "Flexão cervical", notes: "Lendo documentos físicos de admissão na mesa", timestamp: "2025-02-10T10:00:00", created_at: "2025-02-10" },
+  { id: "pp118", workstation_id: "w25", image_url: "/placeholder.svg", posture_type: "Extensão de punho", notes: "Digitação prolongada com mouse sem apoio", timestamp: "2025-02-10T14:00:00", created_at: "2025-02-10" },
+  { id: "pp119", workstation_id: "w25", image_url: "/placeholder.svg", posture_type: "Rotação de tronco", notes: "Acessando arquivo físico atrás da cadeira", timestamp: "2025-02-11T09:00:00", created_at: "2025-02-11" },
+  { id: "pp120", workstation_id: "w25", image_url: "/placeholder.svg", posture_type: "Postura sentada com apoio inadequado", notes: "Cadeira sem apoio lombar — queixa de desconforto", timestamp: "2025-02-11T11:00:00", created_at: "2025-02-11" },
+  // w26 Advogado Trabalhista (5 fotos)
+  { id: "pp121", workstation_id: "w26", image_url: "/placeholder.svg", posture_type: "Postura sentada prolongada", notes: "Elaborando peça jurídica no computador por 5h", timestamp: "2025-02-12T08:00:00", created_at: "2025-02-12" },
+  { id: "pp122", workstation_id: "w26", image_url: "/placeholder.svg", posture_type: "Flexão cervical acentuada", notes: "Consultando legislação em livro na mesa", timestamp: "2025-02-12T10:00:00", created_at: "2025-02-12" },
+  { id: "pp123", workstation_id: "w26", image_url: "/placeholder.svg", posture_type: "Extensão de braço", notes: "Alcançando livros na estante superior", timestamp: "2025-02-12T14:00:00", created_at: "2025-02-12" },
+  { id: "pp124", workstation_id: "w26", image_url: "/placeholder.svg", posture_type: "Postura sentada com pernas cruzadas", notes: "Reunião prolongada em cadeira sem regulagem", timestamp: "2025-02-13T09:00:00", created_at: "2025-02-13" },
+  { id: "pp125", workstation_id: "w26", image_url: "/placeholder.svg", posture_type: "Extensão de punho", notes: "Uso intenso de mouse durante pesquisa jurisprudencial", timestamp: "2025-02-13T11:00:00", created_at: "2025-02-13" },
+  // w27 TST (5 fotos)
+  { id: "pp126", workstation_id: "w27", image_url: "/placeholder.svg", posture_type: "Postura em pé com caminhada", notes: "Inspecionando área industrial — percurso de 3km", timestamp: "2025-02-14T07:30:00", created_at: "2025-02-14" },
+  { id: "pp127", workstation_id: "w27", image_url: "/placeholder.svg", posture_type: "Agachamento", notes: "Verificando proteção de máquina ao nível do piso", timestamp: "2025-02-14T09:00:00", created_at: "2025-02-14" },
+  { id: "pp128", workstation_id: "w27", image_url: "/placeholder.svg", posture_type: "Elevação de braço com equipamento", notes: "Posicionando dosímetro de ruído no ombro do trabalhador", timestamp: "2025-02-14T10:30:00", created_at: "2025-02-14" },
+  { id: "pp129", workstation_id: "w27", image_url: "/placeholder.svg", posture_type: "Postura sentada", notes: "Elaborando relatório de investigação de acidente no escritório", timestamp: "2025-02-15T08:00:00", created_at: "2025-02-15" },
+  { id: "pp130", workstation_id: "w27", image_url: "/placeholder.svg", posture_type: "Postura em pé com demonstração", notes: "Ministrando treinamento de uso de extintor para turma", timestamp: "2025-02-15T14:00:00", created_at: "2025-02-15" },
+  // w28 Enfermeiro do Trabalho (5 fotos)
+  { id: "pp131", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Postura em pé com flexão", notes: "Realizando curativo em mão de colaborador no ambulatório", timestamp: "2025-02-14T08:00:00", created_at: "2025-02-14" },
+  { id: "pp132", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Postura sentada", notes: "Registrando atendimento no prontuário eletrônico SOC", timestamp: "2025-02-14T09:30:00", created_at: "2025-02-14" },
+  { id: "pp133", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Flexão de tronco", notes: "Aferindo pressão arterial de paciente sentado", timestamp: "2025-02-14T11:00:00", created_at: "2025-02-14" },
+  { id: "pp134", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Elevação de braço", notes: "Alcançando materiais no armário de medicamentos", timestamp: "2025-02-15T08:00:00", created_at: "2025-02-15" },
+  { id: "pp135", workstation_id: "w28", image_url: "/placeholder.svg", posture_type: "Postura em pé prolongada", notes: "Aplicando vacinas em campanha de imunização (~60 colaboradores)", timestamp: "2025-02-15T10:00:00", created_at: "2025-02-15" },
 ];
 
 export const mockPostureAnalyses: PostureAnalysis[] = [
