@@ -10,6 +10,7 @@ import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, 
 import { riskLevelLabel, statusLabel } from "./types";
 import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses, mockPostureAnalyses } from "./mock-data";
 import { generateReportHTML } from "./report-templates";
+import { analyzePageCanvas, suggestFix, formatDiagnosis, type PageDiagnosis, type FixSuggestion } from "./pdf-qa-analyzer";
 
 export interface DocxReportContext {
   company: Company;
