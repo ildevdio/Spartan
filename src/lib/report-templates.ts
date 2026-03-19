@@ -852,17 +852,21 @@ ${companyDataTable(company)}
 
 ${workstations.map(ws => {
   const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
-  const wsAnalyses = analyses.filter(a => a.workstation_id === ws.id);
-  const wsRisks = risks.filter(r => wsAnalyses.some(a => a.id === r.analysis_id));
+  const wsAnalyses2 = analyses.filter(a => a.workstation_id === ws.id);
+  const wsRisks2 = risks.filter(r => wsAnalyses2.some(a => a.id === r.analysis_id));
   const sectorObj = ws.sector || sector;
-  return \`<div class="rpt-section3">Posto: \${ws.name}</div>
-<table class="rpt-table">
-  <tr><td class="label" style="width:180px;">Setor</td><td>\${(sectorObj as any)?.name || "Geral"}</td></tr>
-  <tr><td class="label">Descrição da Atividade</td><td>\${ws.activity_description || ws.description || "—"}</td></tr>
-  <tr><td class="label">Tarefas Executadas</td><td>\${wsTasks.map(t => t.description).join("; ") || ws.tasks_performed || "Atividades gerais do posto"}</td></tr>
-  <tr><td class="label">Análises Realizadas</td><td>\${wsAnalyses.length > 0 ? wsAnalyses.map(a => \`\${a.method} (Score: \${a.score})\`).join(", ") : "Pendente"}</td></tr>
-  <tr><td class="label">Riscos Identificados</td><td>\${wsRisks.length > 0 ? wsRisks.map(r => \`\${r.description} (\${riskLevelLabel(r.risk_level)})\`).join("; ") : "A avaliar"}</td></tr>
-</table>\`;
+  const sectorLabel = (sectorObj as any)?.name || "Geral";
+  const tasksLabel = wsTasks.map(t => t.description).join("; ") || ws.tasks_performed || "Atividades gerais do posto";
+  const analysesLabel = wsAnalyses2.length > 0 ? wsAnalyses2.map(a => a.method + " (Score: " + a.score + ")").join(", ") : "Pendente";
+  const risksLabel = wsRisks2.length > 0 ? wsRisks2.map(r => r.description + " (" + riskLevelLabel(r.risk_level) + ")").join("; ") : "A avaliar";
+  return '<div class="rpt-section3">Posto: ' + ws.name + '</div>' +
+  '<table class="rpt-table">' +
+  '<tr><td class="label" style="width:180px;">Setor</td><td>' + sectorLabel + '</td></tr>' +
+  '<tr><td class="label">Descrição da Atividade</td><td>' + (ws.activity_description || ws.description || "—") + '</td></tr>' +
+  '<tr><td class="label">Tarefas Executadas</td><td>' + tasksLabel + '</td></tr>' +
+  '<tr><td class="label">Análises Realizadas</td><td>' + analysesLabel + '</td></tr>' +
+  '<tr><td class="label">Riscos Identificados</td><td>' + risksLabel + '</td></tr>' +
+  '</table>';
 }).join("")}
 
 <div class="page-break"></div>
