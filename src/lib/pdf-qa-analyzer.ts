@@ -42,6 +42,7 @@ export function analyzePageCanvas(canvas: HTMLCanvasElement, pageIndex: number):
 
   const step = Math.max(4, Math.floor(Math.sqrt((w * h) / 8000)));
   const thirdH = Math.floor(h / 3);
+  const fullData = ctx.getImageData(0, 0, w, h).data;
 
   let topTotal = 0, topWhite = 0;
   let midTotal = 0, midWhite = 0;
@@ -49,8 +50,8 @@ export function analyzePageCanvas(canvas: HTMLCanvasElement, pageIndex: number):
 
   for (let y = 0; y < h; y += step) {
     for (let x = 0; x < w; x += step) {
-      const px = ctx.getImageData(x, y, 1, 1).data;
-      const isWhite = px[3] < 8 || (px[0] > 245 && px[1] > 245 && px[2] > 245);
+      const i = (y * w + x) * 4;
+      const isWhite = fullData[i + 3] < 8 || (fullData[i] > 245 && fullData[i + 1] > 245 && fullData[i + 2] > 245);
 
       if (y < thirdH) {
         topTotal++; if (isWhite) topWhite++;
@@ -72,15 +73,14 @@ export function analyzePageCanvas(canvas: HTMLCanvasElement, pageIndex: number):
   // Check bottom edge for clipped content (last 15px)
   let bottomEdgeRisk = false;
   const edgeStart = Math.max(0, h - 15);
-  for (let y = edgeStart; y < h; y += 2) {
+  outer: for (let y = edgeStart; y < h; y += 2) {
     for (let x = 0; x < w; x += step) {
-      const px = ctx.getImageData(x, y, 1, 1).data;
-      if (px[3] > 8 && !(px[0] > 245 && px[1] > 245 && px[2] > 245)) {
+      const i = (y * w + x) * 4;
+      if (fullData[i + 3] > 8 && !(fullData[i] > 245 && fullData[i + 1] > 245 && fullData[i + 2] > 245)) {
         bottomEdgeRisk = true;
-        break;
+        break outer;
       }
     }
-    if (bottomEdgeRisk) break;
   }
 
   // Score calculation: penalize empty pages and clipped content
