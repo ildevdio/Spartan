@@ -919,6 +919,7 @@ ${psychosocial.map(psa => {
   return html;
 }).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial realizada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX e HSE-IT.</div>'}
 
+<div class="page-break"></div>
 <div class="rpt-section">11. RESPONSABILIDADE TÉCNICA</div>
 <p>O presente documento foi elaborado sob a responsabilidade técnica da MG CONSULT.</p>
 <p>${company.city}, ${getToday()}.</p>
