@@ -144,6 +144,21 @@ export const mockTasks: Task[] = [
   { id: "t54", workstation_id: "w27", description: "Ministrar DDS e controlar EPIs", created_at: "2025-01-25" },
   { id: "t55", workstation_id: "w28", description: "Atender emergências e realizar curativos", created_at: "2025-01-25" },
   { id: "t56", workstation_id: "w28", description: "Acompanhar exames periódicos e vacinar", created_at: "2025-01-25" },
+  // Constrular
+  { id: "t57", workstation_id: "w30", description: "Lançar NFs e conciliar extratos bancários", created_at: "2025-01-15" },
+  { id: "t58", workstation_id: "w30", description: "Classificar despesas e arquivar documentos", created_at: "2025-01-15" },
+  { id: "t59", workstation_id: "w31", description: "Atender clientes e elaborar orçamentos", created_at: "2025-01-15" },
+  { id: "t60", workstation_id: "w31", description: "Processar vendas no PDV e organizar showroom", created_at: "2025-01-15" },
+  { id: "t61", workstation_id: "w32", description: "Visitar construtoras e negociar vendas", created_at: "2025-01-18" },
+  { id: "t62", workstation_id: "w32", description: "Inserir pedidos no tablet e acompanhar entregas", created_at: "2025-01-18" },
+  { id: "t63", workstation_id: "w33", description: "Projetar em AutoCAD e quantificar materiais", created_at: "2025-01-18" },
+  { id: "t64", workstation_id: "w33", description: "Visitar obras e emitir laudos técnicos", created_at: "2025-01-18" },
+  { id: "t65", workstation_id: "w34", description: "Realizar medições em obra com trena laser", created_at: "2025-01-20" },
+  { id: "t66", workstation_id: "w34", description: "Elaborar relatórios técnicos e fotografar etapas", created_at: "2025-01-20" },
+  { id: "t67", workstation_id: "w35", description: "Receber mercadorias e conferir NFs", created_at: "2025-01-20" },
+  { id: "t68", workstation_id: "w35", description: "Armazenar com empilhadeira e inventariar estoque", created_at: "2025-01-20" },
+  { id: "t69", workstation_id: "w36", description: "Carregar veículo e roteirizar entregas", created_at: "2025-01-22" },
+  { id: "t70", workstation_id: "w36", description: "Descarregar materiais e coletar assinatura", created_at: "2025-01-22" },
 ];
 
 export const mockPosturePhotos: PosturePhoto[] = [
