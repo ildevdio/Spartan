@@ -398,6 +398,14 @@ export const mockPostureAnalyses: PostureAnalysis[] = [
   { id: "pa25", workstation_id: "w26", joint_angles: { neck: 28, shoulder: 12, elbow: 88, trunk: 18, hip: 88, knee: 85 }, ergonomic_scores: { ROSA: 5 }, risk_level: "medium", created_at: "2025-02-13" },
   { id: "pa26", workstation_id: "w27", joint_angles: { neck: 20, shoulder: 40, elbow: 85, trunk: 25, hip: 82, knee: 160 }, ergonomic_scores: { REBA: 6, RULA: 5 }, risk_level: "medium", created_at: "2025-02-15" },
   { id: "pa27", workstation_id: "w28", joint_angles: { neck: 22, shoulder: 30, elbow: 90, trunk: 22, hip: 85, knee: 170 }, ergonomic_scores: { REBA: 5, RULA: 4 }, risk_level: "medium", created_at: "2025-02-15" },
+  // Constrular
+  { id: "pa28", workstation_id: "w30", joint_angles: { neck: 25, shoulder: 10, elbow: 90, trunk: 15, hip: 90, knee: 88 }, ergonomic_scores: { ROSA: 5 }, risk_level: "medium", created_at: "2025-02-11" },
+  { id: "pa29", workstation_id: "w31", joint_angles: { neck: 18, shoulder: 25, elbow: 85, trunk: 15, hip: 88, knee: 170 }, ergonomic_scores: { REBA: 5, RULA: 4 }, risk_level: "medium", created_at: "2025-02-11" },
+  { id: "pa30", workstation_id: "w32", joint_angles: { neck: 20, shoulder: 15, elbow: 95, trunk: 12, hip: 92, knee: 85 }, ergonomic_scores: { REBA: 4 }, risk_level: "low", created_at: "2025-02-13" },
+  { id: "pa31", workstation_id: "w33", joint_angles: { neck: 28, shoulder: 12, elbow: 88, trunk: 18, hip: 88, knee: 85 }, ergonomic_scores: { ROSA: 5 }, risk_level: "medium", created_at: "2025-02-15" },
+  { id: "pa32", workstation_id: "w34", joint_angles: { neck: 22, shoulder: 35, elbow: 80, trunk: 28, hip: 80, knee: 140 }, ergonomic_scores: { REBA: 6, RULA: 5 }, risk_level: "medium", created_at: "2025-02-15" },
+  { id: "pa33", workstation_id: "w35", joint_angles: { neck: 18, shoulder: 60, elbow: 70, trunk: 42, hip: 72, knee: 125 }, ergonomic_scores: { REBA: 10, RULA: 7 }, risk_level: "critical", created_at: "2025-02-11" },
+  { id: "pa34", workstation_id: "w36", joint_angles: { neck: 30, shoulder: 50, elbow: 75, trunk: 38, hip: 78, knee: 150 }, ergonomic_scores: { REBA: 9, RULA: 7 }, risk_level: "high", created_at: "2025-02-13" },
 ];
 
 export const mockAnalyses: Analysis[] = [
