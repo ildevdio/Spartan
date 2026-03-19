@@ -2040,7 +2040,7 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
 
 const PDF_W_MM = 210;
 const PDF_H_MM = 297;
-const PDF_RENDER_WIDTH_PX = 900; // balanced width for proper A4 zoom
+const PDF_RENDER_WIDTH_PX = 794; // exact A4 width at 96 DPI — 1:1 ratio eliminates zoom
 
 /**
  * Shows a full-screen overlay so the user doesn't see the raw render container.
@@ -2102,12 +2102,16 @@ function createOnScreenContainer(html: string): HTMLDivElement {
         line-height: 1.6;
         background: #fff;
         width: ${PDF_RENDER_WIDTH_PX}px;
-        padding: 30px 40px;
+        padding: 20px 30px;
       }
       /* Do NOT override report-template styles — let sharedStyles() from the HTML control
          fonts, colors, paddings, margins, etc. This ensures PDF = preview parity. */
       [data-pdf-render="true"] .pdf-root img { max-width: 100%; height: auto; }
-      /* Preserve cover page white text */
+      /* Preserve cover page gradient and white text */
+      [data-pdf-render="true"] .pdf-root .rpt-cover {
+        background-color: #0A1F44 !important;
+        background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%) !important;
+      }
       [data-pdf-render="true"] .pdf-root .rpt-cover h1 { color: white !important; }
       [data-pdf-render="true"] .pdf-root .rpt-cover h2 { color: #B2EBF2 !important; }
       [data-pdf-render="true"] .pdf-root .rpt-cover .company { color: white !important; }
@@ -2251,10 +2255,10 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
     const html2canvas = (await import("html2canvas")).default;
     const { jsPDF } = await import("jspdf");
 
-    // Attempt 1: scale 1.5
-    console.log("[PDF] Attempt 1: scale 1.5");
+    // Attempt 1: scale 1 (1:1 with A4 at 96 DPI)
+    console.log("[PDF] Attempt 1: scale 1");
     let canvas = await html2canvas(container, {
-      scale: 1.5,
+      scale: 1,
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
@@ -2271,12 +2275,12 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
       return;
     }
 
-    // Attempt 2: scale 2 with extra wait
-    console.log("[PDF] Attempt 1 blank. Retrying at scale 2...");
+    // Attempt 2: scale 1.5 with extra wait
+    console.log("[PDF] Attempt 1 blank. Retrying at scale 1.5...");
     await new Promise<void>((r) => setTimeout(r, 500));
 
     canvas = await html2canvas(container, {
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
       backgroundColor: "#ffffff",
       logging: false,
