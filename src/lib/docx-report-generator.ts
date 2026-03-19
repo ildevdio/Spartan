@@ -2040,7 +2040,7 @@ export async function generateAndDownloadDocx(ctx: DocxReportContext): Promise<v
 
 const PDF_W_MM = 210;
 const PDF_H_MM = 297;
-const PDF_RENDER_WIDTH_PX = 900; // balanced width for proper A4 zoom
+const PDF_RENDER_WIDTH_PX = 794; // exact A4 width at 96 DPI — 1:1 ratio eliminates zoom
 
 /**
  * Shows a full-screen overlay so the user doesn't see the raw render container.
