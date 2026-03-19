@@ -809,6 +809,7 @@ ${companyDataTable(company)}
   <tr><td class="label">CLT Art. 157-158</td><td>Obrigações do empregador e empregados quanto à segurança</td></tr>
 </table>
 
+<div class="page-break"></div>
 <div class="rpt-section">5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO</div>
 <p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description.toLowerCase() || "atividades comerciais/industriais"}. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
 ${workstations.map(ws => {
