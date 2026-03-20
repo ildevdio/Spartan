@@ -2393,6 +2393,118 @@ const MAX_QA_ITERATIONS = 2;
 /**
  * Main PDF generation with automatic QA analysis and correction loop.
  */
+/**
+ * Generate PDF blob silently in background (no overlay).
+ * Used for pre-baking PDF while the user previews the report.
+ */
+export async function generatePdfBlob(
+  html: string,
+  onProgress?: (pct: number, label: string) => void,
+): Promise<Blob> {
+  let container: HTMLDivElement | null = null;
+
+  try {
+    onProgress?.(5, "Preparando HTML...");
+    let sections = splitHtmlByPageBreaks(html);
+
+    const html2canvas = (await import("html2canvas")).default;
+    const { jsPDF } = await import("jspdf");
+
+    let totalFixed = 0;
+
+    for (let iteration = 1; iteration <= MAX_QA_ITERATIONS + 1; iteration++) {
+      const isLastIteration = iteration > MAX_QA_ITERATIONS;
+      onProgress?.(10, iteration === 1 ? "Renderizando páginas..." : `Re-renderizando (tentativa ${iteration})...`);
+
+      container?.remove();
+      container = createOnScreenContainer(sections);
+      await waitForFullRender(container);
+
+      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+      const pageElements = Array.from(container.querySelectorAll(".pdf-page")) as HTMLElement[];
+
+      let totalPages = 0;
+      const diagnoses: PageDiagnosis[] = [];
+      const allCanvases: HTMLCanvasElement[] = [];
+
+      for (let i = 0; i < pageElements.length; i++) {
+        const pct = 10 + ((i + 1) / pageElements.length) * 70;
+        onProgress?.(pct, `Página ${i + 1} de ${pageElements.length}`);
+
+        let result = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1);
+        if (result.pagesAdded === 0) {
+          result = await capturePageElement(pageElements[i], html2canvas, pdf, totalPages, 1.5);
+        }
+        totalPages += result.pagesAdded;
+        result.canvases.forEach(c => allCanvases.push(c));
+
+        const startCi = allCanvases.length - result.pagesAdded;
+        for (let ci = startCi; ci < allCanvases.length; ci++) {
+          const diagnosis = analyzePageCanvas(allCanvases[ci], ci);
+          diagnoses.push(diagnosis);
+        }
+      }
+
+      // Check for problems
+      const problemPages: { idx: number; fix: FixSuggestion; diagnosis: PageDiagnosis }[] = [];
+      diagnoses.forEach((d, idx) => {
+        const fix = suggestFix(d, idx === 0, idx === diagnoses.length - 1);
+        if (fix !== "ok") problemPages.push({ idx, fix, diagnosis: d });
+      });
+
+      if (problemPages.length === 0 || isLastIteration) {
+        onProgress?.(95, "Finalizando PDF...");
+
+        if (totalPages === 0) {
+          // Fallback
+          const blob = await new Promise<Blob>((resolve) => {
+            const fallbackPdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+            fallbackPdf.html(container!, {
+              x: 0, y: 0, width: PDF_W_MM, windowWidth: container!.scrollWidth,
+              autoPaging: "text",
+              html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+              callback: (doc) => {
+                resolve(doc.output("blob"));
+              },
+            });
+          });
+          onProgress?.(100, "Concluído");
+          return blob;
+        }
+
+        const blob = pdf.output("blob");
+        onProgress?.(100, "Concluído");
+        return blob;
+      }
+
+      // Apply corrections (same logic as generateAndDownloadPdf)
+      let newSections = [...sections];
+      const mergeActions = problemPages
+        .filter(p => p.fix === "merge_with_previous" || p.fix === "merge_with_next")
+        .sort((a, b) => b.idx - a.idx);
+
+      for (const action of mergeActions) {
+        if (action.fix === "merge_with_previous" && action.idx > 0 && action.idx < newSections.length) {
+          newSections = mergeSections(newSections, action.idx - 1, action.idx);
+          totalFixed++;
+        } else if (action.fix === "merge_with_next" && action.idx < newSections.length - 1) {
+          newSections = mergeSections(newSections, action.idx, action.idx + 1);
+          totalFixed++;
+        }
+      }
+
+      sections = newSections;
+    }
+
+    throw new Error("Unexpected end of QA loop");
+  } finally {
+    container?.remove();
+  }
+}
+
+/**
+ * Main PDF generation with automatic QA analysis and correction loop (with overlay).
+ */
 export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<void> {
   const overlay = showPdfOverlay();
   let container: HTMLDivElement | null = null;
@@ -2427,7 +2539,6 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
       overlay.setIteration(Math.min(iteration, MAX_QA_ITERATIONS), MAX_QA_ITERATIONS);
       overlay.setPhase(iteration === 1 ? "Capturando e analisando páginas..." : `Re-capturando após correções (tentativa ${iteration})...`);
 
-      // Clear page thumbnails for new iteration
       const $pages = overlay.element.querySelector("#qa-pages");
       if ($pages) $pages.innerHTML = "";
 
@@ -2460,7 +2571,6 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
         totalPages += result.pagesAdded;
         result.canvases.forEach(c => allCanvases.push(c));
 
-        // Analyze captured canvases for this section
         const startCi = allCanvases.length - result.pagesAdded;
         for (let ci = startCi; ci < allCanvases.length; ci++) {
           const diagnosis = analyzePageCanvas(allCanvases[ci], ci);
@@ -2476,7 +2586,6 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
       overlay.setScore(avgScore);
       overlay.addLog(`Score de qualidade: ${avgScore}/100 (${diagnoses.length} páginas)`);
 
-      // Check for problems
       const problemPages: { idx: number; fix: FixSuggestion; diagnosis: PageDiagnosis }[] = [];
       diagnoses.forEach((d, idx) => {
         const fix = suggestFix(d, idx === 0, idx === diagnoses.length - 1);
@@ -2511,7 +2620,6 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
         return;
       }
 
-      // Apply corrections
       overlay.setPhase("Aplicando correções automáticas...");
       overlay.addLog(`${problemPages.length} página(s) com problemas — corrigindo...`);
 
