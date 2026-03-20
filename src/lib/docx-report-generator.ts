@@ -2289,13 +2289,17 @@ async function waitForFullRender(root: HTMLElement): Promise<void> {
 function hasContent(canvas: HTMLCanvasElement): boolean {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   if (!ctx || canvas.width < 50 || canvas.height < 50) return false;
-  const step = Math.max(4, Math.floor(Math.sqrt((canvas.width * canvas.height) / 5000)));
+  const w = canvas.width;
+  const h = canvas.height;
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+  const step = Math.max(4, Math.floor(Math.sqrt((w * h) / 5000)));
   let total = 0, nonWhite = 0;
-  for (let y = 0; y < canvas.height; y += step) {
-    for (let x = 0; x < canvas.width; x += step) {
+  for (let y = 0; y < h; y += step) {
+    for (let x = 0; x < w; x += step) {
       total++;
-      const px = ctx.getImageData(x, y, 1, 1).data;
-      if (px[3] > 8 && !(px[0] > 245 && px[1] > 245 && px[2] > 245)) nonWhite++;
+      const idx = (y * w + x) * 4;
+      if (data[idx + 3] > 8 && !(data[idx] > 245 && data[idx + 1] > 245 && data[idx + 2] > 245)) nonWhite++;
     }
   }
   return total > 0 ? (nonWhite / total) > 0.003 : false;
