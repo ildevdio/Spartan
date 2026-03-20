@@ -1,26 +1,24 @@
 /**
  * PDF QA Analyzer — Analyzes rendered canvas pages for quality issues.
  * Detects empty areas, clipped content, and suggests fixes.
+ * Optimized: uses bulk getImageData instead of per-pixel calls.
  */
 
 export interface PageDiagnosis {
   pageIndex: number;
-  emptyRatio: number;        // 0–1: fraction of white/empty pixels
-  topEmptyRatio: number;     // 0–1: empty ratio in top 1/3
-  midEmptyRatio: number;     // 0–1: empty ratio in middle 1/3
-  bottomEmptyRatio: number;  // 0–1: empty ratio in bottom 1/3
-  bottomEdgeRisk: boolean;   // true if non-white pixels found in last 15px
-  overallScore: number;      // 0–100 quality score
-  thumbnail: string;         // data URL for miniature preview
+  emptyRatio: number;
+  topEmptyRatio: number;
+  midEmptyRatio: number;
+  bottomEmptyRatio: number;
+  bottomEdgeRisk: boolean;
+  overallScore: number;
+  thumbnail: string;
 }
 
 export type FixSuggestion = "ok" | "merge_with_previous" | "merge_with_next" | "needs_reflow";
 
-const EMPTY_THRESHOLD = 0.40; // 40% empty = problem
+const EMPTY_THRESHOLD = 0.40;
 
-/**
- * Analyze a canvas for content quality.
- */
 export function analyzePageCanvas(canvas: HTMLCanvasElement, pageIndex: number): PageDiagnosis {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   const w = canvas.width;
@@ -40,6 +38,10 @@ export function analyzePageCanvas(canvas: HTMLCanvasElement, pageIndex: number):
     return { pageIndex, emptyRatio: 1, topEmptyRatio: 1, midEmptyRatio: 1, bottomEmptyRatio: 1, bottomEdgeRisk: false, overallScore: 0, thumbnail };
   }
 
+  // Bulk read entire canvas pixel data at once (major perf improvement)
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const data = imageData.data;
+
   const step = Math.max(4, Math.floor(Math.sqrt((w * h) / 8000)));
   const thirdH = Math.floor(h / 3);
 
@@ -49,8 +51,8 @@ export function analyzePageCanvas(canvas: HTMLCanvasElement, pageIndex: number):
 
   for (let y = 0; y < h; y += step) {
     for (let x = 0; x < w; x += step) {
-      const px = ctx.getImageData(x, y, 1, 1).data;
-      const isWhite = px[3] < 8 || (px[0] > 245 && px[1] > 245 && px[2] > 245);
+      const idx = (y * w + x) * 4;
+      const isWhite = data[idx + 3] < 8 || (data[idx] > 245 && data[idx + 1] > 245 && data[idx + 2] > 245);
 
       if (y < thirdH) {
         topTotal++; if (isWhite) topWhite++;
@@ -72,33 +74,27 @@ export function analyzePageCanvas(canvas: HTMLCanvasElement, pageIndex: number):
   // Check bottom edge for clipped content (last 15px)
   let bottomEdgeRisk = false;
   const edgeStart = Math.max(0, h - 15);
-  for (let y = edgeStart; y < h; y += 2) {
+  for (let y = edgeStart; y < h && !bottomEdgeRisk; y += 2) {
     for (let x = 0; x < w; x += step) {
-      const px = ctx.getImageData(x, y, 1, 1).data;
-      if (px[3] > 8 && !(px[0] > 245 && px[1] > 245 && px[2] > 245)) {
+      const idx = (y * w + x) * 4;
+      if (data[idx + 3] > 8 && !(data[idx] > 245 && data[idx + 1] > 245 && data[idx + 2] > 245)) {
         bottomEdgeRisk = true;
         break;
       }
     }
-    if (bottomEdgeRisk) break;
   }
 
-  // Score calculation: penalize empty pages and clipped content
   let score = 100;
   if (emptyRatio >= EMPTY_THRESHOLD) {
-    // Penalty proportional to how far over the threshold
     score -= Math.round((emptyRatio - EMPTY_THRESHOLD) * 100);
   }
   if (bottomEdgeRisk) score -= 15;
-  if (bottomEmptyRatio > 0.85) score -= 10; // mostly empty bottom third
+  if (bottomEmptyRatio > 0.85) score -= 10;
   score = Math.max(0, Math.min(100, score));
 
   return { pageIndex, emptyRatio, topEmptyRatio, midEmptyRatio, bottomEmptyRatio, bottomEdgeRisk, overallScore: score, thumbnail };
 }
 
-/**
- * Suggest a fix action based on page diagnosis.
- */
 export function suggestFix(diagnosis: PageDiagnosis, isFirst: boolean, isLast: boolean): FixSuggestion {
   if (diagnosis.bottomEdgeRisk) return "needs_reflow";
   if (diagnosis.emptyRatio >= EMPTY_THRESHOLD) {
@@ -108,9 +104,6 @@ export function suggestFix(diagnosis: PageDiagnosis, isFirst: boolean, isLast: b
   return "ok";
 }
 
-/**
- * Format diagnosis for display.
- */
 export function formatDiagnosis(d: PageDiagnosis): string {
   const parts: string[] = [];
   if (d.emptyRatio >= EMPTY_THRESHOLD) {
