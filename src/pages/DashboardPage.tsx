@@ -104,7 +104,7 @@ export default function DashboardPage() {
     });
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-full">
+    <div className="space-y-5 sm:space-y-6 max-w-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
