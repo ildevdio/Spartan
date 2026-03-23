@@ -1,10 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, Printer, FileText, Loader2, ShieldCheck, CheckCircle2 } from "lucide-react";
-import { useRef, useState, useEffect, useCallback } from "react";
+import { Download, Printer, FileText, ShieldCheck } from "lucide-react";
+import { useRef, useState } from "react";
 import { ReportSignatureDialog, type SignatureResult } from "./ReportSignatureDialog";
-import { generatePdfBlob } from "@/lib/docx-report-generator";
-import { saveAs } from "file-saver";
 
 interface ReportPreviewDialogProps {
   open: boolean;
@@ -16,61 +14,24 @@ interface ReportPreviewDialogProps {
   onSigned?: (result: SignatureResult) => void;
 }
 
-type PdfState = "idle" | "generating" | "ready" | "error";
+const PRINT_STYLES = `
+  @media print {
+    body { margin: 0; padding: 0; }
+    .rpt-cover { page-break-after: always !important; break-after: page !important; }
+    .rpt-section { page-break-before: always !important; break-before: page !important; }
+    .page-break { page-break-after: always !important; break-after: page !important; height: 0; overflow: hidden; }
+    .rpt-table { page-break-inside: avoid !important; }
+    .rpt-callout { page-break-inside: avoid !important; }
+    .rpt-sig { page-break-inside: avoid !important; }
+    .no-print { display: none !important; }
+  }
+  @page { size: A4; margin: 15mm 12mm; }
+`;
 
 export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloadDocx, onDownloadPdf, onSigned }: ReportPreviewDialogProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [signDialogOpen, setSignDialogOpen] = useState(false);
   const [signatureResult, setSignatureResult] = useState<SignatureResult | null>(null);
-
-  // Background PDF pre-baking
-  const [pdfState, setPdfState] = useState<PdfState>("idle");
-  const [pdfProgress, setPdfProgress] = useState(0);
-  const [pdfProgressLabel, setPdfProgressLabel] = useState("");
-  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
-  const blobCacheKeyRef = useRef<string>("");
-  const abortRef = useRef(false);
-
-  // Start background PDF generation when dialog opens
-  useEffect(() => {
-    if (!open || !html || html.length < 50) return;
-
-    const cacheKey = html.substring(0, 200) + html.length;
-    if (cacheKey === blobCacheKeyRef.current && pdfBlob) return; // Already cached
-
-    abortRef.current = false;
-    setPdfState("generating");
-    setPdfProgress(0);
-    setPdfProgressLabel("Iniciando...");
-    setPdfBlob(null);
-
-    const run = async () => {
-      try {
-        const blob = await generatePdfBlob(html, (pct, label) => {
-          if (abortRef.current) return;
-          setPdfProgress(pct);
-          setPdfProgressLabel(label);
-        });
-        if (!abortRef.current) {
-          setPdfBlob(blob);
-          setPdfState("ready");
-          blobCacheKeyRef.current = cacheKey;
-        }
-      } catch (err) {
-        console.error("[PDF Background]", err);
-        if (!abortRef.current) {
-          setPdfState("error");
-        }
-      }
-    };
-
-    // Small delay so dialog renders first
-    const timer = setTimeout(run, 500);
-    return () => {
-      clearTimeout(timer);
-      abortRef.current = true;
-    };
-  }, [open, html]);
 
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
@@ -86,27 +47,12 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
         h3 { font-size: 15px; color: #475569; } p { font-size: 13px; margin: 8px 0; }
         hr { border: none; border-top: 1px solid #e2e8f0; margin: 16px 0; }
         img { max-width: 100%; height: auto; }
-        @media print { body { padding: 20px; } }
+        ${PRINT_STYLES}
       </style></head><body>${html}</body></html>
     `);
     printWindow.document.close();
     printWindow.print();
   };
-
-  const handlePdfDownload = useCallback(async () => {
-    const fileName = `${title.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
-
-    if (pdfState === "ready" && pdfBlob) {
-      // Instant download from pre-baked blob
-      saveAs(pdfBlob, fileName);
-      return;
-    }
-
-    // PDF not ready yet — fall back to overlay-based generation
-    if (onDownloadPdf) {
-      await onDownloadPdf();
-    }
-  }, [pdfState, pdfBlob, onDownloadPdf, title]);
 
   const handleSigned = (result: SignatureResult) => {
     setSignatureResult(result);
@@ -116,7 +62,6 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
       setSignatureResult(null);
-      abortRef.current = true;
     }
     onOpenChange(isOpen);
   };
@@ -128,20 +73,6 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
           <DialogHeader className="flex flex-row items-center justify-between p-3 sm:p-4 border-b border-border shrink-0">
             <DialogTitle className="text-sm sm:text-base truncate pr-2">{title}</DialogTitle>
             <div className="flex items-center gap-2 shrink-0">
-              {/* PDF background status */}
-              {pdfState === "generating" && (
-                <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-                  <Loader2 className="h-3 w-3 animate-spin" />
-                  <span className="hidden sm:inline">Preparando PDF... {Math.round(pdfProgress)}%</span>
-                </span>
-              )}
-              {pdfState === "ready" && (
-                <span className="flex items-center gap-1 text-[10px] text-success font-medium">
-                  <CheckCircle2 className="h-3 w-3" />
-                  <span className="hidden sm:inline">PDF pronto</span>
-                </span>
-              )}
-
               {/* Signature status */}
               {signatureResult && (
                 <span className="flex items-center gap-1 text-[10px] text-success font-medium">
@@ -167,34 +98,16 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
               </Button>
               <Button
                 size="sm"
-                variant={pdfState === "ready" ? "default" : "outline"}
+                variant="default"
                 className="h-7 text-xs"
-                onClick={handlePdfDownload}
-                disabled={pdfState === "generating"}
+                onClick={handlePrint}
               >
-                {pdfState === "generating" ? (
-                  <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
-                ) : pdfState === "ready" ? (
-                  <Download className="h-3.5 w-3.5 mr-1" />
-                ) : (
-                  <FileText className="h-3.5 w-3.5 mr-1" />
-                )}
-                <span className="hidden sm:inline">
-                  {pdfState === "ready" ? "Baixar PDF" : "PDF"}
-                </span>
+                <Download className="h-3.5 w-3.5 mr-1" />
+                <span className="hidden sm:inline">Baixar PDF</span>
+                <span className="sm:hidden">PDF</span>
               </Button>
             </div>
           </DialogHeader>
-
-          {/* Progress bar for background generation */}
-          {pdfState === "generating" && (
-            <div className="h-1 w-full bg-muted shrink-0">
-              <div
-                className="h-full bg-primary transition-all duration-300"
-                style={{ width: `${pdfProgress}%` }}
-              />
-            </div>
-          )}
 
           <div className="flex-1 overflow-auto bg-white">
             <div
