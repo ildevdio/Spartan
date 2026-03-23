@@ -7,7 +7,7 @@ import { FileText, CheckCircle2, AlertTriangle, Download, Loader2, BarChart3, Sh
 import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { generateAndDownloadDocx, generateAndDownloadPdf, type DocxReportContext } from "@/lib/docx-report-generator";
+import { generateAndDownloadDocx, type DocxReportContext } from "@/lib/docx-report-generator";
 import { generateReportHTML } from "@/lib/report-templates";
 import { Progress } from "@/components/ui/progress";
 import { ReportPreviewDialog } from "@/components/ReportPreviewDialog";
@@ -35,7 +35,7 @@ export default function RelatoriosPage() {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState("");
   const [previewDownload, setPreviewDownload] = useState<(() => void) | null>(null);
-  const [previewPdfDownload, setPreviewPdfDownload] = useState<(() => Promise<void>) | null>(null);
+  
 
   const wsReadyForReport = companyWorkstations.filter((ws) => {
     const photoCount = posturePhotos.filter((p) => p.workstation_id === ws.id).length;
@@ -109,7 +109,7 @@ export default function RelatoriosPage() {
     setPreviewHtml(html);
     setPreviewTitle(label);
     setPreviewDownload(() => () => handleDownloadDocx(ctx));
-    setPreviewPdfDownload(() => () => generateAndDownloadPdf(ctx));
+    
   };
 
   const handlePreviewAll = (type: ReportType) => {
@@ -334,11 +334,10 @@ export default function RelatoriosPage() {
       {/* Preview dialog */}
       <ReportPreviewDialog
         open={!!previewHtml}
-        onOpenChange={(open) => { if (!open) { setPreviewHtml(null); setPreviewDownload(null); setPreviewPdfDownload(null); } }}
+        onOpenChange={(open) => { if (!open) { setPreviewHtml(null); setPreviewDownload(null); } }}
         html={previewHtml || ""}
         title={previewTitle}
         onDownloadDocx={previewDownload || undefined}
-        onDownloadPdf={previewPdfDownload || undefined}
       />
     </div>
   );
