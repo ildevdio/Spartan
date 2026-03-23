@@ -27,7 +27,7 @@ const PRINT_STYLES = `
   @page { size: A4; margin: 15mm 12mm; }
 `;
 
-export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloadDocx, onDownloadPdf, onSigned }: ReportPreviewDialogProps) {
+export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloadDocx, onSigned }: ReportPreviewDialogProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [signDialogOpen, setSignDialogOpen] = useState(false);
   const [signatureResult, setSignatureResult] = useState<SignatureResult | null>(null);
