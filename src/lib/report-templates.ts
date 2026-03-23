@@ -40,60 +40,263 @@ export function generateReportHTML(ctx: ReportContext): string {
 
 function sharedStyles() {
   return `<style>
-    body, .rpt-body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #1e293b; line-height: 1.6; }
-    .rpt-cover { text-align:center; padding:60px 40px; background: linear-gradient(135deg, #0A1F44 0%, #1565C0 50%, #00838F 100%); color:white; border-radius:8px; margin-bottom:30px; }
-    .rpt-cover h1 { font-size:28px; margin-bottom:8px; color:white; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-    .rpt-cover h2 { font-size:20px; color:#B2EBF2; margin-bottom:30px; }
-    .rpt-cover .company { font-size:24px; font-weight:bold; color:white; }
-    .rpt-cover .meta { font-size:14px; color:#B2EBF2; }
-    .rpt-section { background: linear-gradient(90deg, #0A1F44, #1565C0); color:white; padding:12px 20px; margin:30px 0 15px 0; border-radius:6px; font-size:16px; font-weight:bold; }
-    .rpt-section2 { background: linear-gradient(90deg, #1565C0, #00838F); color:white; padding:10px 18px; margin:24px 0 12px 0; border-radius:5px; font-size:15px; font-weight:bold; }
-    .rpt-section3 { border-left:5px solid #00BCD4; padding:8px 14px; margin:20px 0 10px 0; font-size:14px; font-weight:bold; color:#0A1F44; background:#E1F5FE; border-radius:0 5px 5px 0; }
-    .rpt-callout { border-left:5px solid #1565C0; background:#E3F2FD; padding:12px 16px; margin:12px 0; border-radius:0 6px 6px 0; font-style:italic; color:#0A1F44; }
-    .rpt-callout.warning { border-left-color:#FF6F00; background:#FFF3E0; }
-    .rpt-callout.success { border-left-color:#43A047; background:#C8E6C9; }
-    .rpt-callout.danger { border-left-color:#D32F2F; background:#FFCDD2; }
-    .rpt-table { width:100%; border-collapse:collapse; margin:12px 0; border-radius:6px; overflow:hidden; }
-    .rpt-table th { background:#0A1F44; color:white; padding:10px 12px; font-size:12px; text-align:left; border:1px solid #0A1F44; }
-    .rpt-table th.alt { background:#1565C0; border-color:#1565C0; }
-    .rpt-table th.teal { background:#00838F; border-color:#00838F; }
-    .rpt-table td { padding:9px 12px; font-size:12px; border:1px solid #B0BEC5; }
-    .rpt-table tr:nth-child(even) td { background:#E3F2FD; }
-    .rpt-table td.label { background:#E1F5FE; font-weight:bold; color:#1565C0; }
-    .rpt-badge { display:inline-block; padding:4px 12px; border-radius:12px; font-size:11px; font-weight:bold; }
-    .rpt-badge.green { background:#C8E6C9; color:#1B5E20; }
-    .rpt-badge.yellow { background:#FFF9C4; color:#F57F17; }
-    .rpt-badge.orange { background:#FFE0B2; color:#E65100; }
-    .rpt-badge.red { background:#FFCDD2; color:#B71C1C; }
-    .rpt-divider { height:4px; background: linear-gradient(90deg, #00BCD4, #1565C0, #0A1F44); margin:20px 0; border-radius:2px; }
-    .rpt-sig { text-align:center; margin-top:50px; padding-top:20px; border-top:2px solid #B0BEC5; }
-    .rpt-header { display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0A1F44; padding-bottom:8px; margin-bottom:20px; font-size:11px; color:#64748b; }
-    .rpt-footer { text-align:center; font-size:10px; color:#94a3b8; margin-top:30px; border-top:1px solid #e2e8f0; padding-top:8px; }
+    @import url('https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap');
+    *, *::before, *::after { box-sizing: border-box; }
+    body, .rpt-body {
+      font-family: Calibri, 'Segoe UI', Arial, sans-serif;
+      font-size: 12px;
+      color: #1a1a1a;
+      line-height: 1.55;
+      background: white;
+    }
+    p { text-align: justify; margin: 6px 0 10px 0; }
+    ul, ol { margin: 4px 0 10px 0; padding-left: 22px; }
+    li { margin-bottom: 3px; text-align: justify; }
+
+    /* === COVER PAGE === */
+    .rpt-cover {
+      text-align: center;
+      padding: 60px 40px;
+      background: linear-gradient(155deg, #0A1F44 0%, #1565C0 55%, #00838F 100%);
+      color: white;
+      margin-bottom: 0;
+      min-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .rpt-cover h1 { font-size: 30px; font-weight: bold; margin-bottom: 8px; color: white; letter-spacing: 1px; }
+    .rpt-cover h2 { font-size: 18px; color: #B2EBF2; margin-bottom: 32px; font-weight: normal; }
+    .rpt-cover .company { font-size: 22px; font-weight: bold; color: white; margin-bottom: 6px; }
+    .rpt-cover .meta { font-size: 13px; color: #B2EBF2; margin: 3px 0; }
+    .rpt-cover .cover-divider { border: none; border-top: 2px solid rgba(178,235,242,0.4); margin: 24px auto; width: 60%; }
+
+    /* === PAGE HEADER (per section) === */
+    .rpt-page-header {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+      border: 2px solid #000;
+    }
+    .rpt-page-header td {
+      border: 1px solid #000;
+      padding: 4px 8px;
+      vertical-align: middle;
+      font-size: 10px;
+    }
+    .rpt-page-header .hdr-logo {
+      width: 130px;
+      text-align: center;
+      background: white;
+    }
+    .rpt-page-header .hdr-title {
+      text-align: center;
+      font-size: 12px;
+      font-weight: bold;
+      background: #f5f5f5;
+    }
+    .rpt-page-header .hdr-sms {
+      width: 160px;
+      text-align: center;
+      background: white;
+      font-size: 10px;
+    }
+    .rpt-page-header .sms-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 9px;
+    }
+    .rpt-page-header .sms-table td {
+      border: 1px solid #999;
+      padding: 2px 4px;
+      text-align: center;
+    }
+    .rpt-page-header .sms-table th {
+      border: 1px solid #999;
+      padding: 2px 4px;
+      background: #e0e0e0;
+      font-weight: bold;
+      font-size: 9px;
+      color: #333;
+    }
+
+    /* === PAGE FOOTER (per section) === */
+    .rpt-page-footer {
+      text-align: center;
+      font-size: 10px;
+      color: #555;
+      margin-top: 16px;
+      padding-top: 8px;
+      border-top: 2px solid #000;
+      font-style: italic;
+    }
+
+    /* === SECTION BANNERS === */
+    .rpt-section {
+      background: #333333;
+      color: white;
+      padding: 9px 14px;
+      margin: 28px 0 10px 0;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 0.3px;
+      border: 1px solid #111;
+    }
+    .rpt-section2 {
+      background: #505050;
+      color: white;
+      padding: 7px 14px;
+      margin: 20px 0 8px 0;
+      font-size: 12px;
+      font-weight: bold;
+      border: 1px solid #333;
+    }
+    .rpt-section3 {
+      border-left: 5px solid #555;
+      padding: 6px 12px;
+      margin: 16px 0 8px 0;
+      font-size: 12px;
+      font-weight: bold;
+      color: #1a1a1a;
+      background: #f0f0f0;
+    }
+
+    /* === CALLOUTS === */
+    .rpt-callout {
+      border-left: 4px solid #555;
+      background: #f9f9f9;
+      padding: 10px 14px;
+      margin: 10px 0;
+      font-style: italic;
+      color: #333;
+      font-size: 12px;
+    }
+    .rpt-callout.warning { border-left-color: #c0392b; background: #fdf0ee; }
+    .rpt-callout.success { border-left-color: #27ae60; background: #eafaf1; }
+    .rpt-callout.danger  { border-left-color: #e74c3c; background: #fdecea; }
+
+    /* === TABLES === */
+    .rpt-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    .rpt-table th {
+      background: #333333;
+      color: white;
+      padding: 7px 10px;
+      font-size: 11px;
+      text-align: left;
+      border: 1px solid #000;
+      font-weight: bold;
+    }
+    .rpt-table th.alt  { background: #555555; border-color: #000; }
+    .rpt-table th.teal { background: #2e7d5e; border-color: #000; }
+    .rpt-table th.risk-hdr { background: #c6efce; color: #1a1a1a; border-color: #000; }
+    .rpt-table td {
+      padding: 7px 10px;
+      font-size: 11px;
+      border: 1px solid #000;
+      vertical-align: top;
+    }
+    .rpt-table tr:nth-child(even) td { background: #f5f5f5; }
+    .rpt-table td.label {
+      background: #eeeeee;
+      font-weight: bold;
+      color: #333;
+      border: 1px solid #000;
+    }
+
+    /* === BADGES === */
+    .rpt-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 11px; font-weight: bold; }
+    .rpt-badge.green  { background: #C8E6C9; color: #1B5E20; }
+    .rpt-badge.yellow { background: #FFF9C4; color: #856c00; }
+    .rpt-badge.orange { background: #FFE0B2; color: #6d3a00; }
+    .rpt-badge.red    { background: #FFCDD2; color: #B71C1C; }
+
+    /* === SIGNATURE & FOOTER === */
+    .rpt-divider { height: 2px; background: #333; margin: 20px 0; }
+    .rpt-sig { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 2px solid #555; }
+    .rpt-footer {
+      text-align: center;
+      font-size: 10px;
+      color: #555;
+      margin-top: 24px;
+      border-top: 1px solid #999;
+      padding-top: 6px;
+    }
+
+    /* === PAGE BREAKS === */
     .page-break { page-break-after: always; break-after: page; }
-    .rpt-section, .rpt-section2, .rpt-section3 { page-break-before: auto; page-break-after: avoid; break-after: avoid; }
+    .rpt-section { page-break-before: always; break-before: page; page-break-after: avoid; break-after: avoid; }
+    .rpt-section2 { page-break-before: auto; page-break-after: avoid; break-after: avoid; }
+    .rpt-section3 { page-break-before: auto; page-break-after: avoid; break-after: avoid; }
     .rpt-table { page-break-inside: avoid; break-inside: avoid; }
     .rpt-table tr { page-break-inside: avoid; break-inside: avoid; }
     .rpt-callout { page-break-inside: avoid; break-inside: avoid; }
-    .rpt-cover { page-break-inside: avoid; break-inside: avoid; }
+    .rpt-cover { page-break-inside: avoid; break-inside: avoid; page-break-after: always; break-after: page; }
     .rpt-sig { page-break-inside: avoid; break-inside: avoid; }
     ul, ol { page-break-inside: avoid; break-inside: avoid; }
     h1, h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
+    @media print {
+      .rpt-cover { page-break-after: always !important; }
+      .rpt-section { page-break-before: always !important; }
+      .no-print { display: none !important; }
+    }
   </style>`;
 }
 
 function coverPage(title: string, subtitle: string, company: Company, consultant: string) {
   return `
 <div class="rpt-cover">
-  <img src="/mg-consult-logo.png" alt="MG Consult" style="height:50px; margin-bottom:20px;" onerror="this.style.display='none'" />
+  <img src="/mg-consult-logo.png" alt="MG Consult" style="height:60px; margin-bottom:24px; filter: brightness(0) invert(1);" onerror="this.style.display='none'" />
   <h1>${title}</h1>
   <h2>${subtitle}</h2>
-  <p class="company">${company.trade_name || company.name}</p>
+  <hr class="cover-divider" />
+  <p class="company">${(company.trade_name || company.name).toUpperCase()}</p>
   <p class="meta">CNPJ: ${company.cnpj}</p>
   <p class="meta">${company.address}${company.neighborhood ? ', ' + company.neighborhood : ''} — ${company.city}/${company.state}</p>
-  <p class="meta" style="margin-top:30px;">Emissão: ${getToday()} | Revisão: 00</p>
+  <hr class="cover-divider" />
+  <p class="meta" style="margin-top:10px;">Emissão: ${getToday()} &nbsp;|&nbsp; Revisão: 00</p>
   <p class="meta">Responsável Técnico: ${consultant}</p>
-  <p class="meta" style="font-size:12px; margin-top:15px;">MG Consultoria — Ergonomia & Segurança do Trabalho</p>
+  <p class="meta" style="font-size:11px; margin-top:18px; opacity:0.8;"><em>MG Consultoria — Ergonomia &amp; Segurança do Trabalho</em></p>
 </div><div class="page-break"></div>`;
+}
+
+/**
+ * Renders the per-section 3-column page header:
+ * [Logo | Document Title | SMS Table (Emission/Revision/Sheet)]
+ * Matches the reference PDF layout.
+ */
+function pageHeader(docTitle: string, company: Company, sheetNum: string = "01") {
+  const companyName = company.trade_name || company.name;
+  return `
+<table class="rpt-page-header">
+  <tr>
+    <td class="hdr-logo" rowspan="2">
+      <img src="/mg-consult-logo.png" alt="MG Consult" style="height:36px; max-width:120px;" onerror="this.innerHTML='<strong style=font-size:9px>MG<br>Consult</strong>'" />
+    </td>
+    <td class="hdr-title" style="padding:6px;">
+      <div style="font-size:11px; font-weight:bold; margin-bottom:2px;">${docTitle}</div>
+      <div style="font-size:10px; color:#444;">${companyName}</div>
+    </td>
+    <td class="hdr-sms" rowspan="2">
+      <table class="sms-table">
+        <tr><th>Emissão</th><th>Revisão</th><th>Folha</th></tr>
+        <tr><td>${getToday()}</td><td>00</td><td>${sheetNum}</td></tr>
+      </table>
+      <div style="font-size:8px; color:#666; margin-top:3px;">SMS — Segurança</div>
+    </td>
+  </tr>
+  <tr>
+    <td style="font-size:9px; color:#555; text-align:center; padding:3px;">
+      Documento técnico confidencial — MG Consultoria
+    </td>
+  </tr>
+</table>`;
+}
+
+/**
+ * Renders the per-section page footer with MG Consult branding.
+ */
+function pageFooter() {
+  return `<div class="rpt-page-footer">MG Consultoria — Ergonomia &amp; Segurança do Trabalho &nbsp;|&nbsp; ${getToday()}</div>`;
 }
 
 function companyDataTable(company: Company) {
@@ -129,12 +332,12 @@ function signatureBlock(consultant: string, title: string = "Engenheiro de Segur
   <p><strong>${consultant}</strong></p>
   <p>${title}</p>
   <p>${registration}</p>
-  <p style="font-size:11px; color:#90A4AE; margin-top:15px;"><em>Documento gerado pelo sistema Focus Spartan — MG Consultoria</em></p>
+  <p style="font-size:11px; color:#555; margin-top:15px;"><em>Documento gerado pelo sistema Focus Spartan — MG Consultoria</em></p>
 </div>`;
 }
 
 function footer() {
-  return `<div class="rpt-footer">MG Consultoria — Ergonomia & Segurança do Trabalho | ${getToday()}</div>`;
+  return `<div class="rpt-footer">MG Consultoria — Ergonomia &amp; Segurança do Trabalho | ${getToday()}</div>`;
 }
 
 function getCtxData(ctx: ReportContext) {
@@ -346,40 +549,40 @@ function occupationalRiskInventoryTable(
   let currentType = "";
   return `
 <table class="rpt-table" style="font-size:11px;">
-  <tr><th colspan="13" style="text-align:center; font-size:13px; background:#333; color:white;">INVENTÁRIO DE RISCOS OCUPACIONAIS</th></tr>
+  <tr><th colspan="11" style="text-align:center; font-size:13px; background:#333; color:white; border:1px solid #000;">INVENTÁRIO DE RISCOS OCUPACIONAIS</th></tr>
   <tr>
-    <th rowspan="2" style="background:#E0E0E0; color:#333;">Agente</th>
-    <th colspan="2" style="background:#E0E0E0; color:#333;">Identificação</th>
-    <th colspan="2" style="background:#E0E0E0; color:#333;">Perfil de Exposição Existente</th>
-    <th colspan="3" style="background:#E0E0E0; color:#333;">Avaliação do Risco¹</th>
-    <th colspan="3" style="background:#E0E0E0; color:#333;">Medidas de Controle²</th>
+    <th rowspan="2" style="background:#c6efce; color:#1a1a1a; border:1px solid #000;">Agente</th>
+    <th colspan="2" style="background:#c6efce; color:#1a1a1a; border:1px solid #000;">Identificação de Perigos</th>
+    <th colspan="2" style="background:#c6efce; color:#1a1a1a; border:1px solid #000;">Perfil de Exposição</th>
+    <th colspan="3" style="background:#c6efce; color:#1a1a1a; border:1px solid #000;">Avaliação do Risco¹</th>
+    <th colspan="3" style="background:#c6efce; color:#1a1a1a; border:1px solid #000;">Medidas de Controle²</th>
   </tr>
   <tr>
-    <th style="background:#F5F5F5; color:#333;">Identificação de perigos</th>
-    <th style="background:#F5F5F5; color:#333;">Possíveis Danos</th>
-    <th style="background:#F5F5F5; color:#333;">Fonte Geradora</th>
-    <th style="background:#F5F5F5; color:#333;">Tempo de exposição</th>
-    <th style="background:#F5F5F5; color:#333;">P</th>
-    <th style="background:#F5F5F5; color:#333;">S</th>
-    <th style="background:#F5F5F5; color:#333;">NR</th>
-    <th style="background:#F5F5F5; color:#333;">EPC</th>
-    <th style="background:#F5F5F5; color:#333;">ADM</th>
-    <th style="background:#F5F5F5; color:#333;">EPI</th>
+    <th style="background:#e8f5e9; color:#1a1a1a; border:1px solid #000;">Identificação de perigos</th>
+    <th style="background:#e8f5e9; color:#1a1a1a; border:1px solid #000;">Possíveis Danos</th>
+    <th style="background:#e8f5e9; color:#1a1a1a; border:1px solid #000;">Fonte Geradora</th>
+    <th style="background:#e8f5e9; color:#1a1a1a; border:1px solid #000;">Tempo de exposição</th>
+    <th style="background:#e8f5e9; color:#1a1a1a; border:1px solid #000; text-align:center;">P</th>
+    <th style="background:#e8f5e9; color:#1a1a1a; border:1px solid #000; text-align:center;">S</th>
+    <th style="background:#e8f5e9; color:#1a1a1a; border:1px solid #000; text-align:center;">NR</th>
+    <th style="background:#e8f5e9; color:#1a1a1a; border:1px solid #000; text-align:center;">EPC</th>
+    <th style="background:#e8f5e9; color:#1a1a1a; border:1px solid #000; text-align:center;">ADM</th>
+    <th style="background:#e8f5e9; color:#1a1a1a; border:1px solid #000; text-align:center;">EPI</th>
   </tr>
   ${rows.map(r => {
     let typeCell = "";
     if (r.type !== currentType) {
       const count = typeGroups.get(r.type) || 1;
-      typeCell = `<td rowspan="${count}" style="background:${r.typeColor}; color:white; font-weight:bold; text-align:center; writing-mode:horizontal-tb; font-size:11px;">${r.type}</td>`;
+      typeCell = `<td rowspan="${count}" style="background:${r.typeColor}; color:white; font-weight:bold; text-align:center; font-size:10px; border:1px solid #000; vertical-align:middle;">${r.type}</td>`;
       currentType = r.type;
     }
     return `<tr>${typeCell}
-      <td>${r.hazard}</td><td>${r.damage}</td>
-      <td>${r.source}</td><td>${r.exposure}</td>
-      <td style="text-align:center;">${r.p}</td><td style="text-align:center;">${r.s}</td>
-      <td style="text-align:center; ${nrBadgeStyle(r.nr)}">${r.nr}</td>
-      <td style="text-align:center;">${r.epc}</td><td style="text-align:center;">${r.adm}</td>
-      <td style="text-align:center;">${r.epi}</td>
+      <td style="border:1px solid #000; padding:5px;">${r.hazard}</td><td style="border:1px solid #000; padding:5px;">${r.damage}</td>
+      <td style="border:1px solid #000; padding:5px;">${r.source}</td><td style="border:1px solid #000; padding:5px;">${r.exposure}</td>
+      <td style="text-align:center; border:1px solid #000; padding:5px;">${r.p}</td><td style="text-align:center; border:1px solid #000; padding:5px;">${r.s}</td>
+      <td style="text-align:center; border:1px solid #000; padding:5px; font-weight:bold; ${nrBadgeStyle(r.nr)}">${r.nr}</td>
+      <td style="text-align:center; border:1px solid #000; padding:5px;">${r.epc}</td><td style="text-align:center; border:1px solid #000; padding:5px;">${r.adm}</td>
+      <td style="text-align:center; border:1px solid #000; padding:5px;">${r.epi}</td>
     </tr>`;
   }).join("")}
 </table>
@@ -761,8 +964,9 @@ function generateAETReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant)}
+${pageHeader("ANÁLISE ERGONÔMICA DO TRABALHO — AET", company)}
 
-<div class="rpt-section">ÍNDICE</div>
+<div class="rpt-section" style="page-break-before:avoid;">ÍNDICE</div>
 <table class="rpt-table">
   <tr><td>1. Introdução</td><td style="text-align:right;">3</td></tr>
   <tr><td>2. Dados da Empresa</td><td style="text-align:right;">4</td></tr>
@@ -772,10 +976,8 @@ ${coverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant)}
   <tr><td>6. Referencial Teórico</td><td style="text-align:right;">7</td></tr>
   <tr><td>7. Estudo Ergonômico do Trabalho</td><td style="text-align:right;">9</td></tr>
   <tr><td>8. Definição de Métodos, Técnicas e Ferramentas</td><td style="text-align:right;">10</td></tr>
-  <tr><td>9. Agrupamento por GHE e Matriz de Avaliação Ergonômica</td><td style="text-align:right;">12</td></tr>
-  <tr><td>10. Análise dos Riscos Psicossociais</td><td style="text-align:right;">14</td></tr>
-  <tr><td>11. Responsabilidade Técnica</td><td style="text-align:right;">15</td></tr>
-  <tr><td>12. Anexos</td><td style="text-align:right;">16</td></tr>
+  <tr><td>9. Responsabilidade Técnica</td><td style="text-align:right;">12</td></tr>
+  <tr><td>10. Anexos</td><td style="text-align:right;">13</td></tr>
 </table>
 <div class="page-break"></div>
 
@@ -851,23 +1053,23 @@ ${companyDataTable(company)}
 <p>A análise da demanda foi conduzida por meio de observação direta dos postos de trabalho, entrevistas semiestruturadas com trabalhadores e gestores, análise documental (PPRA/PGR, PCMSO, CIPA, atestados médicos) e levantamento fotográfico das condições ergonômicas. As queixas mais frequentes foram compiladas e confrontadas com os achados objetivos das avaliações biomecânicas.</p>
 
 ${workstations.map(ws => {
-  const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
-  const wsAnalyses2 = analyses.filter(a => a.workstation_id === ws.id);
-  const wsRisks2 = risks.filter(r => wsAnalyses2.some(a => a.id === r.analysis_id));
-  const sectorObj = ws.sector || sector;
-  const sectorLabel = (sectorObj as any)?.name || "Geral";
-  const tasksLabel = wsTasks.map(t => t.description).join("; ") || ws.tasks_performed || "Atividades gerais do posto";
-  const analysesLabel = wsAnalyses2.length > 0 ? wsAnalyses2.map(a => a.method + " (Score: " + a.score + ")").join(", ") : "Pendente";
-  const risksLabel = wsRisks2.length > 0 ? wsRisks2.map(r => r.description + " (" + riskLevelLabel(r.risk_level) + ")").join("; ") : "A avaliar";
-  return '<div class="rpt-section3">Posto: ' + ws.name + '</div>' +
-  '<table class="rpt-table">' +
-  '<tr><td class="label" style="width:180px;">Setor</td><td>' + sectorLabel + '</td></tr>' +
-  '<tr><td class="label">Descrição da Atividade</td><td>' + (ws.activity_description || ws.description || "—") + '</td></tr>' +
-  '<tr><td class="label">Tarefas Executadas</td><td>' + tasksLabel + '</td></tr>' +
-  '<tr><td class="label">Análises Realizadas</td><td>' + analysesLabel + '</td></tr>' +
-  '<tr><td class="label">Riscos Identificados</td><td>' + risksLabel + '</td></tr>' +
-  '</table>';
-}).join("")}
+    const wsTasks = tasks.filter(t => t.workstation_id === ws.id);
+    const wsAnalyses2 = analyses.filter(a => a.workstation_id === ws.id);
+    const wsRisks2 = risks.filter(r => wsAnalyses2.some(a => a.id === r.analysis_id));
+    const sectorObj = ws.sector || sector;
+    const sectorLabel = (sectorObj as any)?.name || "Geral";
+    const tasksLabel = wsTasks.map(t => t.description).join("; ") || ws.tasks_performed || "Atividades gerais do posto";
+    const analysesLabel = wsAnalyses2.length > 0 ? wsAnalyses2.map(a => a.method + " (Score: " + a.score + ")").join(", ") : "Pendente";
+    const risksLabel = wsRisks2.length > 0 ? wsRisks2.map(r => r.description + " (" + riskLevelLabel(r.risk_level) + ")").join("; ") : "A avaliar";
+    return '<div class="rpt-section3">Posto: ' + ws.name + '</div>' +
+      '<table class="rpt-table">' +
+      '<tr><td class="label" style="width:180px;">Setor</td><td>' + sectorLabel + '</td></tr>' +
+      '<tr><td class="label">Descrição da Atividade</td><td>' + (ws.activity_description || ws.description || "—") + '</td></tr>' +
+      '<tr><td class="label">Tarefas Executadas</td><td>' + tasksLabel + '</td></tr>' +
+      '<tr><td class="label">Análises Realizadas</td><td>' + analysesLabel + '</td></tr>' +
+      '<tr><td class="label">Riscos Identificados</td><td>' + risksLabel + '</td></tr>' +
+      '</table>';
+  }).join("")}
 
 <div class="page-break"></div>
 <div class="rpt-section">6. REFERENCIAL TEÓRICO</div>
@@ -943,14 +1145,13 @@ ${analyses.filter(a => a.method === "REBA").length > 0 ? `
 <div class="rpt-section2">7.2 FICHAS REBA — RAPID ENTIRE BODY ASSESSMENT</div>
 <p>Avaliação detalhada utilizando o método REBA para cada posto analisado:</p>
 ${analyses.filter(a => a.method === "REBA").map(a => {
-  const ws = workstations.find(w => w.id === a.workstation_id);
-  if (!ws) return '';
-  const wsIdx = workstations.indexOf(ws);
-  const risk = risks.find(r => r.analysis_id === a.id);
-  return '<div class="page-break"></div>' + rebaAssessmentSheet(ws, wsIdx, a, risk, ctx);
-}).join('')}` : ''}
+    const ws = workstations.find(w => w.id === a.workstation_id);
+    if (!ws) return '';
+    const wsIdx = workstations.indexOf(ws);
+    const risk = risks.find(r => r.analysis_id === a.id);
+    return '<div class="page-break"></div>' + rebaAssessmentSheet(ws, wsIdx, a, risk, ctx);
+  }).join('')}` : ''}
 
-<div class="page-break"></div>
 <div class="rpt-section">8. DEFINIÇÃO DE MÉTODOS, TÉCNICAS E FERRAMENTAS</div>
 <p><strong>REBA</strong> — Rapid Entire Body Assessment: Estima o risco de distúrbios musculoesqueléticos. Classificação: 1-3 Baixo | 4-7 Médio | 8-10 Alto | 11+ Muito Alto.</p>
 <p><strong>RULA</strong> — Rapid Upper Limb Assessment: Avalia exposição dos membros superiores. Classificação: 1-2 Aceitável | 3-4 Investigar | 5-6 Mudar breve | 7 Mudar imediatamente.</p>
@@ -959,96 +1160,14 @@ ${analyses.filter(a => a.method === "REBA").map(a => {
 <p><strong>OWAS</strong> — Ovako Working Posture Analysing System: Classificação postural. 1: Normal | 2: Leve | 3: Severo | 4: Muito severo.</p>
 ${equipmentTable()}
 
-<div class="page-break"></div>
-<div class="rpt-section">9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA</div>
-<p>A empresa <strong>${company.trade_name || company.name}</strong> tem seus trabalhadores classificados em Grupos Homogêneos de Exposição (GHE), conforme metodologia do PGR.</p>
-${gheTable(workstations, ctx)}
-${riskMatrix()}
+<div class="rpt-section">9. RESPONSABILIDADE TÉCNICA</div>
 
-${risks.length > 0 ? `<div class="rpt-section3">Riscos Identificados</div>
-<table class="rpt-table">
-  <tr><th>Posto de Trabalho</th><th>Descrição do Risco</th><th>Cálculo (P×E×C)</th><th>Pontuação</th><th>Nível de Risco</th></tr>
-  ${risks.map((r, i) => {
-    const analysis = analyses.find(a => a.id === r.analysis_id);
-    const ws = analysis ? workstations.find(w => w.id === analysis.workstation_id) : null;
-    return `<tr><td>${ws?.name || 'GHE ' + (i + 1)}</td><td>${r.description}</td><td>${r.probability}×${r.exposure}×${r.consequence}</td><td><strong>${r.risk_score}</strong></td><td><strong>${riskLevelLabel(r.risk_level)}</strong></td></tr>`;
-  }).join("")}
-</table>` : ""}
-
-<div class="page-break"></div>
-<div class="rpt-section2">9.1 INVENTÁRIO DE RISCOS OCUPACIONAIS POR POSTO</div>
-<p>Inventário completo de riscos ocupacionais com classificação por agente, conforme metodologia do PGR/NR-01:</p>
-${workstations.map((ws, idx) => {
-  return `<div class="rpt-section3">GHE ${String(idx + 1).padStart(2, '0')} — ${ws.name}</div>
-${occupationalRiskInventoryTable(risks, analyses, ws, psychosocial)}`;
-}).join('<div class="page-break"></div>')}
-
-<div class="page-break"></div>
-<div class="rpt-section">10. ANÁLISE DOS RISCOS PSICOSSOCIAIS</div>
-
-<div class="rpt-section3">10.1 Fundamentação Teórica</div>
-<p>Os riscos psicossociais no trabalho referem-se a aspectos da concepção, organização e gestão do trabalho, bem como do seu contexto social e ambiental, que têm potencial de causar danos psicológicos, físicos ou sociais aos trabalhadores (OIT, 2010). Segundo a Agência Europeia para a Segurança e Saúde no Trabalho (EU-OSHA), os fatores psicossociais são a segunda categoria de problemas de saúde relacionados ao trabalho mais frequentemente relatada na Europa.</p>
-<p>A NR-01 (Portaria SEPRT nº 6.730/2020), em seu item 1.5.3.1, incluiu os fatores de risco psicossociais entre os agentes a serem considerados no Programa de Gerenciamento de Riscos (PGR), reforçando a obrigatoriedade de sua avaliação sistemática. A NR-17, por sua vez, em seu Anexo II, estabelece parâmetros sobre organização do trabalho, conteúdo das tarefas, exigências de tempo e ritmo que impactam diretamente a saúde mental dos trabalhadores.</p>
-
-<div class="rpt-section3">10.2 Fatores de Risco Psicossocial Avaliados</div>
-<table class="rpt-table">
-  <tr><th style="width:200px;">Fator de Risco</th><th>Descrição</th><th style="width:120px;">Consequências</th></tr>
-  <tr><td class="label">Demandas Quantitativas</td><td>Volume de trabalho excessivo em relação ao tempo disponível e ao efetivo de trabalhadores</td><td>Fadiga, estresse</td></tr>
-  <tr><td class="label">Ritmo de Trabalho</td><td>Velocidade e intensidade exigidas para cumprimento das tarefas e metas de produção</td><td>Ansiedade, DORT</td></tr>
-  <tr><td class="label">Demandas Emocionais</td><td>Exigência de controle emocional, lidar com situações difíceis, conflitos interpessoais</td><td>Burnout, depressão</td></tr>
-  <tr><td class="label">Demandas Cognitivas</td><td>Necessidade de concentração, atenção sustentada, memória e tomada de decisão</td><td>Fadiga mental</td></tr>
-  <tr><td class="label">Autonomia e Controle</td><td>Grau de influência do trabalhador sobre suas tarefas, ritmo e métodos de trabalho</td><td>Desmotivação</td></tr>
-  <tr><td class="label">Suporte Social</td><td>Qualidade das relações interpessoais, apoio de colegas e chefia</td><td>Isolamento</td></tr>
-  <tr><td class="label">Reconhecimento</td><td>Valorização do trabalho, feedback, perspectivas de desenvolvimento profissional</td><td>Insatisfação</td></tr>
-</table>
-
-<div class="rpt-section3">10.3 Instrumentos de Avaliação Utilizados</div>
-<p>Para a avaliação dos fatores psicossociais, foram selecionados instrumentos validados e reconhecidos internacionalmente:</p>
-<table class="rpt-table">
-  <tr><th>Instrumento</th><th>Descrição</th><th>Dimensões Avaliadas</th></tr>
-  <tr><td class="label">COPSOQ II</td><td>Copenhagen Psychosocial Questionnaire — questionário multidimensional desenvolvido pelo NRCWE (Dinamarca), validado em mais de 30 países. Avalia fatores de risco e proteção psicossociais por meio de escalas 0-100.</td><td>Demandas, Organização do Trabalho, Relações Interpessoais, Interface Trabalho-Indivíduo, Valores, Saúde e Bem-estar</td></tr>
-  <tr><td class="label">NASA-TLX</td><td>NASA Task Load Index — instrumento desenvolvido pela NASA para avaliação subjetiva da carga de trabalho em seis dimensões, com sistema de pesos e ponderação.</td><td>Demanda Mental, Física, Temporal, Performance, Esforço, Frustração</td></tr>
-  <tr><td class="label">HSE-IT</td><td>Health and Safety Executive Indicator Tool — ferramenta do órgão de saúde e segurança do Reino Unido para rastreamento de fatores de estresse ocupacional.</td><td>Demandas, Controle, Apoio, Relacionamentos, Papel, Mudança</td></tr>
-  <tr><td class="label">JSS/Karasek</td><td>Job Stress Scale — baseado no modelo Demanda-Controle de Karasek (1979), classifica o trabalho em quatro quadrantes de risco.</td><td>Demandas Psicológicas, Controle (Autoridade Decisória + Uso de Habilidades)</td></tr>
-</table>
-
-<div class="rpt-section3">10.4 Resultados da Avaliação Psicossocial</div>
-${psychosocial.length > 0 ? '<p>Instrumentos aplicados: ' + (psychosocial.some(p => p.copenhagen_details) ? '<strong>COPSOQ II</strong>, ' : '') + (psychosocial.some(p => p.nasa_tlx_details) ? '<strong>NASA-TLX</strong>, ' : '') + (psychosocial.some(p => p.hse_it_details) ? '<strong>HSE-IT</strong>' : '') + '</p>' +
-psychosocial.map(psa => {
-  let html = '';
-  if (psa.copenhagen_details) {
-    const cd = psa.copenhagen_details;
-    html += '<table class="rpt-table"><tr><th class="teal">Dimensão COPSOQ II</th><th class="teal">Score (0-100)</th><th class="teal">Nível</th></tr>' +
-      ([ ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support] ] as [string, number][]).map(([d, v]) => {
-        const level = v <= 33 ? "Favorável" : v <= 66 ? "Intermediário" : "Desfavorável";
-        const color = v <= 33 ? "#C8E6C9" : v <= 66 ? "#FFF9C4" : "#FFCDD2";
-        return '<tr><td>' + d + '</td><td><strong>' + v + '</strong></td><td style="background:' + color + '; font-weight:bold; text-align:center;">' + level + '</td></tr>';
-      }).join("") +
-      '<tr><td class="label">Score Geral</td><td colspan="2"><strong>' + psa.copenhagen_score + '</strong></td></tr></table>';
-  }
-  if (psa.nasa_tlx_details) {
-    html += '<table class="rpt-table"><tr><th class="alt">NASA-TLX</th><th class="alt">Score (0-100)</th><th class="alt">Interpretação</th></tr>' +
-      '<tr><td>Demanda Mental</td><td>' + psa.nasa_tlx_details.mental_demand + '</td><td>' + (psa.nasa_tlx_details.mental_demand > 70 ? "Carga elevada" : psa.nasa_tlx_details.mental_demand > 40 ? "Carga moderada" : "Carga baixa") + '</td></tr>' +
-      '<tr><td>Demanda Física</td><td>' + psa.nasa_tlx_details.physical_demand + '</td><td>' + (psa.nasa_tlx_details.physical_demand > 70 ? "Carga elevada" : psa.nasa_tlx_details.physical_demand > 40 ? "Carga moderada" : "Carga baixa") + '</td></tr>' +
-      '<tr><td>Demanda Temporal</td><td>' + psa.nasa_tlx_details.temporal_demand + '</td><td>' + (psa.nasa_tlx_details.temporal_demand > 70 ? "Carga elevada" : psa.nasa_tlx_details.temporal_demand > 40 ? "Carga moderada" : "Carga baixa") + '</td></tr>' +
-      '<tr><td>Performance</td><td>' + psa.nasa_tlx_details.performance + '</td><td>' + (psa.nasa_tlx_details.performance > 70 ? "Satisfatória" : psa.nasa_tlx_details.performance > 40 ? "Moderada" : "Insatisfatória") + '</td></tr>' +
-      '<tr><td>Esforço</td><td>' + psa.nasa_tlx_details.effort + '</td><td>' + (psa.nasa_tlx_details.effort > 70 ? "Elevado" : psa.nasa_tlx_details.effort > 40 ? "Moderado" : "Baixo") + '</td></tr>' +
-      '<tr><td>Frustração</td><td>' + psa.nasa_tlx_details.frustration + '</td><td>' + (psa.nasa_tlx_details.frustration > 70 ? "Elevada" : psa.nasa_tlx_details.frustration > 40 ? "Moderada" : "Baixa") + '</td></tr>' +
-      '<tr><td class="label">Score Geral</td><td colspan="2"><strong>' + psa.nasa_tlx_score + '</strong></td></tr></table>';
-  }
-  return html;
-}).join("") : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial foi realizada até o momento para esta empresa.</div>' +
-'<p>Recomenda-se a aplicação dos instrumentos COPSOQ II, NASA-TLX e/ou HSE-IT para avaliação dos fatores de risco psicossocial, conforme exigência da NR-01 e da NR-17.</p>' +
-'<div class="rpt-callout">A avaliação dos fatores psicossociais é fundamental para a construção de um diagnóstico ergonômico completo, uma vez que o estresse ocupacional, a carga mental excessiva e os conflitos interpessoais são reconhecidos como agravantes de distúrbios musculoesqueléticos (DORT/LER), conforme demonstrado por estudos epidemiológicos (Bongers et al., 1993; Huang et al., 2002).</div>'}
-
-<div class="page-break"></div>
-<div class="rpt-section">11. RESPONSABILIDADE TÉCNICA</div>
 <p>O presente documento foi elaborado sob a responsabilidade técnica da MG CONSULT.</p>
 <p>${company.city}, ${getToday()}.</p>
 ${signatureBlock(consultant, "M.Sc Eng. de Produção (Ergonomia) / Eng. de Segurança do Trabalho")}
 
 <div class="page-break"></div>
-<div class="rpt-section">12. ANEXOS</div>
+<div class="rpt-section">10. ANEXOS</div>
 <ul style="font-size:14px; line-height:2;">
   <li>ANEXO I — Avaliação Ergonômica Preliminar (AEP)</li>
   <li>ANEXO II — Ferramentas e Métodos Aplicados</li>
@@ -1062,11 +1181,11 @@ ${signatureBlock(consultant, "M.Sc Eng. de Produção (Ergonomia) / Eng. de Segu
 <div class="rpt-section">ANEXO I — AVALIAÇÃO ERGONÔMICA PRELIMINAR (AEP)</div>
 <p>A Avaliação Ergonômica Preliminar (AEP) tem como objetivo identificar os perigos ergonômicos de forma inicial, servindo como triagem para a AET detalhada. Conforme a NR-17, a AEP é obrigatória para todas as organizações.</p>
 ${workstations.map((ws, idx) => {
-  const wsAnalyses = analyses.filter(a => a.workstation_id === ws.id);
-  const wsPhotos = photos.filter(p => p.workstation_id === ws.id);
-  const wsRisks = risks.filter(r => wsAnalyses.some(a => a.id === r.analysis_id));
-  const sectorObj = ws.sector || ctx.sector;
-  return `
+    const wsAnalyses = analyses.filter(a => a.workstation_id === ws.id);
+    const wsPhotos = photos.filter(p => p.workstation_id === ws.id);
+    const wsRisks = risks.filter(r => wsAnalyses.some(a => a.id === r.analysis_id));
+    const sectorObj = ws.sector || ctx.sector;
+    return `
 <div class="rpt-section2">AEP ${String(idx + 1).padStart(2, '0')} — ${ws.name}</div>
 <table class="rpt-table">
   <tr><td class="label" style="width:200px;">Posto de Trabalho</td><td>${ws.name}</td></tr>
@@ -1092,11 +1211,11 @@ ${wsPhotos.length > 0 ? `
 <table class="rpt-table">
   <tr><th>Tipo de Postura</th><th>Observações</th><th>Data do Registro</th></tr>
   ${wsPhotos.map(p => {
-    const postureLabel = p.posture_type === 'sentado' ? 'Sentado' : p.posture_type === 'em_pe' ? 'Em pé' : p.posture_type;
-    return `<tr><td><strong>${postureLabel}</strong></td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`;
-  }).join("")}
+      const postureLabel = p.posture_type === 'sentado' ? 'Sentado' : p.posture_type === 'em_pe' ? 'Em pé' : p.posture_type;
+      return `<tr><td><strong>${postureLabel}</strong></td><td>${p.notes || "—"}</td><td>${p.created_at}</td></tr>`;
+    }).join("")}
 </table>` : ''}`;
-}).join("")}
+  }).join("")}
 
 <div class="page-break"></div>
 <div class="rpt-section">ANEXO II — FERRAMENTAS E MÉTODOS APLICADOS</div>
@@ -1117,10 +1236,10 @@ ${equipmentTable()}
 ${psychosocial.length > 0 ? `
 <p>Avaliações psicossociais realizadas: <strong>${psychosocial.length}</strong></p>
 ${psychosocial.map((psa, idx) => {
-  let html = `<div class="rpt-section2">Avaliação ${idx + 1} — ${psa.evaluator_name}</div>`;
-  if (psa.nasa_tlx_details) {
-    const nasaClass = psa.nasa_tlx_score! <= 30 ? "green" : psa.nasa_tlx_score! <= 50 ? "yellow" : psa.nasa_tlx_score! <= 70 ? "orange" : "red";
-    html += `<div class="rpt-section3">NASA-TLX (Carga de Trabalho)</div>
+    let html = `<div class="rpt-section2">Avaliação ${idx + 1} — ${psa.evaluator_name}</div>`;
+    if (psa.nasa_tlx_details) {
+      const nasaClass = psa.nasa_tlx_score! <= 30 ? "green" : psa.nasa_tlx_score! <= 50 ? "yellow" : psa.nasa_tlx_score! <= 70 ? "orange" : "red";
+      html += `<div class="rpt-section3">NASA-TLX (Carga de Trabalho)</div>
     <table class="rpt-table">
       <tr><th class="alt">Dimensão</th><th class="alt">Score (0-100)</th></tr>
       <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
@@ -1131,10 +1250,10 @@ ${psychosocial.map((psa, idx) => {
       <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
       <tr><td class="label">Score Geral</td><td><span class="rpt-badge ${nasaClass}"><strong>${psa.nasa_tlx_score}</strong></span></td></tr>
     </table>`;
-  }
-  if (psa.hse_it_details) {
-    const hseClass = psa.hse_it_score! >= 4 ? "green" : psa.hse_it_score! >= 3 ? "yellow" : psa.hse_it_score! >= 2 ? "orange" : "red";
-    html += `<div class="rpt-section3">HSE-IT (Estresse Ocupacional)</div>
+    }
+    if (psa.hse_it_details) {
+      const hseClass = psa.hse_it_score! >= 4 ? "green" : psa.hse_it_score! >= 3 ? "yellow" : psa.hse_it_score! >= 2 ? "orange" : "red";
+      html += `<div class="rpt-section3">HSE-IT (Estresse Ocupacional)</div>
     <table class="rpt-table">
       <tr><th class="teal">Dimensão</th><th class="teal">Score (1-5)</th></tr>
       <tr><td>Demandas</td><td>${psa.hse_it_details.demands}</td></tr>
@@ -1145,19 +1264,19 @@ ${psychosocial.map((psa, idx) => {
       <tr><td>Mudança</td><td>${psa.hse_it_details.change}</td></tr>
       <tr><td class="label">Score Geral</td><td><span class="rpt-badge ${hseClass}"><strong>${psa.hse_it_score}</strong></span></td></tr>
     </table>`;
-  }
-  if (psa.copenhagen_details) {
-    const cd = psa.copenhagen_details;
-    html += `<div class="rpt-section3">COPSOQ II (Copenhagen)</div>
+    }
+    if (psa.copenhagen_details) {
+      const cd = psa.copenhagen_details;
+      html += `<div class="rpt-section3">COPSOQ II (Copenhagen)</div>
     <table class="rpt-table">
       <tr><th class="teal">Dimensão</th><th class="teal">Score (0-100)</th></tr>
       ${([["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support]] as [string, number][]).map(([d, v]) => `<tr><td>${d}</td><td><strong>${v}</strong></td></tr>`).join("")}
       <tr><td class="label">Score Geral</td><td><strong>${psa.copenhagen_score}</strong></td></tr>
     </table>`;
-  }
-  if (psa.observations) html += `<div class="rpt-callout">${psa.observations}</div>`;
-  return html;
-}).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial registrada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX, HSE-IT e JSS.</div>'}
+    }
+    if (psa.observations) html += `<div class="rpt-callout">${psa.observations}</div>`;
+    return html;
+  }).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial registrada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX, HSE-IT e JSS.</div>'}
 
 <div class="page-break"></div>
 <div class="rpt-section">ANEXO IV — PLANO DE AÇÃO ERGONÔMICO</div>
@@ -1204,6 +1323,7 @@ function generatePGRReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE GERENCIAMENTO DE RISCOS", "PGR", company, consultant)}
+${pageHeader("PROGRAMA DE GERENCIAMENTO DE RISCOS — PGR", company)}
 
 ${revisionTable()}
 
@@ -1278,31 +1398,36 @@ ${riskMatrix()}
 </table>
 <div class="page-break"></div>
 
+<div class="rpt-section3">9.4 AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA</div>
+<p>A empresa <strong>${company.trade_name || company.name}</strong> tem seus trabalhadores classificados em Grupos Homogêneos de Exposição (GHE), conforme metodologia do PGR/NR-01. O agrupamento por GHE permite que trabalhadores com perfil semelhante de exposição a riscos ocupacionais sejam avaliados e gerenciados em conjunto, otimizando a efetividade das medidas de controle.</p>
+${gheTable(workstations, ctx)}
+${riskMatrix()}
+
 <div class="rpt-section">10. INVENTÁRIO DE RISCO</div>
 ${Array.from(sectorMap.entries()).map(([sectorId, { sectorName, workstations: sectorWs }], gheIndex) => {
-  const wsRisks = risks.filter(r => {
-    const analysis = analyses.find(a => a.id === r.analysis_id);
-    return analysis && sectorWs.some(w => w.id === analysis.workstation_id);
-  });
-  return `
+    const wsRisks = risks.filter(r => {
+      const analysis = analyses.find(a => a.id === r.analysis_id);
+      return analysis && sectorWs.some(w => w.id === analysis.workstation_id);
+    });
+    return `
 <div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} / SETOR — ${sectorName.toUpperCase()}</div>
 <p><strong>Postos:</strong> ${sectorWs.map(w => w.name).join(", ")}</p>
 <table class="rpt-table">
   <tr><th>Posto / Função</th><th>Descrição das Atividades</th></tr>
   ${sectorWs.map(ws => {
-    const wt = tasks.filter(t => t.workstation_id === ws.id);
-    return `<tr><td><strong>${ws.name}</strong></td><td>${wt.map(t => t.description).join("; ") || ws.tasks_performed || ws.activity_description}</td></tr>`;
-  }).join("")}
+      const wt = tasks.filter(t => t.workstation_id === ws.id);
+      return `<tr><td><strong>${ws.name}</strong></td><td>${wt.map(t => t.description).join("; ") || ws.tasks_performed || ws.activity_description}</td></tr>`;
+    }).join("")}
 </table>
 <table class="rpt-table">
   <tr><th>Agente / Perigo</th><th>Possíveis Danos</th><th>Probabilidade</th><th>Gravidade</th><th>Nível de Risco</th><th>Medidas de Controle</th></tr>
   ${wsRisks.length > 0 ? wsRisks.map(r => {
-    const analysis = analyses.find(a => a.id === r.analysis_id);
-    const ws = analysis ? sectorWs.find(w => w.id === analysis.workstation_id) : null;
-    return `<tr><td>${r.description}</td><td>${ws?.name || "—"}</td><td style="text-align:center;">${r.probability}</td><td style="text-align:center;">${r.consequence}</td><td style="text-align:center;">${riskLevelLabel(r.risk_level)}</td><td>${mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I."}</td></tr>`;
-  }).join("") : `<tr><td colspan="6" style="text-align:center;">Nenhum risco identificado para este setor</td></tr>`}
+      const analysis = analyses.find(a => a.id === r.analysis_id);
+      const ws = analysis ? sectorWs.find(w => w.id === analysis.workstation_id) : null;
+      return `<tr><td>${r.description}</td><td>${ws?.name || "—"}</td><td style="text-align:center;">${r.probability}</td><td style="text-align:center;">${r.consequence}</td><td style="text-align:center;">${riskLevelLabel(r.risk_level)}</td><td>${mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I."}</td></tr>`;
+    }).join("") : `<tr><td colspan="6" style="text-align:center;">Nenhum risco identificado para este setor</td></tr>`}
 </table>`;
-}).join("")}
+  }).join("")}
 
 <div class="rpt-section">11. IMPLEMENTAÇÃO DAS MEDIDAS DE PREVENÇÃO</div>
 ${actions.length > 0 ? `<table class="rpt-table">
@@ -1348,6 +1473,7 @@ function generateAPRReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("AVALIAÇÃO PRELIMINAR DE RISCOS PSICOSSOCIAIS", "APR — FRPRT", company, consultant)}
+${pageHeader("AVALIAÇÃO PRELIMINAR DE RISCOS PSICOSSOCIAIS — APR", company)}
 
 ${revisionTable()}
 
@@ -1381,18 +1507,18 @@ ${riskMatrix()}
 
 <div class="rpt-section">5. RESULTADOS</div>
 ${psychosocial.length > 0 ? psychosocial.map(psa => {
-  let html = '';
-  if (psa.copenhagen_details) {
-    const cd = psa.copenhagen_details;
-    html += `<div class="rpt-section2">COPSOQ II — Resultados por Domínio</div>
+    let html = '';
+    if (psa.copenhagen_details) {
+      const cd = psa.copenhagen_details;
+      html += `<div class="rpt-section2">COPSOQ II — Resultados por Domínio</div>
     <table class="rpt-table">
       <tr><th class="teal">Domínio Psicossocial</th><th class="teal">Score</th><th class="teal">Classificação</th></tr>
-      ${([ ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência no Trabalho", cd.influence], ["Possibilidades de Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support] ] as [string, number][]).map(([dim, val]) => `<tr><td>${dim}</td><td><strong>${val}</strong></td><td>${classifyRisk(val)}</td></tr>`).join("")}
+      ${([["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência no Trabalho", cd.influence], ["Possibilidades de Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support]] as [string, number][]).map(([dim, val]) => `<tr><td>${dim}</td><td><strong>${val}</strong></td><td>${classifyRisk(val)}</td></tr>`).join("")}
       <tr><td class="label"><strong>Score Global</strong></td><td><strong>${psa.copenhagen_score}</strong></td><td>${classifyRisk(psa.copenhagen_score || 0)}</td></tr>
     </table>`;
-  }
-  if (psa.nasa_tlx_details) {
-    html += `<div class="rpt-section2">NASA-TLX — Índice de Carga de Trabalho</div>
+    }
+    if (psa.nasa_tlx_details) {
+      html += `<div class="rpt-section2">NASA-TLX — Índice de Carga de Trabalho</div>
     <table class="rpt-table">
       <tr><th class="alt">Dimensão</th><th class="alt">Score (0-100)</th></tr>
       <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
@@ -1403,9 +1529,9 @@ ${psychosocial.length > 0 ? psychosocial.map(psa => {
       <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
       <tr><td class="label"><strong>Score Geral</strong></td><td><strong>${psa.nasa_tlx_score}</strong></td></tr>
     </table>`;
-  }
-  if (psa.hse_it_details) {
-    html += `<div class="rpt-section2">HSE-IT — Indicadores de Estresse Ocupacional</div>
+    }
+    if (psa.hse_it_details) {
+      html += `<div class="rpt-section2">HSE-IT — Indicadores de Estresse Ocupacional</div>
     <table class="rpt-table">
       <tr><th class="alt">Dimensão</th><th class="alt">Score</th></tr>
       <tr><td>Demandas</td><td>${psa.hse_it_details.demands}</td></tr>
@@ -1416,10 +1542,10 @@ ${psychosocial.length > 0 ? psychosocial.map(psa => {
       <tr><td>Mudança</td><td>${psa.hse_it_details.change}</td></tr>
       <tr><td class="label"><strong>Score Geral</strong></td><td><strong>${psa.hse_it_score}</strong></td></tr>
     </table>`;
-  }
-  html += `<p><strong>Observações:</strong> ${psa.observations}</p>`;
-  return html;
-}).join("<hr>") : '<div class="rpt-callout danger">Nenhuma avaliação psicossocial encontrada. Recomenda-se aplicação urgente dos questionários COPSOQ II, NASA-TLX e HSE-IT.</div>'}
+    }
+    html += `<p><strong>Observações:</strong> ${psa.observations}</p>`;
+    return html;
+  }).join("<hr>") : '<div class="rpt-callout danger">Nenhuma avaliação psicossocial encontrada. Recomenda-se aplicação urgente dos questionários COPSOQ II, NASA-TLX e HSE-IT.</div>'}
 
 <div class="rpt-section">6. RECOMENDAÇÕES TÉCNICAS</div>
 <table class="rpt-table">
@@ -1448,6 +1574,7 @@ function generatePCMSOReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE CONTROLE MÉDICO DE SAÚDE OCUPACIONAL", "PCMSO", company, medico)}
+${pageHeader("PROGRAMA DE CONTROLE MÉDICO DE SAÚDE OCUPACIONAL — PCMSO", company)}
 
 ${revisionTable()}
 
@@ -1493,7 +1620,7 @@ ${companyDataTable(company)}
   <tr><td class="label">Médico Coordenador</td><td>${medico}</td></tr>
   <tr><td class="label">Especialidade</td><td>Medicina do Trabalho</td></tr>
   <tr><td class="label">CRM</td><td>XXXXX</td></tr>
-  <tr><td class="label">Vigência</td><td>${getToday()} a ${new Date(Date.now() + 365*24*60*60*1000).toLocaleDateString("pt-BR")}</td></tr>
+  <tr><td class="label">Vigência</td><td>${getToday()} a ${new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toLocaleDateString("pt-BR")}</td></tr>
 </table>
 
 <div class="rpt-section">7. RESPONSABILIDADES</div>
@@ -1564,6 +1691,7 @@ function generateLTCATReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DO TRABALHO", "LTCAT", company, consultant)}
+${pageHeader("LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DO TRABALHO — LTCAT", company)}
 
 ${revisionTable()}
 
@@ -1624,21 +1752,21 @@ ${equipmentTable()}
 
 <div class="rpt-section">9. AVALIAÇÕES DAS CONDIÇÕES AMBIENTAIS</div>
 ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs }], gheIndex) => {
-  return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
+    return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
 <table class="rpt-table">
   <tr><th>Função/Posto</th><th>Agente Nocivo</th><th>Intensidade/Concentração</th><th>LT (NR-15)</th><th>Tempo Exposição</th><th>EPI Eficaz</th><th>Aposentadoria Especial</th></tr>
   ${sectorWs.map(ws => {
-    const wsRisks = risks.filter(r => {
-      const a = analyses.find(a2 => a2.id === r.analysis_id);
-      return a && a.workstation_id === ws.id;
-    });
-    if (wsRisks.length === 0) {
-      return `<tr><td>${ws.name}</td><td colspan="6" style="text-align:center;">Sem exposição a agentes nocivos acima dos limites de tolerância</td></tr>`;
-    }
-    return wsRisks.map(r => `<tr><td>${ws.name}</td><td>${r.description}</td><td>A avaliar</td><td>NR-15</td><td>Habitual e permanente</td><td>Sim</td><td>Não enquadrado</td></tr>`).join("");
-  }).join("")}
+      const wsRisks = risks.filter(r => {
+        const a = analyses.find(a2 => a2.id === r.analysis_id);
+        return a && a.workstation_id === ws.id;
+      });
+      if (wsRisks.length === 0) {
+        return `<tr><td>${ws.name}</td><td colspan="6" style="text-align:center;">Sem exposição a agentes nocivos acima dos limites de tolerância</td></tr>`;
+      }
+      return wsRisks.map(r => `<tr><td>${ws.name}</td><td>${r.description}</td><td>A avaliar</td><td>NR-15</td><td>Habitual e permanente</td><td>Sim</td><td>Não enquadrado</td></tr>`).join("");
+    }).join("")}
 </table>`;
-}).join("")}
+  }).join("")}
 
 <div class="rpt-section">10. CONCLUSÃO</div>
 <p>Com base nas avaliações realizadas, os trabalhadores da empresa <strong>${company.trade_name || company.name}</strong> estão expostos aos agentes descritos nas tabelas acima. As medidas de controle existentes são adequadas para neutralizar/reduzir a exposição aos agentes nocivos identificados.</p>
@@ -1662,6 +1790,7 @@ function generateInsalubridadeReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DE INSALUBRIDADE", "NR-15", company, consultant)}
+${pageHeader("LAUDO TÉCNICO DE INSALUBRIDADE — NR-15", company)}
 
 ${revisionTable()}
 
@@ -1695,21 +1824,21 @@ ${equipmentTable()}
 
 <div class="rpt-section">6. AVALIAÇÃO DOS RISCOS OCUPACIONAIS</div>
 ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs }], gheIndex) => {
-  return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
+    return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
 <table class="rpt-table">
   <tr><th>Função/Posto</th><th>Agente</th><th>Classificação NR-15</th><th>Intensidade Medida</th><th>Limite Tolerância</th><th>Insalubridade</th><th>Grau</th></tr>
   ${sectorWs.map(ws => {
-    const wsRisks = risks.filter(r => {
-      const a = analyses.find(a2 => a2.id === r.analysis_id);
-      return a && a.workstation_id === ws.id;
-    });
-    if (wsRisks.length === 0) {
-      return `<tr><td>${ws.name}</td><td colspan="6" style="text-align:center;">Sem exposição insalubre identificada</td></tr>`;
-    }
-    return wsRisks.map(r => `<tr><td>${ws.name}</td><td>${r.description}</td><td>Anexo NR-15</td><td>A avaliar</td><td>NR-15</td><td>${r.risk_level === 'high' || r.risk_level === 'critical' ? '<span class="rpt-badge red">SIM</span>' : '<span class="rpt-badge green">NÃO</span>'}</td><td>${r.risk_level === 'critical' ? '40% (Máximo)' : r.risk_level === 'high' ? '20% (Médio)' : '—'}</td></tr>`).join("");
-  }).join("")}
+      const wsRisks = risks.filter(r => {
+        const a = analyses.find(a2 => a2.id === r.analysis_id);
+        return a && a.workstation_id === ws.id;
+      });
+      if (wsRisks.length === 0) {
+        return `<tr><td>${ws.name}</td><td colspan="6" style="text-align:center;">Sem exposição insalubre identificada</td></tr>`;
+      }
+      return wsRisks.map(r => `<tr><td>${ws.name}</td><td>${r.description}</td><td>Anexo NR-15</td><td>A avaliar</td><td>NR-15</td><td>${r.risk_level === 'high' || r.risk_level === 'critical' ? '<span class="rpt-badge red">SIM</span>' : '<span class="rpt-badge green">NÃO</span>'}</td><td>${r.risk_level === 'critical' ? '40% (Máximo)' : r.risk_level === 'high' ? '20% (Médio)' : '—'}</td></tr>`).join("");
+    }).join("")}
 </table>`;
-}).join("")}
+  }).join("")}
 
 <div class="rpt-section">7. CONCLUSÃO</div>
 <p>Com base nas avaliações quantitativas e qualitativas realizadas nos ambientes de trabalho da empresa <strong>${company.trade_name || company.name}</strong>, conclui-se:</p>
@@ -1734,6 +1863,7 @@ function generatePericulosidadeReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DE PERICULOSIDADE", "NR-16", company, consultant)}
+${pageHeader("LAUDO TÉCNICO DE PERICULOSIDADE — NR-16", company)}
 
 ${revisionTable()}
 
@@ -1775,21 +1905,21 @@ ${workstations.map(ws => `<div class="rpt-section3">${ws.name}</div>
 
 <div class="rpt-section">7. FICHA DE PERÍCIA TÉCNICA</div>
 ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs }], gheIndex) => {
-  return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
+    return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
 <table class="rpt-table">
   <tr><th>Função/Posto</th><th>Agente Perigoso</th><th>Enquadramento NR-16</th><th>Forma de Exposição</th><th>Periculosidade</th></tr>
   ${sectorWs.map(ws => {
-    const wsRisks = risks.filter(r => {
-      const a = ctx.analyses.find(a2 => a2.id === r.analysis_id);
-      return a && a.workstation_id === ws.id;
-    });
-    if (wsRisks.length === 0) {
-      return `<tr><td>${ws.name}</td><td colspan="4" style="text-align:center;">Atividades não enquadradas como perigosas</td></tr>`;
-    }
-    return wsRisks.map(r => `<tr><td>${ws.name}</td><td>${r.description}</td><td>A avaliar</td><td>Habitual</td><td>${r.risk_level === 'critical' ? '<span class="rpt-badge red">CARACTERIZADA (30%)</span>' : '<span class="rpt-badge green">NÃO CARACTERIZADA</span>'}</td></tr>`).join("");
-  }).join("")}
+      const wsRisks = risks.filter(r => {
+        const a = ctx.analyses.find(a2 => a2.id === r.analysis_id);
+        return a && a.workstation_id === ws.id;
+      });
+      if (wsRisks.length === 0) {
+        return `<tr><td>${ws.name}</td><td colspan="4" style="text-align:center;">Atividades não enquadradas como perigosas</td></tr>`;
+      }
+      return wsRisks.map(r => `<tr><td>${ws.name}</td><td>${r.description}</td><td>A avaliar</td><td>Habitual</td><td>${r.risk_level === 'critical' ? '<span class="rpt-badge red">CARACTERIZADA (30%)</span>' : '<span class="rpt-badge green">NÃO CARACTERIZADA</span>'}</td></tr>`).join("");
+    }).join("")}
 </table>`;
-}).join("")}
+  }).join("")}
 
 <div class="rpt-section">8. CONCLUSÃO E TERMO DE RESPONSABILIDADE</div>
 <p>Com base na análise técnica realizada, conclui-se que as atividades e operações desenvolvidas na empresa <strong>${company.trade_name || company.name}</strong> foram avaliadas conforme NR-16 e legislação pertinente.</p>
@@ -1806,6 +1936,7 @@ function generatePCAReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE CONSERVAÇÃO AUDITIVA", "PCA", company, consultant)}
+${pageHeader("PROGRAMA DE CONSERVAÇÃO AUDITIVA — PCA", company)}
 
 ${revisionTable()}
 
@@ -1838,12 +1969,12 @@ ${companyDataTable(company)}
 
 <div class="rpt-section">6. AVALIAÇÕES DA ÁREA DE TRABALHO</div>
 ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs }], gheIndex) => {
-  return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
+    return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
 <table class="rpt-table">
   <tr><th>Função/Posto</th><th>Nível Ruído (dB(A))</th><th>LT NR-15</th><th>Nível Ação</th><th>EPA Recomendado</th><th>NRRsf (dB)</th></tr>
   ${sectorWs.map(ws => `<tr><td>${ws.name}</td><td>A avaliar</td><td>85 dB(A) / 8h</td><td>80 dB(A)</td><td>Protetor tipo concha/plug</td><td>A calcular</td></tr>`).join("")}
 </table>`;
-}).join("")}
+  }).join("")}
 
 <div class="rpt-section">7. PROTEÇÃO AUDITIVA INDIVIDUAL</div>
 <div class="rpt-section3">Cálculo de Atenuação — NRRsf</div>
@@ -1897,6 +2028,7 @@ function generatePPRReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE PROTEÇÃO RESPIRATÓRIA", "PPR", company, consultant)}
+${pageHeader("PROGRAMA DE PROTEÇÃO RESPIRATÓRIA — PPR", company)}
 
 ${revisionTable()}
 
@@ -1953,12 +2085,12 @@ ${companyDataTable(company)}
 
 <div class="rpt-section">8. DESCRIÇÃO DAS ATIVIDADES E RISCOS RESPIRATÓRIOS</div>
 ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs }], gheIndex) => {
-  return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
+    return `<div class="rpt-section2">GHE ${String(gheIndex + 1).padStart(2, '0')} — ${sectorName.toUpperCase()}</div>
 <table class="rpt-table">
   <tr><th>Função/Posto</th><th>Contaminante</th><th>Concentração</th><th>LT</th><th>EPR Recomendado</th><th>FPA</th></tr>
   ${sectorWs.map(ws => `<tr><td>${ws.name}</td><td>A avaliar</td><td>A avaliar</td><td>NR-15/ACGIH</td><td>A definir conforme exposição</td><td>—</td></tr>`).join("")}
 </table>`;
-}).join("")}
+  }).join("")}
 
 <div class="rpt-section">9. TREINAMENTOS</div>
 <ul>
@@ -2013,6 +2145,7 @@ function generateGenericReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage(reportType, reportType, company, consultant)}
+${pageHeader(reportType, company)}
 
 <div class="rpt-section">1. IDENTIFICAÇÃO DA EMPRESA</div>
 ${companyDataTable(company)}

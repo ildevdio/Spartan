@@ -781,101 +781,18 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   children.push(heading("Equipamentos Utilizados para Medição", HeadingLevel.HEADING_3));
   children.push(equipmentTable());
 
-  // 9. AGRUPAMENTO POR GHE E MATRIZ
-  children.push(heading("9. AGRUPAMENTO POR GHE E MATRIZ DE AVALIAÇÃO ERGONÔMICA"));
-  children.push(body(`A empresa ${company.trade_name || company.name} tem seus trabalhadores classificados em Grupos Homogêneos de Exposição (GHE), conforme metodologia do PGR.`));
-  children.push(gheTable(workstations, ctx));
-  children.push(heading("Matriz de Avaliação de Riscos (P × G)", HeadingLevel.HEADING_3));
-  children.push(riskMatrixTable());
-  children.push(body("Fonte: Matriz elaborada a partir de MULHAUSEN & DAMIANO (1998) e BS 8800 (BSI, 1996).", { italic: true }));
-
-  if (risks.length > 0) {
-    children.push(heading("Riscos Identificados", HeadingLevel.HEADING_3));
-    children.push(new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      rows: [
-        new TableRow({ children: [headerCell("GHE/Posto", 20), headerCell("Risco", 25), headerCell("P × E × C", 15), headerCell("Score", 15), headerCell("Nível", 25)] }),
-        ...risks.map((r, i) => {
-          const analysis = analyses.find(a => a.id === r.analysis_id);
-          const ws = analysis ? workstations.find(w => w.id === analysis.workstation_id) : null;
-          return new TableRow({
-            children: [
-              textCell(ws?.name || `GHE ${i + 1}`, false, 20),
-              textCell(r.description, false, 25),
-              textCell(`${r.probability}×${r.exposure}×${r.consequence}`, false, 15),
-              textCell(String(r.risk_score), true, 15),
-              textCell(riskLevelLabel(r.risk_level), true, 25),
-            ],
-          });
-        }),
-      ],
-    }));
-  }
-
-  // 10. ANÁLISE DOS RISCOS PSICOSSOCIAIS
-  children.push(heading("10. ANÁLISE DOS RISCOS PSICOSSOCIAIS"));
-  if (psychosocial.length > 0) {
-    const instruments: string[] = [];
-    if (psychosocial.some(p => p.copenhagen_details)) instruments.push("COPSOQ II");
-    if (psychosocial.some(p => p.nasa_tlx_details)) instruments.push("NASA-TLX");
-    if (psychosocial.some(p => p.hse_it_details)) instruments.push("HSE-IT");
-    children.push(body(`Instrumentos aplicados: ${instruments.join(", ")}`));
-    psychosocial.forEach(psa => {
-      if (psa.copenhagen_details) {
-        const cd = psa.copenhagen_details;
-        children.push(new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [
-            new TableRow({ children: [headerCell3("Dimensão COPSOQ II", 60), headerCell3("Score (0-100)", 40)] }),
-            ...([
-              ["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace],
-              ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands],
-              ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development],
-              ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment],
-              ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support],
-            ] as [string, number][]).map(([d, v]) =>
-              new TableRow({ children: [textCell(d, false, 60), textCell(String(v), true, 40)] })
-            ),
-            new TableRow({ children: [labelCell("Score Geral", 60), textCell(String(psa.copenhagen_score), true, 40)] }),
-          ],
-        }));
-      }
-      if (psa.nasa_tlx_details) {
-        children.push(new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [
-            new TableRow({ children: [headerCell2("NASA-TLX", 60), headerCell2("Score", 40)] }),
-            ...([
-              ["Demanda Mental", psa.nasa_tlx_details.mental_demand],
-              ["Demanda Física", psa.nasa_tlx_details.physical_demand],
-              ["Demanda Temporal", psa.nasa_tlx_details.temporal_demand],
-              ["Performance", psa.nasa_tlx_details.performance],
-              ["Esforço", psa.nasa_tlx_details.effort],
-              ["Frustração", psa.nasa_tlx_details.frustration],
-            ] as [string, number][]).map(([d, v]) =>
-              new TableRow({ children: [textCell(d, false, 60), textCell(String(v), false, 40)] })
-            ),
-            new TableRow({ children: [labelCell("Score Geral", 60), textCell(String(psa.nasa_tlx_score), true, 40)] }),
-          ],
-        }));
-      }
-    });
-  } else {
-    children.push(accentCallout("Nenhuma avaliação psicossocial realizada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX e HSE-IT.", "warning"));
-  }
-
-  // 11. RESPONSABILIDADE TÉCNICA
-  children.push(heading("11. RESPONSABILIDADE TÉCNICA"));
+  // 9. RESPONSABILIDADE TÉCNICA
+  children.push(heading("9. RESPONSABILIDADE TÉCNICA"));
   children.push(body("O presente documento foi elaborado sob a responsabilidade técnica da MG CONSULT."));
   children.push(body(`${company.city}, ${getToday()}.`));
   children.push(...signatureBlock(consultant, "M.Sc Eng. de Produção (Ergonomia) / Eng. de Segurança do Trabalho"));
   children.push(pageBreak());
 
-  // 12. ANEXOS
-  children.push(heading("12. ANEXOS"));
+  // 10. ANEXOS
+  children.push(heading("10. ANEXOS"));
   ["ANEXO I — Avaliação Ergonômica Preliminar (AEP)", "ANEXO II — Ferramentas e Métodos Aplicados",
-   "ANEXO III — Relatório Técnico de Fatores Psicossociais", "ANEXO IV — Plano de Ação Ergonômico",
-   "ANEXO V — Registro Fotográfico", "ANEXO VI — Checklist de Conformidade NR-17",
+    "ANEXO III — Relatório Técnico de Fatores Psicossociais", "ANEXO IV — Plano de Ação Ergonômico",
+    "ANEXO V — Registro Fotográfico", "ANEXO VI — Checklist de Conformidade NR-17",
   ].forEach(t => children.push(bulletItem(t)));
   children.push(pageBreak());
 
@@ -1104,8 +1021,8 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
     rows: [
       new TableRow({ children: [headerCell("Termo", 25), headerCell("Definição", 75)] }),
       ...([["GHE", "Grupo Homogêneo de Exposição"], ["GRO", "Gerenciamento de Riscos Ocupacionais"], ["PGR", "Programa de Gerenciamento de Riscos"],
-        ["EPC", "Equipamento de Proteção Coletiva"], ["EPI", "Equipamento de Proteção Individual"],
-        ["SESMT", "Serviço Especializado em Segurança e Medicina do Trabalho"], ["CIPA", "Comissão Interna de Prevenção de Acidentes"],
+      ["EPC", "Equipamento de Proteção Coletiva"], ["EPI", "Equipamento de Proteção Individual"],
+      ["SESMT", "Serviço Especializado em Segurança e Medicina do Trabalho"], ["CIPA", "Comissão Interna de Prevenção de Acidentes"],
       ]).map(([t, d]) => new TableRow({ children: [labelCell(t, 25), textCell(d, false, 75)] })),
     ],
   }));
@@ -1113,8 +1030,8 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
   // 2. Referências
   children.push(heading("2. REFERÊNCIAS"));
   ["NR-01 — Disposições Gerais e Gerenciamento de Riscos Ocupacionais", "NR-09 — Avaliação e Controle das Exposições Ocupacionais",
-   "NR-15 — Atividades e Operações Insalubres", "NR-17 — Ergonomia",
-   "ABNT NBR ISO 31000:2009 — Gestão de Riscos", "FUNDACENTRO — NHO 01, NHO 06, NHO 11",
+    "NR-15 — Atividades e Operações Insalubres", "NR-17 — Ergonomia",
+    "ABNT NBR ISO 31000:2009 — Gestão de Riscos", "FUNDACENTRO — NHO 01, NHO 06, NHO 11",
   ].forEach(r => children.push(bulletItem(r)));
 
   // 3. Identificação
@@ -1145,7 +1062,7 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
   children.push(body("Preservar a saúde e a integridade dos trabalhadores através da antecipação, reconhecimento, avaliação e controle dos riscos ambientais."));
   children.push(heading("7.2 Objetivos Específicos", HeadingLevel.HEADING_3));
   ["Seguir a política da empresa relacionada à saúde e segurança;", "Proteção do meio ambiente e dos recursos naturais;",
-   "Tratar os riscos ambientais existentes ou que venham a existir;", "Planejar ações para preservar a saúde e a segurança dos trabalhadores.",
+    "Tratar os riscos ambientais existentes ou que venham a existir;", "Planejar ações para preservar a saúde e a segurança dos trabalhadores.",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(heading("8. CAMPO DE APLICAÇÃO"));
@@ -1170,6 +1087,11 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
       new TableRow({ children: [textCell("Irrelevante", true, 25), textCell("Não requer nova ação", false, 45), textCell("N/A", false, 30)] }),
     ],
   }));
+
+  // 9.4 GHE Grouping
+  children.push(heading("9.4 Agrupamento por GHE e Matriz de Avaliação Ergonômica", HeadingLevel.HEADING_3));
+  children.push(body(`A empresa ${company.trade_name || company.name} tem seus trabalhadores classificados em Grupos Homôneos de Exposição (GHE), conforme metodologia do PGR/NR-01. Este agrupamento permite que ações de prevenção sejam direcionadas de forma eficaz para grupos com perfil de exposição semelhante.`));
+  children.push(gheTable(workstations, ctx));
   children.push(pageBreak());
 
   // 10. Inventário de risco
@@ -1235,14 +1157,14 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("15. META E OBJETIVOS"));
   ["Reduzir em 20% os riscos classificados como \"Alto\" ou \"Crítico\"",
-   "Garantir treinamento a 100% dos trabalhadores expostos",
-   "Implementar todas as ações do Plano de Ação dentro dos prazos",
+    "Garantir treinamento a 100% dos trabalhadores expostos",
+    "Implementar todas as ações do Plano de Ação dentro dos prazos",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(heading("16. REFERÊNCIAS BIBLIOGRÁFICAS"));
   ["BRASIL. Normas Regulamentadoras (NR) — MTE", "ABNT NBR ISO 31000:2009 — Gestão de Riscos",
-   "BS 8800:1996 — Guide to OHS Management Systems", "MULHAUSEN & DAMIANO (1998) — AIHA Strategy for Exposure Assessment",
-   "FUNDACENTRO — NHO 01, NHO 06, NHO 11",
+    "BS 8800:1996 — Guide to OHS Management Systems", "MULHAUSEN & DAMIANO (1998) — AIHA Strategy for Exposure Assessment",
+    "FUNDACENTRO — NHO 01, NHO 06, NHO 11",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
@@ -1397,15 +1319,15 @@ function generatePCMSODocx(ctx: DocxReportContext): Document {
     rows: [
       new TableRow({ children: [headerCell("Termo", 25), headerCell("Definição", 75)] }),
       ...([["ASO", "Atestado de Saúde Ocupacional"], ["PCMSO", "Programa de Controle Médico de Saúde Ocupacional"],
-        ["PGR", "Programa de Gerenciamento de Riscos"], ["GHE", "Grupos Homogêneos de Exposição"],
-        ["PAIR", "Perda Auditiva Induzida por Ruído"], ["LER/DORT", "Lesão por Esforço Repetitivo / Distúrbio Osteomuscular"],
+      ["PGR", "Programa de Gerenciamento de Riscos"], ["GHE", "Grupos Homogêneos de Exposição"],
+      ["PAIR", "Perda Auditiva Induzida por Ruído"], ["LER/DORT", "Lesão por Esforço Repetitivo / Distúrbio Osteomuscular"],
       ]).map(([t, d]) => new TableRow({ children: [labelCell(t, 25), textCell(d, false, 75)] })),
     ],
   }));
 
   children.push(heading("2. REFERÊNCIAS"));
   ["NR-07 — Programa de Controle Médico de Saúde Ocupacional", "NR-09 — Avaliação e Controle das Exposições Ocupacionais",
-   "NR-01 — Disposições Gerais e Gerenciamento de Riscos Ocupacionais", "Portaria nº 19/1998 — Diretrizes e parâmetros para audiometria",
+    "NR-01 — Disposições Gerais e Gerenciamento de Riscos Ocupacionais", "Portaria nº 19/1998 — Diretrizes e parâmetros para audiometria",
   ].forEach(r => children.push(bulletItem(r)));
 
   children.push(heading("3. IDENTIFICAÇÃO DA EMPRESA"));
@@ -1420,7 +1342,7 @@ function generatePCMSODocx(ctx: DocxReportContext): Document {
   children.push(body("Promoção e preservação da saúde dos trabalhadores, através da prevenção, rastreamento e diagnóstico precoce dos agravos à saúde relacionados ao trabalho."));
   children.push(heading("5.2 Objetivos Específicos", HeadingLevel.HEADING_3));
   ["Definir exames médicos ocupacionais obrigatórios por função/risco", "Estabelecer critérios para exames complementares",
-   "Monitorar a saúde dos trabalhadores expostos a riscos ocupacionais", "Subsidiar ações de prevenção e promoção da saúde",
+    "Monitorar a saúde dos trabalhadores expostos a riscos ocupacionais", "Subsidiar ações de prevenção e promoção da saúde",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(heading("6. MÉDICO RESPONSÁVEL"));
@@ -1518,7 +1440,7 @@ function generateLTCATDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("5. FUNDAMENTAÇÃO LEGAL"));
   ["Lei 8.213/91 — Planos de Benefícios da Previdência Social", "Decreto 3.048/99 — Regulamento da Previdência Social",
-   "IN INSS/PRES 77/2015 — Instruções Normativas", "NR-15 — Atividades e Operações Insalubres", "NR-09 — Avaliação e Controle das Exposições Ocupacionais",
+    "IN INSS/PRES 77/2015 — Instruções Normativas", "NR-15 — Atividades e Operações Insalubres", "NR-09 — Avaliação e Controle das Exposições Ocupacionais",
   ].forEach(r => children.push(bulletItem(r)));
 
   children.push(heading("6. CRITÉRIOS TÉCNICOS"));
@@ -1584,9 +1506,9 @@ function generateInsalubridadeDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("3. FUNDAMENTAÇÃO LEGAL"));
   ["CLT — Art. 189: Consideram-se insalubres as atividades que expõem os trabalhadores a agentes nocivos à saúde, acima dos limites de tolerância.",
-   "CLT — Art. 192: Adicional de insalubridade de 40%, 20% ou 10% sobre o salário mínimo, conforme grau máximo, médio ou mínimo.",
-   "NR-15: Atividades e operações insalubres — Limites de tolerância para ruído, calor, agentes químicos, poeiras, etc.",
-   "NR-09: Avaliação e controle das exposições ocupacionais a agentes físicos, químicos e biológicos.",
+    "CLT — Art. 192: Adicional de insalubridade de 40%, 20% ou 10% sobre o salário mínimo, conforme grau máximo, médio ou mínimo.",
+    "NR-15: Atividades e operações insalubres — Limites de tolerância para ruído, calor, agentes químicos, poeiras, etc.",
+    "NR-09: Avaliação e controle das exposições ocupacionais a agentes físicos, químicos e biológicos.",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(heading("4. CONCEITOS E DEFINIÇÕES"));
@@ -1622,8 +1544,8 @@ function generateInsalubridadeDocx(ctx: DocxReportContext): Document {
           }
           return new TableRow({
             children: [textCell(ws.name, false, 14), textCell(wsRisks.map(r => r.description).join(", "), false, 14), textCell("Anexo NR-15", false, 14), textCell("A avaliar", false, 14), textCell("NR-15", false, 14),
-              (wsRisks.some(r => r.risk_level === 'high' || r.risk_level === 'critical') ? shadedCell("SIM", COLORS.redBg, true, 15) : shadedCell("NÃO", COLORS.greenBg, true, 15)),
-              textCell(wsRisks.some(r => r.risk_level === 'critical') ? "40% (Máximo)" : wsRisks.some(r => r.risk_level === 'high') ? "20% (Médio)" : "—", false, 15)],
+            (wsRisks.some(r => r.risk_level === 'high' || r.risk_level === 'critical') ? shadedCell("SIM", COLORS.redBg, true, 15) : shadedCell("NÃO", COLORS.greenBg, true, 15)),
+            textCell(wsRisks.some(r => r.risk_level === 'critical') ? "40% (Máximo)" : wsRisks.some(r => r.risk_level === 'high') ? "20% (Médio)" : "—", false, 15)],
           });
         }),
       ],
@@ -1660,8 +1582,8 @@ function generatePericulosidadeDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("3. FUNDAMENTAÇÃO LEGAL"));
   ["CLT — Art. 193: São consideradas atividades ou operações perigosas aquelas que, por sua natureza ou métodos de trabalho, impliquem risco acentuado em virtude de exposição permanente a: inflamáveis, explosivos, energia elétrica, roubos ou outras espécies de violência física.",
-   "NR-16: Atividades e Operações Perigosas — Estabelece os critérios para caracterização da periculosidade.",
-   "Adicional de 30%: sobre o salário-base, sem os acréscimos resultantes de gratificações, prêmios ou participações nos lucros.",
+    "NR-16: Atividades e Operações Perigosas — Estabelece os critérios para caracterização da periculosidade.",
+    "Adicional de 30%: sobre o salário-base, sem os acréscimos resultantes de gratificações, prêmios ou participações nos lucros.",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(heading("4. ATIVIDADES PERIGOSAS — CLASSIFICAÇÃO NR-16"));
@@ -1670,7 +1592,7 @@ function generatePericulosidadeDocx(ctx: DocxReportContext): Document {
     rows: [
       new TableRow({ children: [headerCell3("Anexo NR-16", 25), headerCell3("Descrição", 75)] }),
       ...([["Anexo 1", "Atividades com explosivos"], ["Anexo 2", "Atividades com inflamáveis"], ["Anexo 3", "Atividades com radiações ionizantes ou substâncias radioativas"],
-        ["Anexo 4", "Atividades com exposição a roubos ou violência física (segurança)"], ["Anexo 5", "Atividades com energia elétrica"], ["Anexo 6", "Atividades com motocicleta"],
+      ["Anexo 4", "Atividades com exposição a roubos ou violência física (segurança)"], ["Anexo 5", "Atividades com energia elétrica"], ["Anexo 6", "Atividades com motocicleta"],
       ]).map(([a, d]) => new TableRow({ children: [labelCell(a, 25), textCell(d, false, 75)] })),
     ],
   }));
@@ -1708,7 +1630,7 @@ function generatePericulosidadeDocx(ctx: DocxReportContext): Document {
           }
           return new TableRow({
             children: [textCell(ws.name, false, 20), textCell(wsRisks.map(r => r.description).join(", "), false, 20), textCell("A avaliar", false, 20), textCell("Habitual", false, 20),
-              wsRisks.some(r => r.risk_level === 'critical') ? shadedCell("CARACTERIZADA (30%)", COLORS.redBg, true, 20) : shadedCell("NÃO CARACTERIZADA", COLORS.greenBg, true, 20)],
+            wsRisks.some(r => r.risk_level === 'critical') ? shadedCell("CARACTERIZADA (30%)", COLORS.redBg, true, 20) : shadedCell("NÃO CARACTERIZADA", COLORS.greenBg, true, 20)],
           });
         }),
       ],
@@ -1741,10 +1663,10 @@ function generatePCADocx(ctx: DocxReportContext): Document {
 
   children.push(heading("3. OBJETIVOS ESPECÍFICOS DO PCA"));
   ["Identificar trabalhadores expostos a NPSE acima do nível de ação (80 dB(A))",
-   "Estabelecer critérios audiométricos para monitoramento da audição",
-   "Selecionar e controlar o uso adequado de Equipamentos de Proteção Auditiva (EPA)",
-   "Reduzir ou eliminar a exposição a NPSE por meio de medidas de engenharia e administrativas",
-   "Conscientizar os trabalhadores sobre os riscos e prevenção da PAIR",
+    "Estabelecer critérios audiométricos para monitoramento da audição",
+    "Selecionar e controlar o uso adequado de Equipamentos de Proteção Auditiva (EPA)",
+    "Reduzir ou eliminar a exposição a NPSE por meio de medidas de engenharia e administrativas",
+    "Conscientizar os trabalhadores sobre os riscos e prevenção da PAIR",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(heading("4. MECANISMO DA AUDIÇÃO"));
@@ -1797,9 +1719,9 @@ function generatePCADocx(ctx: DocxReportContext): Document {
 
   children.push(heading("9. AÇÕES EDUCATIVAS"));
   ["Palestras de conscientização sobre riscos do ruído e uso correto de EPA",
-   "Treinamento para colocação e retirada dos protetores auriculares",
-   "Material informativo sobre prevenção de PAIR",
-   "DDS (Diálogo Diário de Segurança) periódico sobre conservação auditiva",
+    "Treinamento para colocação e retirada dos protetores auriculares",
+    "Material informativo sobre prevenção de PAIR",
+    "DDS (Diálogo Diário de Segurança) periódico sobre conservação auditiva",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(heading("10. CRONOGRAMA DE ATIVIDADES"));
@@ -1857,8 +1779,8 @@ function generatePPRDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("5. DOCUMENTOS DE REFERÊNCIA"));
   ["IN SSST/MTE nº 01/1994 — Programa de Proteção Respiratória", "Portaria nº 672/2021 — Normas sobre EPR",
-   "NR-06 — Equipamento de Proteção Individual", "NR-09 — Avaliação e Controle das Exposições Ocupacionais",
-   "NR-15 — Atividades e Operações Insalubres", "ABNT/NBR 12543 — Equipamentos de Proteção Respiratória",
+    "NR-06 — Equipamento de Proteção Individual", "NR-09 — Avaliação e Controle das Exposições Ocupacionais",
+    "NR-15 — Atividades e Operações Insalubres", "ABNT/NBR 12543 — Equipamentos de Proteção Respiratória",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(heading("6. DEFINIÇÕES"));
@@ -1905,8 +1827,8 @@ function generatePPRDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("9. TREINAMENTOS"));
   ["Natureza dos contaminantes e riscos à saúde respiratória", "Seleção, uso, colocação e retirada correta do EPR",
-   "Ensaio de vedação (qualitativo e quantitativo)", "Inspeção, higienização, manutenção e guarda do EPR",
-   "Situações de emergência e procedimentos de fuga",
+    "Ensaio de vedação (qualitativo e quantitativo)", "Inspeção, higienização, manutenção e guarda do EPR",
+    "Situações de emergência e procedimentos de fuga",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(heading("10. MANUTENÇÃO, INSPEÇÃO E GUARDA"));
@@ -1941,8 +1863,8 @@ function generatePPRDocx(ctx: DocxReportContext): Document {
 
   children.push(heading("ANEXOS"));
   ["Anexo 1 — Avaliação dos Riscos Respiratórios", "Anexo 2 — Tipos de Respiradores",
-   "Anexo 3 — Fatores de Proteção Atribuídos", "Anexo 4 — Ensaio de Vedação da Máscara",
-   "Anexo 5 — Certificados de Aprovação (CA) dos EPRs",
+    "Anexo 3 — Fatores de Proteção Atribuídos", "Anexo 4 — Ensaio de Vedação da Máscara",
+    "Anexo 5 — Certificados de Aprovação (CA) dos EPRs",
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
@@ -2275,7 +2197,7 @@ function createOnScreenContainer(htmlSections: string[]): HTMLDivElement {
 }
 
 async function waitForFullRender(root: HTMLElement): Promise<void> {
-  try { await (document as any).fonts?.ready; } catch {}
+  try { await (document as any).fonts?.ready; } catch { }
   const imgs = Array.from(root.querySelectorAll("img"));
   await Promise.all(imgs.map((img) => new Promise<void>((resolve) => {
     if (img.complete && img.naturalHeight > 0) return resolve();
@@ -2518,10 +2440,10 @@ export async function generateAndDownloadPdf(ctx: DocxReportContext): Promise<vo
       previewNode?.innerHTML?.trim() && previewNode.innerHTML.trim().length > 50
         ? previewNode.innerHTML
         : generateReportHTML({
-            company: ctx.company, sector: ctx.sector, workstation: ctx.workstation,
-            workstations: ctx.workstations, analyses: ctx.analyses,
-            photos: ctx.photos, reportType: ctx.reportType,
-          });
+          company: ctx.company, sector: ctx.sector, workstation: ctx.workstation,
+          workstations: ctx.workstations, analyses: ctx.analyses,
+          photos: ctx.photos, reportType: ctx.reportType,
+        });
 
     const fileName = `${ctx.reportType}_${ctx.company.name.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
 
