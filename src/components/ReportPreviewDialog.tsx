@@ -10,7 +10,6 @@ interface ReportPreviewDialogProps {
   html: string;
   title: string;
   onDownloadDocx?: () => void;
-  onDownloadPdf?: () => void;
   onSigned?: (result: SignatureResult) => void;
 }
 
