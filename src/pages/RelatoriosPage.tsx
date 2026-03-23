@@ -7,7 +7,7 @@ import { FileText, CheckCircle2, AlertTriangle, Download, Loader2, BarChart3, Sh
 import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { generateAndDownloadDocx, generateAndDownloadPdf, type DocxReportContext } from "@/lib/docx-report-generator";
+import { generateAndDownloadDocx, type DocxReportContext } from "@/lib/docx-report-generator";
 import { generateReportHTML } from "@/lib/report-templates";
 import { Progress } from "@/components/ui/progress";
 import { ReportPreviewDialog } from "@/components/ReportPreviewDialog";
