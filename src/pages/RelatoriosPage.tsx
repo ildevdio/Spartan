@@ -124,6 +124,7 @@ export default function RelatoriosPage() {
       analyses: ctx.analyses,
       photos: ctx.photos,
       reportType: ctx.reportType,
+      technicalResponsible: technicalResponsible || undefined,
     });
     setPreviewHtml(html);
     setPreviewTitle(label);
