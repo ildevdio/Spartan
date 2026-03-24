@@ -1486,7 +1486,7 @@ ${actions.length > 0 ? `<table class="rpt-table">
   <li>FUNDACENTRO — NHO 01, NHO 06, NHO 11</li>
 </ul>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
@@ -1587,7 +1587,7 @@ ${psychosocial.length > 0 ? psychosocial.map(psa => {
 <div class="rpt-section">8. CONSIDERAÇÕES FINAIS</div>
 <p>A implementação das ações recomendadas contribuirá significativamente para a redução dos riscos psicossociais e promoção da saúde mental no ambiente de trabalho da <strong>${company.trade_name || company.name}</strong>.</p>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
@@ -1804,7 +1804,7 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
   <li>Anexo III — Habilitação do Responsável Técnico e ART</li>
 </ul>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
@@ -1877,7 +1877,7 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
   <li>Anexo III — ART do Responsável Técnico</li>
 </ul>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
@@ -1950,7 +1950,7 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
 <p>Com base na análise técnica realizada, conclui-se que as atividades e operações desenvolvidas na empresa <strong>${company.trade_name || company.name}</strong> foram avaliadas conforme NR-16 e legislação pertinente.</p>
 <div class="rpt-callout">O laudo deve ser atualizado sempre que houver alteração nas condições de trabalho, processos ou introdução de novos agentes perigosos.</div>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
@@ -2042,7 +2042,7 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
   <li>Anexo III — Fichas de Entrega de EPA</li>
 </ul>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
@@ -2159,7 +2159,7 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
   <li>Anexo 5 — Certificados de Aprovação (CA) dos EPRs</li>
 </ul>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
@@ -2193,6 +2193,6 @@ ${risks.length > 0 ? `<table class="rpt-table">
 <div class="rpt-section">4. RECOMENDAÇÕES</div>
 ${actions.length > 0 ? actions.map(ap => `<p>• ${ap.description} (${ap.responsible} — ${ap.deadline})</p>`).join("") : "<p>Sem recomendações.</p>"}
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
