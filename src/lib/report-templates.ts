@@ -143,86 +143,87 @@ function sharedStyles() {
 
     /* === SECTION BANNERS === */
     .rpt-section {
-      background: #333333;
+      background: linear-gradient(90deg, #0A1F44, #1565C0);
       color: white;
-      padding: 9px 14px;
-      margin: 28px 0 10px 0;
-      font-size: 13px;
+      padding: 12px 20px;
+      margin: 30px 0 15px 0;
+      border-radius: 6px;
+      font-size: 16px;
       font-weight: bold;
-      letter-spacing: 0.3px;
-      border: 1px solid #111;
     }
     .rpt-section2 {
-      background: #505050;
+      background: linear-gradient(90deg, #1565C0, #00838F);
       color: white;
-      padding: 7px 14px;
-      margin: 20px 0 8px 0;
-      font-size: 12px;
+      padding: 10px 18px;
+      margin: 24px 0 12px 0;
+      border-radius: 5px;
+      font-size: 15px;
       font-weight: bold;
-      border: 1px solid #333;
     }
     .rpt-section3 {
-      border-left: 5px solid #555;
-      padding: 6px 12px;
-      margin: 16px 0 8px 0;
-      font-size: 12px;
+      border-left: 5px solid #00BCD4;
+      padding: 8px 14px;
+      margin: 20px 0 10px 0;
+      font-size: 14px;
       font-weight: bold;
-      color: #1a1a1a;
-      background: #f0f0f0;
+      color: #0A1F44;
+      background: #E1F5FE;
+      border-radius: 0 5px 5px 0;
     }
 
     /* === CALLOUTS === */
     .rpt-callout {
-      border-left: 4px solid #555;
-      background: #f9f9f9;
-      padding: 10px 14px;
-      margin: 10px 0;
+      border-left: 5px solid #1565C0;
+      background: #E3F2FD;
+      padding: 12px 16px;
+      margin: 12px 0;
+      border-radius: 0 6px 6px 0;
       font-style: italic;
-      color: #333;
+      color: #0A1F44;
       font-size: 12px;
     }
-    .rpt-callout.warning { border-left-color: #c0392b; background: #fdf0ee; }
-    .rpt-callout.success { border-left-color: #27ae60; background: #eafaf1; }
-    .rpt-callout.danger  { border-left-color: #e74c3c; background: #fdecea; }
+    .rpt-callout.warning { border-left-color: #FF6F00; background: #FFF3E0; }
+    .rpt-callout.success { border-left-color: #43A047; background: #C8E6C9; }
+    .rpt-callout.danger  { border-left-color: #D32F2F; background: #FFCDD2; }
 
     /* === TABLES === */
-    .rpt-table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+    .rpt-table { width: 100%; border-collapse: collapse; margin: 12px 0; border-radius: 6px; overflow: hidden; }
     .rpt-table th {
-      background: #333333;
+      background: #0A1F44;
       color: white;
-      padding: 7px 10px;
-      font-size: 11px;
+      padding: 10px 12px;
+      font-size: 12px;
       text-align: left;
-      border: 1px solid #000;
+      border: 1px solid #0A1F44;
       font-weight: bold;
     }
-    .rpt-table th.alt  { background: #555555; border-color: #000; }
-    .rpt-table th.teal { background: #2e7d5e; border-color: #000; }
-    .rpt-table th.risk-hdr { background: #c6efce; color: #1a1a1a; border-color: #000; }
+    .rpt-table th.alt  { background: #1565C0; border-color: #1565C0; }
+    .rpt-table th.teal { background: #00838F; border-color: #00838F; }
+    .rpt-table th.risk-hdr { background: #c6efce; color: #1a1a1a; border-color: #B0BEC5; }
     .rpt-table td {
-      padding: 7px 10px;
-      font-size: 11px;
-      border: 1px solid #000;
+      padding: 9px 12px;
+      font-size: 12px;
+      border: 1px solid #B0BEC5;
       vertical-align: top;
     }
-    .rpt-table tr:nth-child(even) td { background: #f5f5f5; }
+    .rpt-table tr:nth-child(even) td { background: #E3F2FD; }
     .rpt-table td.label {
-      background: #eeeeee;
+      background: #E1F5FE;
       font-weight: bold;
-      color: #333;
-      border: 1px solid #000;
+      color: #1565C0;
+      border: 1px solid #B0BEC5;
     }
 
     /* === BADGES === */
-    .rpt-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 11px; font-weight: bold; }
+    .rpt-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; }
     .rpt-badge.green  { background: #C8E6C9; color: #1B5E20; }
-    .rpt-badge.yellow { background: #FFF9C4; color: #856c00; }
-    .rpt-badge.orange { background: #FFE0B2; color: #6d3a00; }
+    .rpt-badge.yellow { background: #FFF9C4; color: #F57F17; }
+    .rpt-badge.orange { background: #FFE0B2; color: #E65100; }
     .rpt-badge.red    { background: #FFCDD2; color: #B71C1C; }
 
     /* === SIGNATURE & FOOTER === */
-    .rpt-divider { height: 2px; background: #333; margin: 20px 0; }
-    .rpt-sig { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 2px solid #555; }
+    .rpt-divider { height: 4px; background: linear-gradient(90deg, #00BCD4, #1565C0, #0A1F44); margin: 20px 0; border-radius: 2px; }
+    .rpt-sig { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 2px solid #B0BEC5; }
     .rpt-footer {
       text-align: center;
       font-size: 10px;
