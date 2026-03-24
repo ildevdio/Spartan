@@ -2,6 +2,15 @@ import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, Repo
 import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses } from "./mock-data";
 import { riskLevelLabel, statusLabel, analysisStatusLabel } from "./types";
 
+export interface TechnicalResponsibleInfo {
+  name: string;
+  title: string;
+  specialization: string;
+  professional_registration: string;
+  cpf: string;
+  email: string;
+}
+
 interface ReportContext {
   company: Company;
   sector?: Sector;
@@ -11,6 +20,7 @@ interface ReportContext {
   photos: PosturePhoto[];
   reportType: ReportType;
   consultantName?: string;
+  technicalResponsible?: TechnicalResponsibleInfo;
 }
 
 function getToday(): string {
