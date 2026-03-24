@@ -334,20 +334,34 @@ function revisionTable() {
 </table>`;
 }
 
-function signatureBlock(consultant: string, title: string = "Engenheiro de Segurança do Trabalho", registration: string = "CREA/CONFEA: XXXXX") {
+function signatureBlock(consultant: string, title: string = "Engenheiro de Segurança do Trabalho", registration: string = "CREA/CONFEA: XXXXX", rt?: TechnicalResponsibleInfo) {
+  const rtName = rt?.name || consultant;
+  const rtTitle = rt?.title || title;
+  const rtReg = rt?.professional_registration || registration;
+  const rtSpec = rt?.specialization || "";
   return `
 <div class="rpt-divider"></div>
 <div class="rpt-sig">
+  <div style="display:flex; justify-content:center; align-items:center; gap:16px; margin-bottom:12px;">
+    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:50px; border-radius:50%;" onerror="this.style.display='none'" />
+  </div>
   <p>_____________________________________________</p>
-  <p><strong>${consultant}</strong></p>
-  <p>${title}</p>
-  <p>${registration}</p>
-  <p style="font-size:11px; color:#555; margin-top:15px;"><em>Documento gerado pelo sistema Focus Spartan — MG Consultoria</em></p>
+  <p style="font-size:14px; margin-bottom:2px;"><strong>${rtName}</strong></p>
+  <p style="font-size:12px; color:#333; margin:2px 0;">${rtTitle}</p>
+  ${rtSpec ? `<p style="font-size:11px; color:#555; margin:2px 0;">${rtSpec}</p>` : ""}
+  <p style="font-size:12px; font-family:monospace; color:#333; margin:4px 0;">${rtReg}</p>
+  ${rt?.cpf ? `<p style="font-size:11px; color:#555; margin:2px 0;">CPF: ${rt.cpf}</p>` : ""}
+  <p style="font-size:10px; color:#777; margin-top:16px; border-top:1px solid #ddd; padding-top:8px;">
+    <em>Documento gerado pelo sistema Focus Spartan — MG Consultoria em Ergonomia &amp; Segurança do Trabalho</em>
+  </p>
 </div>`;
 }
 
 function footer() {
-  return `<div class="rpt-footer">MG Consultoria — Ergonomia &amp; Segurança do Trabalho | ${getToday()}</div>`;
+  return `<div class="rpt-page-footer" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:24px; border-radius:50%;" onerror="this.style.display='none'" />
+    <span>MG Consultoria — Ergonomia &amp; Segurança do Trabalho &nbsp;|&nbsp; ${getToday()}</span>
+  </div>`;
 }
 
 function getCtxData(ctx: ReportContext) {
