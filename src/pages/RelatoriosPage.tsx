@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCompany } from "@/lib/company-context";
@@ -8,9 +8,10 @@ import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { generateAndDownloadDocx, type DocxReportContext } from "@/lib/docx-report-generator";
-import { generateReportHTML } from "@/lib/report-templates";
+import { generateReportHTML, type TechnicalResponsibleInfo } from "@/lib/report-templates";
 import { Progress } from "@/components/ui/progress";
 import { ReportPreviewDialog } from "@/components/ReportPreviewDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const REPORT_TYPES: { type: ReportType; label: string; description: string }[] = [
   { type: "AET", label: "AET", description: "Análise Ergonômica do Trabalho (inclui AEP como anexo)" },
