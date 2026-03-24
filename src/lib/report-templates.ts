@@ -982,7 +982,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
 // ==================== AET ====================
 function generateAETReport(ctx: ReportContext): string {
   const { company, sector, workstation, workstations, analyses, photos } = ctx;
-  const { consultant, risks, actions, tasks, psychosocial } = getCtxData(ctx);
+  const { consultant, rt, risks, actions, tasks, psychosocial } = getCtxData(ctx);
   const methods = [...new Set(analyses.map(a => a.method))].join(", ") || "N/A";
   const sectorName = sector?.name || "Geral";
   const wsName = workstation?.name || workstations.map(w => w.name).join(", ");
@@ -1344,7 +1344,7 @@ ${footer()}`;
 // ==================== PGR ====================
 function generatePGRReport(ctx: ReportContext): string {
   const { company, workstations, analyses } = ctx;
-  const { consultant, risks, actions, tasks, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, risks, actions, tasks, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE GERENCIAMENTO DE RISCOS", "PGR", company, consultant)}
@@ -1493,7 +1493,7 @@ ${footer()}`;
 // ==================== APR (Avaliação Preliminar de Riscos Psicossociais) ====================
 function generateAPRReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, psychosocial, sectors } = getCtxData(ctx);
+  const { consultant, rt, psychosocial, sectors } = getCtxData(ctx);
   const classifyRisk = (v: number) => v >= 75 ? `<span class="rpt-badge green">Baixo risco</span>` : v >= 50 ? `<span class="rpt-badge yellow">Moderado</span>` : `<span class="rpt-badge red">Alto risco</span>`;
 
   return `${sharedStyles()}
@@ -1594,7 +1594,7 @@ ${footer()}`;
 // ==================== PCMSO ====================
 function generatePCMSOReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, sectors, risks, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, sectors, risks, sectorMap } = getCtxData(ctx);
   const medico = ctx.consultantName || "Médico do Trabalho";
 
   return `${sharedStyles()}
@@ -1712,7 +1712,7 @@ ${footer()}`;
 // ==================== LTCAT ====================
 function generateLTCATReport(ctx: ReportContext): string {
   const { company, workstations, analyses } = ctx;
-  const { consultant, risks, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, risks, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DO TRABALHO", "LTCAT", company, consultant)}
@@ -1811,7 +1811,7 @@ ${footer()}`;
 // ==================== LAUDO DE INSALUBRIDADE ====================
 function generateInsalubridadeReport(ctx: ReportContext): string {
   const { company, workstations, analyses } = ctx;
-  const { consultant, risks, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, risks, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DE INSALUBRIDADE", "NR-15", company, consultant)}
@@ -1884,7 +1884,7 @@ ${footer()}`;
 // ==================== LAUDO DE PERICULOSIDADE ====================
 function generatePericulosidadeReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, risks, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, risks, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DE PERICULOSIDADE", "NR-16", company, consultant)}
@@ -1957,7 +1957,7 @@ ${footer()}`;
 // ==================== PCA ====================
 function generatePCAReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE CONSERVAÇÃO AUDITIVA", "PCA", company, consultant)}
@@ -2049,7 +2049,7 @@ ${footer()}`;
 // ==================== PPR ====================
 function generatePPRReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE PROTEÇÃO RESPIRATÓRIA", "PPR", company, consultant)}
@@ -2166,7 +2166,7 @@ ${footer()}`;
 // ==================== GENERIC FALLBACK ====================
 function generateGenericReport(ctx: ReportContext): string {
   const { company, workstations, analyses, reportType } = ctx;
-  const { consultant, risks, actions } = getCtxData(ctx);
+  const { consultant, rt, risks, actions } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage(reportType, reportType, company, consultant)}
