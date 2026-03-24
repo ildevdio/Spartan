@@ -358,6 +358,7 @@ export default function RelatoriosPage() {
         html={previewHtml || ""}
         title={previewTitle}
         onDownloadDocx={previewDownload || undefined}
+        technicalResponsible={technicalResponsible}
       />
     </div>
   );
