@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Printer, FileText, ShieldCheck } from "lucide-react";
 import { useRef, useState } from "react";
 import { ReportSignatureDialog, type SignatureResult } from "./ReportSignatureDialog";
+import type { TechnicalResponsibleInfo } from "@/lib/report-templates";
 
 interface ReportPreviewDialogProps {
   open: boolean;
@@ -11,6 +12,7 @@ interface ReportPreviewDialogProps {
   title: string;
   onDownloadDocx?: () => void;
   onSigned?: (result: SignatureResult) => void;
+  technicalResponsible?: TechnicalResponsibleInfo | null;
 }
 
 const PRINT_STYLES = `
@@ -27,7 +29,7 @@ const PRINT_STYLES = `
   @page { size: A4; margin: 15mm 12mm; }
 `;
 
-export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloadDocx, onSigned }: ReportPreviewDialogProps) {
+export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloadDocx, onSigned, technicalResponsible }: ReportPreviewDialogProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [signDialogOpen, setSignDialogOpen] = useState(false);
   const [signatureResult, setSignatureResult] = useState<SignatureResult | null>(null);
@@ -65,6 +67,8 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
     onOpenChange(isOpen);
   };
 
+  const rt = technicalResponsible;
+
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -72,14 +76,11 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
           <DialogHeader className="flex flex-row items-center justify-between p-3 sm:p-4 border-b border-border shrink-0">
             <DialogTitle className="text-sm sm:text-base truncate pr-2">{title}</DialogTitle>
             <div className="flex items-center gap-2 shrink-0">
-              {/* Signature status */}
               {signatureResult && (
                 <span className="flex items-center gap-1 text-[10px] text-success font-medium">
                   <ShieldCheck className="h-3.5 w-3.5" /> Assinado
                 </span>
               )}
-
-              {/* Sign button */}
               <Button
                 size="sm"
                 variant={signatureResult ? "outline" : "default"}
@@ -90,17 +91,11 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
                 <span className="hidden sm:inline">{signatureResult ? "Reassinar" : "Assinar (A3)"}</span>
                 <span className="sm:hidden">A3</span>
               </Button>
-
               <Button size="sm" variant="outline" className="h-7 text-xs" onClick={handlePrint}>
                 <Printer className="h-3.5 w-3.5 mr-1" />
                 <span className="hidden sm:inline">Imprimir</span>
               </Button>
-              <Button
-                size="sm"
-                variant="default"
-                className="h-7 text-xs"
-                onClick={handlePrint}
-              >
+              <Button size="sm" variant="default" className="h-7 text-xs" onClick={handlePrint}>
                 <Download className="h-3.5 w-3.5 mr-1" />
                 <span className="hidden sm:inline">Baixar PDF</span>
                 <span className="sm:hidden">PDF</span>
@@ -114,7 +109,6 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
               className="report-preview-content p-6 sm:p-10 max-w-[210mm] mx-auto"
               dangerouslySetInnerHTML={{ __html: html }}
             />
-            {/* Signature block at the bottom */}
             {signatureResult && (
               <div className="max-w-[210mm] mx-auto px-6 sm:px-10 pb-10">
                 <div className="border-t-2 border-success/30 pt-4 mt-6">
@@ -136,6 +130,21 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
                       <strong>Hash da assinatura:</strong> {signatureResult.signature.substring(0, 64)}...
                     </p>
                   </div>
+
+                  {/* Technical Responsible block */}
+                  {rt && (
+                    <div className="mt-4 p-4 rounded-lg border border-border bg-muted/30">
+                      <p className="text-xs font-bold text-foreground mb-2">RESPONSÁVEL TÉCNICO</p>
+                      <div className="space-y-0.5 text-xs">
+                        <p><strong>{rt.name}</strong></p>
+                        {rt.title && <p className="text-muted-foreground">{rt.title}</p>}
+                        {rt.specialization && <p className="text-muted-foreground">{rt.specialization}</p>}
+                        <p className="font-mono text-foreground">{rt.professional_registration}</p>
+                        {rt.cpf && <p className="text-muted-foreground">CPF: {rt.cpf}</p>}
+                        {rt.email && <p className="text-muted-foreground">{rt.email}</p>}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
