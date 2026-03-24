@@ -36,7 +36,25 @@ export default function RelatoriosPage() {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState("");
   const [previewDownload, setPreviewDownload] = useState<(() => void) | null>(null);
-  
+  const [technicalResponsible, setTechnicalResponsible] = useState<TechnicalResponsibleInfo | null>(null);
+
+  // Fetch technical responsible for the selected company
+  useEffect(() => {
+    if (!selectedCompanyId) { setTechnicalResponsible(null); return; }
+    supabase
+      .from("technical_responsibles")
+      .select("name, title, specialization, professional_registration, cpf, email")
+      .eq("company_id", selectedCompanyId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setTechnicalResponsible(data[0] as TechnicalResponsibleInfo);
+        } else {
+          setTechnicalResponsible(null);
+        }
+      });
+  }, [selectedCompanyId]);
 
   const wsReadyForReport = companyWorkstations.filter((ws) => {
     const photoCount = posturePhotos.filter((p) => p.workstation_id === ws.id).length;
