@@ -366,7 +366,8 @@ function footer() {
 
 function getCtxData(ctx: ReportContext) {
   const { company, workstations, analyses } = ctx;
-  const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
+  const rt = ctx.technicalResponsible;
+  const consultant = rt?.name || ctx.consultantName || "Engenheiro de Segurança do Trabalho";
   const analysisIds = analyses.map(a => a.id);
   const wsIds = workstations.map(w => w.id);
   const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
@@ -381,7 +382,7 @@ function getCtxData(ctx: ReportContext) {
     if (!sectorMap.has(sectorId)) sectorMap.set(sectorId, { sectorName, workstations: [] });
     sectorMap.get(sectorId)!.workstations.push(ws);
   });
-  return { consultant, risks, actions, tasks, psychosocial, sectors, sectorMap };
+  return { consultant, rt, risks, actions, tasks, psychosocial, sectors, sectorMap };
 }
 
 function gheTable(workstations: Workstation[], ctx: ReportContext) {
