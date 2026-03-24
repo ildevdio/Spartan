@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCompany } from "@/lib/company-context";
@@ -8,9 +8,10 @@ import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { generateAndDownloadDocx, type DocxReportContext } from "@/lib/docx-report-generator";
-import { generateReportHTML } from "@/lib/report-templates";
+import { generateReportHTML, type TechnicalResponsibleInfo } from "@/lib/report-templates";
 import { Progress } from "@/components/ui/progress";
 import { ReportPreviewDialog } from "@/components/ReportPreviewDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const REPORT_TYPES: { type: ReportType; label: string; description: string }[] = [
   { type: "AET", label: "AET", description: "Análise Ergonômica do Trabalho (inclui AEP como anexo)" },
@@ -35,7 +36,25 @@ export default function RelatoriosPage() {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState("");
   const [previewDownload, setPreviewDownload] = useState<(() => void) | null>(null);
-  
+  const [technicalResponsible, setTechnicalResponsible] = useState<TechnicalResponsibleInfo | null>(null);
+
+  // Fetch technical responsible for the selected company
+  useEffect(() => {
+    if (!selectedCompanyId) { setTechnicalResponsible(null); return; }
+    supabase
+      .from("technical_responsibles")
+      .select("name, title, specialization, professional_registration, cpf, email")
+      .eq("company_id", selectedCompanyId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setTechnicalResponsible(data[0] as TechnicalResponsibleInfo);
+        } else {
+          setTechnicalResponsible(null);
+        }
+      });
+  }, [selectedCompanyId]);
 
   const wsReadyForReport = companyWorkstations.filter((ws) => {
     const photoCount = posturePhotos.filter((p) => p.workstation_id === ws.id).length;
@@ -105,6 +124,7 @@ export default function RelatoriosPage() {
       analyses: ctx.analyses,
       photos: ctx.photos,
       reportType: ctx.reportType,
+      technicalResponsible: technicalResponsible || undefined,
     });
     setPreviewHtml(html);
     setPreviewTitle(label);
@@ -338,6 +358,7 @@ export default function RelatoriosPage() {
         html={previewHtml || ""}
         title={previewTitle}
         onDownloadDocx={previewDownload || undefined}
+        technicalResponsible={technicalResponsible}
       />
     </div>
   );

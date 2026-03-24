@@ -2,6 +2,15 @@ import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, Repo
 import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses } from "./mock-data";
 import { riskLevelLabel, statusLabel, analysisStatusLabel } from "./types";
 
+export interface TechnicalResponsibleInfo {
+  name: string;
+  title: string;
+  specialization: string;
+  professional_registration: string;
+  cpf: string;
+  email: string;
+}
+
 interface ReportContext {
   company: Company;
   sector?: Sector;
@@ -11,6 +20,7 @@ interface ReportContext {
   photos: PosturePhoto[];
   reportType: ReportType;
   consultantName?: string;
+  technicalResponsible?: TechnicalResponsibleInfo;
 }
 
 function getToday(): string {
@@ -324,25 +334,40 @@ function revisionTable() {
 </table>`;
 }
 
-function signatureBlock(consultant: string, title: string = "Engenheiro de Segurança do Trabalho", registration: string = "CREA/CONFEA: XXXXX") {
+function signatureBlock(consultant: string, title: string = "Engenheiro de Segurança do Trabalho", registration: string = "CREA/CONFEA: XXXXX", rt?: TechnicalResponsibleInfo) {
+  const rtName = rt?.name || consultant;
+  const rtTitle = rt?.title || title;
+  const rtReg = rt?.professional_registration || registration;
+  const rtSpec = rt?.specialization || "";
   return `
 <div class="rpt-divider"></div>
 <div class="rpt-sig">
+  <div style="display:flex; justify-content:center; align-items:center; gap:16px; margin-bottom:12px;">
+    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:50px; border-radius:50%;" onerror="this.style.display='none'" />
+  </div>
   <p>_____________________________________________</p>
-  <p><strong>${consultant}</strong></p>
-  <p>${title}</p>
-  <p>${registration}</p>
-  <p style="font-size:11px; color:#555; margin-top:15px;"><em>Documento gerado pelo sistema Focus Spartan — MG Consultoria</em></p>
+  <p style="font-size:14px; margin-bottom:2px;"><strong>${rtName}</strong></p>
+  <p style="font-size:12px; color:#333; margin:2px 0;">${rtTitle}</p>
+  ${rtSpec ? `<p style="font-size:11px; color:#555; margin:2px 0;">${rtSpec}</p>` : ""}
+  <p style="font-size:12px; font-family:monospace; color:#333; margin:4px 0;">${rtReg}</p>
+  ${rt?.cpf ? `<p style="font-size:11px; color:#555; margin:2px 0;">CPF: ${rt.cpf}</p>` : ""}
+  <p style="font-size:10px; color:#777; margin-top:16px; border-top:1px solid #ddd; padding-top:8px;">
+    <em>Documento gerado pelo sistema Focus Spartan — MG Consultoria em Ergonomia &amp; Segurança do Trabalho</em>
+  </p>
 </div>`;
 }
 
 function footer() {
-  return `<div class="rpt-footer">MG Consultoria — Ergonomia &amp; Segurança do Trabalho | ${getToday()}</div>`;
+  return `<div class="rpt-page-footer" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:24px; border-radius:50%;" onerror="this.style.display='none'" />
+    <span>MG Consultoria — Ergonomia &amp; Segurança do Trabalho &nbsp;|&nbsp; ${getToday()}</span>
+  </div>`;
 }
 
 function getCtxData(ctx: ReportContext) {
   const { company, workstations, analyses } = ctx;
-  const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
+  const rt = ctx.technicalResponsible;
+  const consultant = rt?.name || ctx.consultantName || "Engenheiro de Segurança do Trabalho";
   const analysisIds = analyses.map(a => a.id);
   const wsIds = workstations.map(w => w.id);
   const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
@@ -357,7 +382,7 @@ function getCtxData(ctx: ReportContext) {
     if (!sectorMap.has(sectorId)) sectorMap.set(sectorId, { sectorName, workstations: [] });
     sectorMap.get(sectorId)!.workstations.push(ws);
   });
-  return { consultant, risks, actions, tasks, psychosocial, sectors, sectorMap };
+  return { consultant, rt, risks, actions, tasks, psychosocial, sectors, sectorMap };
 }
 
 function gheTable(workstations: Workstation[], ctx: ReportContext) {
@@ -957,7 +982,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
 // ==================== AET ====================
 function generateAETReport(ctx: ReportContext): string {
   const { company, sector, workstation, workstations, analyses, photos } = ctx;
-  const { consultant, risks, actions, tasks, psychosocial } = getCtxData(ctx);
+  const { consultant, rt, risks, actions, tasks, psychosocial } = getCtxData(ctx);
   const methods = [...new Set(analyses.map(a => a.method))].join(", ") || "N/A";
   const sectorName = sector?.name || "Geral";
   const wsName = workstation?.name || workstations.map(w => w.name).join(", ");
@@ -1319,7 +1344,7 @@ ${footer()}`;
 // ==================== PGR ====================
 function generatePGRReport(ctx: ReportContext): string {
   const { company, workstations, analyses } = ctx;
-  const { consultant, risks, actions, tasks, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, risks, actions, tasks, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE GERENCIAMENTO DE RISCOS", "PGR", company, consultant)}
@@ -1461,14 +1486,14 @@ ${actions.length > 0 ? `<table class="rpt-table">
   <li>FUNDACENTRO — NHO 01, NHO 06, NHO 11</li>
 </ul>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
 // ==================== APR (Avaliação Preliminar de Riscos Psicossociais) ====================
 function generateAPRReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, psychosocial, sectors } = getCtxData(ctx);
+  const { consultant, rt, psychosocial, sectors } = getCtxData(ctx);
   const classifyRisk = (v: number) => v >= 75 ? `<span class="rpt-badge green">Baixo risco</span>` : v >= 50 ? `<span class="rpt-badge yellow">Moderado</span>` : `<span class="rpt-badge red">Alto risco</span>`;
 
   return `${sharedStyles()}
@@ -1562,14 +1587,14 @@ ${psychosocial.length > 0 ? psychosocial.map(psa => {
 <div class="rpt-section">8. CONSIDERAÇÕES FINAIS</div>
 <p>A implementação das ações recomendadas contribuirá significativamente para a redução dos riscos psicossociais e promoção da saúde mental no ambiente de trabalho da <strong>${company.trade_name || company.name}</strong>.</p>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
 // ==================== PCMSO ====================
 function generatePCMSOReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, sectors, risks, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, sectors, risks, sectorMap } = getCtxData(ctx);
   const medico = ctx.consultantName || "Médico do Trabalho";
 
   return `${sharedStyles()}
@@ -1687,7 +1712,7 @@ ${footer()}`;
 // ==================== LTCAT ====================
 function generateLTCATReport(ctx: ReportContext): string {
   const { company, workstations, analyses } = ctx;
-  const { consultant, risks, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, risks, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DO TRABALHO", "LTCAT", company, consultant)}
@@ -1779,14 +1804,14 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
   <li>Anexo III — Habilitação do Responsável Técnico e ART</li>
 </ul>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
 // ==================== LAUDO DE INSALUBRIDADE ====================
 function generateInsalubridadeReport(ctx: ReportContext): string {
   const { company, workstations, analyses } = ctx;
-  const { consultant, risks, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, risks, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DE INSALUBRIDADE", "NR-15", company, consultant)}
@@ -1852,14 +1877,14 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
   <li>Anexo III — ART do Responsável Técnico</li>
 </ul>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
 // ==================== LAUDO DE PERICULOSIDADE ====================
 function generatePericulosidadeReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, risks, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, risks, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DE PERICULOSIDADE", "NR-16", company, consultant)}
@@ -1925,14 +1950,14 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
 <p>Com base na análise técnica realizada, conclui-se que as atividades e operações desenvolvidas na empresa <strong>${company.trade_name || company.name}</strong> foram avaliadas conforme NR-16 e legislação pertinente.</p>
 <div class="rpt-callout">O laudo deve ser atualizado sempre que houver alteração nas condições de trabalho, processos ou introdução de novos agentes perigosos.</div>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
 // ==================== PCA ====================
 function generatePCAReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE CONSERVAÇÃO AUDITIVA", "PCA", company, consultant)}
@@ -2017,14 +2042,14 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
   <li>Anexo III — Fichas de Entrega de EPA</li>
 </ul>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
 // ==================== PPR ====================
 function generatePPRReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, sectorMap } = getCtxData(ctx);
+  const { consultant, rt, sectorMap } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE PROTEÇÃO RESPIRATÓRIA", "PPR", company, consultant)}
@@ -2134,14 +2159,14 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
   <li>Anexo 5 — Certificados de Aprovação (CA) dos EPRs</li>
 </ul>
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
 
 // ==================== GENERIC FALLBACK ====================
 function generateGenericReport(ctx: ReportContext): string {
   const { company, workstations, analyses, reportType } = ctx;
-  const { consultant, risks, actions } = getCtxData(ctx);
+  const { consultant, rt, risks, actions } = getCtxData(ctx);
 
   return `${sharedStyles()}
 ${coverPage(reportType, reportType, company, consultant)}
@@ -2168,6 +2193,6 @@ ${risks.length > 0 ? `<table class="rpt-table">
 <div class="rpt-section">4. RECOMENDAÇÕES</div>
 ${actions.length > 0 ? actions.map(ap => `<p>• ${ap.description} (${ap.responsible} — ${ap.deadline})</p>`).join("") : "<p>Sem recomendações.</p>"}
 
-${signatureBlock(consultant)}
+${signatureBlock(consultant, undefined, undefined, rt)}
 ${footer()}`;
 }
