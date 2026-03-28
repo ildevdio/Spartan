@@ -286,6 +286,57 @@ export type Database = {
           },
         ]
       }
+      questionnaire_responses: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          questionnaire_type: string
+          respondent_name: string
+          responses: Json
+          scores: Json
+          total_score: number
+          workstation_id: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          questionnaire_type?: string
+          respondent_name?: string
+          responses?: Json
+          scores?: Json
+          total_score?: number
+          workstation_id?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          questionnaire_type?: string
+          respondent_name?: string
+          responses?: Json
+          scores?: Json
+          total_score?: number
+          workstation_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questionnaire_responses_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "questionnaire_responses_workstation_id_fkey"
+            columns: ["workstation_id"]
+            isOneToOne: false
+            referencedRelation: "workstations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reports: {
         Row: {
           company_id: string | null
