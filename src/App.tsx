@@ -48,6 +48,7 @@ const App = () => {
               <Route path="/psicossocial" element={<PsicossocialPage />} />
               <Route path="/questionarios-psicossociais" element={<QuestionariosPsicossociaisPage />} />
               <Route path="/responsavel-tecnico" element={<ResponsavelTecnicoPage />} />
+              <Route path="/formulario/:companyId/:type" element={<FormularioOnlinePage />} />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
