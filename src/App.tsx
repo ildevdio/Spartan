@@ -18,6 +18,7 @@ import PostureCapturePage from "./pages/PostureCapturePage";
 import PsicossocialPage from "./pages/PsicossocialPage";
 import QuestionariosPsicossociaisPage from "./pages/QuestionariosPsicossociaisPage";
 import ResponsavelTecnicoPage from "./pages/ResponsavelTecnicoPage";
+import FormularioOnlinePage from "./pages/FormularioOnlinePage";
 
 import NotFound from "./pages/NotFound";
 import { useNativeApp } from "@/hooks/use-native-app";
