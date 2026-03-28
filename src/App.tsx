@@ -31,30 +31,33 @@ const App = () => {
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <CompanyProvider>
-          <AppLayout>
-            <Routes>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/empresas" element={<EmpresasPage />} />
-              <Route path="/setores" element={<SetoresPage />} />
-              <Route path="/postos" element={<PostosPage />} />
-              <Route path="/analises" element={<AnalisesPage />} />
-              <Route path="/riscos" element={<RiscosPage />} />
-              <Route path="/acoes" element={<AcoesPage />} />
-              <Route path="/relatorios" element={<RelatoriosPage />} />
-              <Route path="/analise-camera" element={<AnaliseCameraPage />} />
-              <Route path="/captura-posturas" element={<PostureCapturePage />} />
-              <Route path="/psicossocial" element={<PsicossocialPage />} />
-              <Route path="/questionarios-psicossociais" element={<QuestionariosPsicossociaisPage />} />
-              <Route path="/responsavel-tecnico" element={<ResponsavelTecnicoPage />} />
-              <Route path="/formulario/:companyId/:type" element={<FormularioOnlinePage />} />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AppLayout>
-        </CompanyProvider>
-      </BrowserRouter>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/formulario/:companyId/:type" element={<FormularioOnlinePage />} />
+            <Route path="*" element={
+              <CompanyProvider>
+                <AppLayout>
+                  <Routes>
+                    <Route path="/" element={<DashboardPage />} />
+                    <Route path="/empresas" element={<EmpresasPage />} />
+                    <Route path="/setores" element={<SetoresPage />} />
+                    <Route path="/postos" element={<PostosPage />} />
+                    <Route path="/analises" element={<AnalisesPage />} />
+                    <Route path="/riscos" element={<RiscosPage />} />
+                    <Route path="/acoes" element={<AcoesPage />} />
+                    <Route path="/relatorios" element={<RelatoriosPage />} />
+                    <Route path="/analise-camera" element={<AnaliseCameraPage />} />
+                    <Route path="/captura-posturas" element={<PostureCapturePage />} />
+                    <Route path="/psicossocial" element={<PsicossocialPage />} />
+                    <Route path="/questionarios-psicossociais" element={<QuestionariosPsicossociaisPage />} />
+                    <Route path="/responsavel-tecnico" element={<ResponsavelTecnicoPage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </AppLayout>
+              </CompanyProvider>
+            } />
+          </Routes>
+        </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
   );
