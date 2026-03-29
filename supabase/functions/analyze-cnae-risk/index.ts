@@ -58,7 +58,7 @@ Não inclua nenhum texto fora do JSON.`,
           },
           {
             role: "user",
-            content: `Qual o grau de risco NR-04 para o CNAE: ${cnae}?`,
+            content: `Qual o grau de risco NR-04 para o CNAE: ${sanitizedCnae}?`,
           },
         ],
         temperature: 0.1,
