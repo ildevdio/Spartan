@@ -13,8 +13,18 @@ serve(async (req) => {
 
   try {
     const { cnae } = await req.json();
-    if (!cnae) {
+    if (!cnae || typeof cnae !== "string") {
       return new Response(JSON.stringify({ error: "CNAE não informado" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate CNAE format (e.g., 56.11-2-03 or 5611203)
+    const sanitizedCnae = cnae.trim().slice(0, 20);
+    const cnaePattern = /^[\d.\-\/]{4,20}$/;
+    if (!cnaePattern.test(sanitizedCnae)) {
+      return new Response(JSON.stringify({ error: "Formato de CNAE inválido" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
