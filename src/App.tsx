@@ -15,7 +15,7 @@ import AcoesPage from "./pages/AcoesPage";
 import RelatoriosPage from "./pages/RelatoriosPage";
 import AnaliseCameraPage from "./pages/AnaliseCameraPage";
 import PostureCapturePage from "./pages/PostureCapturePage";
-import PsicossocialPage from "./pages/PsicossocialPage";
+
 import QuestionariosPsicossociaisPage from "./pages/QuestionariosPsicossociaisPage";
 import ResponsavelTecnicoPage from "./pages/ResponsavelTecnicoPage";
 import FormularioOnlinePage from "./pages/FormularioOnlinePage";
@@ -48,7 +48,7 @@ const App = () => {
                     <Route path="/relatorios" element={<RelatoriosPage />} />
                     <Route path="/analise-camera" element={<AnaliseCameraPage />} />
                     <Route path="/captura-posturas" element={<PostureCapturePage />} />
-                    <Route path="/psicossocial" element={<PsicossocialPage />} />
+
                     <Route path="/questionarios-psicossociais" element={<QuestionariosPsicossociaisPage />} />
                     <Route path="/responsavel-tecnico" element={<ResponsavelTecnicoPage />} />
                     <Route path="*" element={<NotFound />} />

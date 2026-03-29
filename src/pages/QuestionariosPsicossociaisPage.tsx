@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
-import { Printer, FileText, Building2, Link2, Copy, Eye, Trash2, BarChart3 } from "lucide-react";
+import { Printer, FileText, Building2, Link2, Copy, Eye, Trash2, BarChart3, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { QUESTIONNAIRE_DEFS, type QuestionnaireType } from "@/lib/questionnaire-data";
@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ManualQuestionnaireForm } from "@/components/ManualQuestionnaireForm";
 
 const QUESTIONNAIRES = Object.values(QUESTIONNAIRE_DEFS).map((q) => ({
   type: q.type,
@@ -117,6 +118,10 @@ export default function QuestionariosPsicossociaisPage() {
   const [responses, setResponses] = useState<QuestionnaireResponse[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
   const [detailResponse, setDetailResponse] = useState<QuestionnaireResponse | null>(null);
+  const [manualFormType, setManualFormType] = useState<QuestionnaireType | null>(null);
+
+  const onlineResponses = responses.filter((r) => !(r.responses as any)?.is_manual);
+  const printedResponses = responses.filter((r) => (r.responses as any)?.is_manual);
 
   useEffect(() => {
     if (!selectedCompanyId) return;
@@ -178,6 +183,55 @@ export default function QuestionariosPsicossociaisPage() {
     const ws = companyWorkstations.find((w) => w.id === wsId);
     return ws?.name || "—";
   };
+
+  const renderResponsesTable = (list: QuestionnaireResponse[], title: string, emptyMsg: string) => (
+    <div className="space-y-3 mt-6 first:mt-0">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      {list.length === 0 ? (
+        <p className="text-xs text-muted-foreground">{emptyMsg}</p>
+      ) : (
+        <div className="overflow-x-auto border rounded-md">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-xs">Respondente</TableHead>
+                <TableHead className="text-xs">Questionário</TableHead>
+                <TableHead className="text-xs">Posto</TableHead>
+                <TableHead className="text-xs">Score</TableHead>
+                <TableHead className="text-xs">Data</TableHead>
+                <TableHead className="text-xs w-20">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {list.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="text-xs font-medium">{r.respondent_name}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary" className="text-xs">
+                      {QUESTIONNAIRE_DEFS[r.questionnaire_type as QuestionnaireType]?.label || r.questionnaire_type}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-xs">{getWsName(r.workstation_id)}</TableCell>
+                  <TableCell className="text-xs font-semibold">{r.total_score}</TableCell>
+                  <TableCell className="text-xs">{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setDetailResponse(r)}>
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteResponse(r.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full">
@@ -280,10 +334,14 @@ export default function QuestionariosPsicossociaisPage() {
                   </CardTitle>
                   <CardDescription className="text-xs">{q.description}</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-2">
                   <Button size="sm" className="w-full" onClick={() => handlePrint(q.type)}>
                     <Printer className="h-4 w-4 mr-2" />
                     Gerar para Impressão
+                  </Button>
+                  <Button size="sm" variant="outline" className="w-full" onClick={() => setManualFormType(q.type as QuestionnaireType)}>
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Inserir Resposta Manual
                   </Button>
                 </CardContent>
               </Card>
@@ -309,44 +367,9 @@ export default function QuestionariosPsicossociaisPage() {
               ) : responses.length === 0 ? (
                 <p className="text-xs text-muted-foreground">Nenhuma resposta ainda. Compartilhe os links na aba "Formulário Online".</p>
               ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs">Respondente</TableHead>
-                        <TableHead className="text-xs">Questionário</TableHead>
-                        <TableHead className="text-xs">Posto</TableHead>
-                        <TableHead className="text-xs">Score</TableHead>
-                        <TableHead className="text-xs">Data</TableHead>
-                        <TableHead className="text-xs w-20">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {responses.map((r) => (
-                        <TableRow key={r.id}>
-                          <TableCell className="text-xs font-medium">{r.respondent_name}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary" className="text-xs">
-                              {QUESTIONNAIRE_DEFS[r.questionnaire_type as QuestionnaireType]?.label || r.questionnaire_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs">{getWsName(r.workstation_id)}</TableCell>
-                          <TableCell className="text-xs font-semibold">{r.total_score}</TableCell>
-                          <TableCell className="text-xs">{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setDetailResponse(r)}>
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteResponse(r.id)}>
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                <div className="space-y-6">
+                  {renderResponsesTable(onlineResponses, "Respostas de Questionário Online", "Nenhuma resposta online registrada.")}
+                  {renderResponsesTable(printedResponses, "Respostas de Questionário Impresso", "Nenhuma resposta impressa registrada.")}
                 </div>
               )}
             </CardContent>
@@ -375,22 +398,43 @@ export default function QuestionariosPsicossociaisPage() {
                 <div className="space-y-2">
                   {Object.entries(detailResponse.scores as Record<string, number>).map(([dim, score]) => (
                     <div key={dim} className="flex items-center gap-2">
-                      <span className="text-xs flex-1">{dim}</span>
-                      <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary rounded-full"
-                          style={{ width: `${Math.min(score, 100)}%` }}
-                        />
-                      </div>
-                      <span className="text-xs font-semibold w-8 text-right">{score}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+                       <span className="text-xs flex-1">{dim}</span>
+                       <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                         <div
+                           className="h-full bg-primary rounded-full"
+                           style={{ width: `${Math.min(score, 100)}%` }}
+                         />
+                       </div>
+                       <span className="text-xs font-semibold w-8 text-right">{score}</span>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             </div>
+           )}
+         </DialogContent>
+       </Dialog>
+ 
+       <ManualQuestionnaireForm 
+         open={!!manualFormType} 
+         onOpenChange={(open) => !open && setManualFormType(null)} 
+         type={manualFormType} 
+         onSuccess={() => {
+           setManualFormType(null);
+           if (selectedCompanyId) {
+             setLoadingResponses(true);
+             supabase
+               .from("questionnaire_responses")
+               .select("*")
+               .eq("company_id", selectedCompanyId)
+               .order("created_at", { ascending: false })
+               .then(({ data }) => {
+                 setResponses((data as QuestionnaireResponse[] | null) || []);
+                 setLoadingResponses(false);
+               });
+           }
+         }} 
+       />
+     </div>
+   );
+ }
