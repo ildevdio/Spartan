@@ -54,39 +54,98 @@ function sharedStyles() {
     *, *::before, *::after { box-sizing: border-box; }
     body, .rpt-body {
       font-family: Calibri, 'Segoe UI', Arial, sans-serif;
-      font-size: 12px;
-      color: #1a1a1a;
-      line-height: 1.55;
+      font-size: 12pt;
+      color: #000;
+      line-height: 1.6;
       background: white;
     }
-    p { text-align: justify; margin: 6px 0 10px 0; }
-    ul, ol { margin: 4px 0 10px 0; padding-left: 22px; }
-    li { margin-bottom: 3px; text-align: justify; }
+    p { text-align: justify; margin: 8px 0 12px 0; }
+    ul, ol { margin: 6px 0 12px 0; padding-left: 24px; }
+    li { margin-bottom: 4px; text-align: justify; }
 
     /* === COVER PAGE === */
     .rpt-cover {
+      position: relative;
       text-align: center;
-      padding: 60px 40px;
-      background: linear-gradient(155deg, #0A1F44 0%, #1565C0 55%, #00838F 100%);
-      color: white;
-      margin-bottom: 0;
-      min-height: 90vh;
+      min-height: 95vh;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      align-items: center;
+      background: white;
+      overflow: hidden;
+      padding: 60px 40px;
     }
-    .rpt-cover h1 { font-size: 30px; font-weight: bold; margin-bottom: 8px; color: white; letter-spacing: 1px; }
-    .rpt-cover h2 { font-size: 18px; color: #B2EBF2; margin-bottom: 32px; font-weight: normal; }
-    .rpt-cover .company { font-size: 22px; font-weight: bold; color: white; margin-bottom: 6px; }
-    .rpt-cover .meta { font-size: 13px; color: #B2EBF2; margin: 3px 0; }
-    .rpt-cover .cover-divider { border: none; border-top: 2px solid rgba(178,235,242,0.4); margin: 24px auto; width: 60%; }
+    .rpt-cover::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      left: -100px;
+      right: -100px;
+      height: 280px;
+      background: linear-gradient(135deg, #0D2B5E 0%, #1565C0 40%, #2196F3 70%, #29B6F6 100%);
+      border-radius: 0 0 50% 50%;
+      z-index: 0;
+    }
+    .rpt-cover::after {
+      content: '';
+      position: absolute;
+      bottom: -80px;
+      left: -100px;
+      right: -100px;
+      height: 250px;
+      background: linear-gradient(135deg, #29B6F6 0%, #1565C0 50%, #0D2B5E 100%);
+      border-radius: 50% 50% 0 0;
+      z-index: 0;
+    }
+    .rpt-cover-inner {
+      position: relative;
+      z-index: 1;
+    }
+    .rpt-cover .cover-logo {
+      position: absolute;
+      top: 30px;
+      right: 40px;
+      z-index: 2;
+    }
+    .rpt-cover h1 {
+      font-size: 52px;
+      font-weight: bold;
+      color: #0D2B5E;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+    .rpt-cover h2 {
+      font-size: 24px;
+      font-weight: bold;
+      color: #0D2B5E;
+      margin-bottom: 40px;
+    }
+    .rpt-cover .year {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 40px;
+    }
+    .rpt-cover .company-info {
+      position: absolute;
+      bottom: 100px;
+      left: 50px;
+      text-align: left;
+      z-index: 2;
+    }
+    .rpt-cover .company-info p {
+      font-size: 14px;
+      color: #333;
+      margin: 2px 0;
+      text-align: left;
+    }
 
     /* === PAGE HEADER (per section) === */
     .rpt-page-header {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 12px;
-      border: 2px solid #000;
+      margin-bottom: 20px;
+      border: 1px solid #000;
     }
     .rpt-page-header td {
       border: 1px solid #000;
@@ -95,7 +154,7 @@ function sharedStyles() {
       font-size: 10px;
     }
     .rpt-page-header .hdr-logo {
-      width: 130px;
+      width: 120px;
       text-align: center;
       background: white;
     }
@@ -103,7 +162,7 @@ function sharedStyles() {
       text-align: center;
       font-size: 12px;
       font-weight: bold;
-      background: #f5f5f5;
+      background: white;
     }
     .rpt-page-header .hdr-sms {
       width: 160px;
@@ -124,7 +183,6 @@ function sharedStyles() {
     .rpt-page-header .sms-table th {
       border: 1px solid #999;
       padding: 2px 4px;
-      background: #e0e0e0;
       font-weight: bold;
       font-size: 9px;
       color: #333;
@@ -135,101 +193,103 @@ function sharedStyles() {
       text-align: center;
       font-size: 10px;
       color: #555;
-      margin-top: 16px;
+      margin-top: 30px;
       padding-top: 8px;
-      border-top: 2px solid #000;
-      font-style: italic;
     }
 
-    /* === SECTION BANNERS === */
+    /* === SECTION HEADERS (clean document style) === */
     .rpt-section {
-      background: linear-gradient(90deg, #0A1F44, #1565C0);
-      color: white;
-      padding: 12px 20px;
-      margin: 30px 0 15px 0;
-      border-radius: 6px;
       font-size: 16px;
       font-weight: bold;
+      color: #000;
+      margin: 28px 0 14px 0;
+      padding: 0;
+      border: none;
+      background: none;
+      border-radius: 0;
     }
     .rpt-section2 {
-      background: linear-gradient(90deg, #1565C0, #00838F);
-      color: white;
-      padding: 10px 18px;
-      margin: 24px 0 12px 0;
-      border-radius: 5px;
-      font-size: 15px;
-      font-weight: bold;
-    }
-    .rpt-section3 {
-      border-left: 5px solid #00BCD4;
-      padding: 8px 14px;
-      margin: 20px 0 10px 0;
       font-size: 14px;
       font-weight: bold;
-      color: #0A1F44;
-      background: #E1F5FE;
-      border-radius: 0 5px 5px 0;
+      color: #000;
+      margin: 22px 0 10px 0;
+      padding: 0;
+      border: none;
+      background: none;
+      border-radius: 0;
+    }
+    .rpt-section3 {
+      font-size: 13px;
+      font-weight: bold;
+      color: #000;
+      margin: 18px 0 8px 0;
+      padding: 0;
+      border: none;
+      border-left: none;
+      background: none;
+      border-radius: 0;
+      text-decoration: underline;
     }
 
-    /* === CALLOUTS === */
+    /* === CALLOUTS (simplified) === */
     .rpt-callout {
-      border-left: 5px solid #1565C0;
-      background: #E3F2FD;
-      padding: 12px 16px;
+      border-left: 3px solid #999;
+      background: #f9f9f9;
+      padding: 10px 14px;
       margin: 12px 0;
-      border-radius: 0 6px 6px 0;
+      border-radius: 0;
       font-style: italic;
-      color: #0A1F44;
+      color: #333;
       font-size: 12px;
     }
-    .rpt-callout.warning { border-left-color: #FF6F00; background: #FFF3E0; }
-    .rpt-callout.success { border-left-color: #43A047; background: #C8E6C9; }
-    .rpt-callout.danger  { border-left-color: #D32F2F; background: #FFCDD2; }
+    .rpt-callout.warning { border-left-color: #FF6F00; background: #FFF8E1; }
+    .rpt-callout.success { border-left-color: #43A047; background: #E8F5E9; }
+    .rpt-callout.danger  { border-left-color: #D32F2F; background: #FFEBEE; }
 
-    /* === TABLES === */
-    .rpt-table { width: 100%; border-collapse: collapse; margin: 12px 0; border-radius: 6px; overflow: hidden; }
+    /* === TABLES (clean document style) === */
+    .rpt-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
     .rpt-table th {
-      background: #0A1F44;
-      color: white;
-      padding: 10px 12px;
-      font-size: 12px;
+      background: #f0f0f0;
+      color: #000;
+      padding: 8px 10px;
+      font-size: 11px;
       text-align: left;
-      border: 1px solid #0A1F44;
+      border: 1px solid #000;
       font-weight: bold;
     }
-    .rpt-table th.alt  { background: #1565C0; border-color: #1565C0; }
-    .rpt-table th.teal { background: #00838F; border-color: #00838F; }
-    .rpt-table th.risk-hdr { background: #c6efce; color: #1a1a1a; border-color: #B0BEC5; }
+    .rpt-table th.alt  { background: #e8e8e8; }
+    .rpt-table th.teal { background: #e8e8e8; }
+    .rpt-table th.risk-hdr { background: #e8e8e8; }
     .rpt-table td {
-      padding: 9px 12px;
-      font-size: 12px;
-      border: 1px solid #B0BEC5;
+      padding: 7px 10px;
+      font-size: 11px;
+      border: 1px solid #000;
       vertical-align: top;
     }
-    .rpt-table tr:nth-child(even) td { background: #E3F2FD; }
+    .rpt-table tr:nth-child(even) td { background: #fafafa; }
     .rpt-table td.label {
-      background: #E1F5FE;
+      background: #f0f0f0;
       font-weight: bold;
-      color: #1565C0;
-      border: 1px solid #B0BEC5;
+      color: #000;
+      border: 1px solid #000;
+      text-align: right;
     }
 
     /* === BADGES === */
-    .rpt-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    .rpt-badge { display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 11px; font-weight: bold; }
     .rpt-badge.green  { background: #C8E6C9; color: #1B5E20; }
     .rpt-badge.yellow { background: #FFF9C4; color: #F57F17; }
     .rpt-badge.orange { background: #FFE0B2; color: #E65100; }
     .rpt-badge.red    { background: #FFCDD2; color: #B71C1C; }
 
     /* === SIGNATURE & FOOTER === */
-    .rpt-divider { height: 4px; background: linear-gradient(90deg, #00BCD4, #1565C0, #0A1F44); margin: 20px 0; border-radius: 2px; }
-    .rpt-sig { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 2px solid #B0BEC5; }
+    .rpt-divider { height: 1px; background: #000; margin: 20px 0; }
+    .rpt-sig { text-align: center; margin-top: 50px; padding-top: 20px; }
     .rpt-footer {
       text-align: center;
       font-size: 10px;
       color: #555;
       margin-top: 24px;
-      border-top: 1px solid #999;
       padding-top: 6px;
     }
 
@@ -256,83 +316,79 @@ function sharedStyles() {
 function coverPage(title: string, subtitle: string, company: Company, consultant: string) {
   return `
 <div class="rpt-cover">
-  <img src="/mg-consult-logo.png" alt="MG Consult" style="height:60px; margin-bottom:24px; filter: brightness(0) invert(1);" onerror="this.style.display='none'" />
-  <h1>${title}</h1>
-  <h2>${subtitle}</h2>
-  <hr class="cover-divider" />
-  <p class="company">${(company.trade_name || company.name).toUpperCase()}</p>
-  <p class="meta">CNPJ: ${company.cnpj}</p>
-  <p class="meta">${company.address}${company.neighborhood ? ', ' + company.neighborhood : ''} — ${company.city}/${company.state}</p>
-  <hr class="cover-divider" />
-  <p class="meta" style="margin-top:10px;">Emissão: ${getToday()} &nbsp;|&nbsp; Revisão: 00</p>
-  <p class="meta">Responsável Técnico: ${consultant}</p>
-  <p class="meta" style="font-size:11px; margin-top:18px; opacity:0.8;"><em>MG Consultoria — Ergonomia &amp; Segurança do Trabalho</em></p>
+  <div class="cover-logo">
+    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:60px;" onerror="this.style.display='none'" />
+  </div>
+  <div class="rpt-cover-inner">
+    <h1>${subtitle}</h1>
+    <h2>${title}</h2>
+    <p class="year">${getYear()}</p>
+  </div>
+  <div class="company-info">
+    <p><strong>${(company.trade_name || company.name).toUpperCase()}</strong></p>
+    <p>CNPJ: ${company.cnpj}</p>
+  </div>
 </div><div class="page-break"></div>`;
 }
 
-/**
- * Renders the per-section 3-column page header:
- * [Logo | Document Title | SMS Table (Emission/Revision/Sheet)]
- * Matches the reference PDF layout.
- */
 function pageHeader(docTitle: string, company: Company, sheetNum: string = "01") {
-  const companyName = company.trade_name || company.name;
   return `
 <table class="rpt-page-header">
   <tr>
     <td class="hdr-logo" rowspan="2">
-      <img src="/mg-consult-logo.png" alt="MG Consult" style="height:36px; max-width:120px;" onerror="this.innerHTML='<strong style=font-size:9px>MG<br>Consult</strong>'" />
+      <img src="/mg-consult-logo.png" alt="MG Consult" style="height:36px; max-width:110px;" onerror="this.innerHTML='<strong style=font-size:9px>MG<br>Consult</strong>'" />
     </td>
-    <td class="hdr-title" style="padding:6px;">
-      <div style="font-size:11px; font-weight:bold; margin-bottom:2px;">${docTitle}</div>
-      <div style="font-size:10px; color:#444;">${companyName}</div>
+    <td class="hdr-title" rowspan="2" style="padding:6px;">
+      <div style="font-size:12px; font-weight:bold;">${docTitle}</div>
     </td>
-    <td class="hdr-sms" rowspan="2">
+    <td class="hdr-sms">
       <table class="sms-table">
-        <tr><th>Emissão</th><th>Revisão</th><th>Folha</th></tr>
-        <tr><td>${getToday()}</td><td>00</td><td>${sheetNum}</td></tr>
+        <tr><th colspan="2">SMS</th></tr>
+        <tr><td>Emissão:</td><td>${getToday()}</td></tr>
+        <tr><td>Revisão:</td><td>00</td></tr>
+        <tr><td>Folha:</td><td>${sheetNum}</td></tr>
       </table>
-      <div style="font-size:8px; color:#666; margin-top:3px;">SMS — Segurança</div>
-    </td>
-  </tr>
-  <tr>
-    <td style="font-size:9px; color:#555; text-align:center; padding:3px;">
-      Documento técnico confidencial — MG Consultoria
     </td>
   </tr>
 </table>`;
 }
 
-/**
- * Renders the per-section page footer with MG Consult branding.
- */
 function pageFooter() {
-  return `<div class="rpt-page-footer">MG Consultoria — Ergonomia &amp; Segurança do Trabalho &nbsp;|&nbsp; ${getToday()}</div>`;
+  return `<div class="rpt-page-footer">
+    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:30px;" onerror="this.style.display='none'" />
+  </div>`;
 }
 
 function companyDataTable(company: Company) {
   return `
 <table class="rpt-table">
-  <tr><td class="label" style="width:200px;">Razão Social</td><td>${company.name}</td></tr>
+  <tr><th colspan="2" style="text-align:center; font-size:12px;">DADOS DA ORGANIZAÇÃO</th></tr>
+  <tr><td class="label" style="width:200px;">Nome da Organização</td><td>${company.name}</td></tr>
   <tr><td class="label">Nome Fantasia</td><td>${company.trade_name || company.name}</td></tr>
   <tr><td class="label">CNPJ</td><td>${company.cnpj}</td></tr>
   <tr><td class="label">CNAE Principal</td><td>${company.cnae_principal || "—"}</td></tr>
   <tr><td class="label">CNAE Secundário</td><td>${company.cnae_secundario || "—"}</td></tr>
-  <tr><td class="label">Grau de Risco</td><td>${company.activity_risk || "—"}</td></tr>
-  <tr><td class="label">Endereço</td><td>${company.address}</td></tr>
-  <tr><td class="label">Bairro</td><td>${company.neighborhood || "—"}</td></tr>
-  <tr><td class="label">Cidade/UF</td><td>${company.city} — ${company.state}</td></tr>
-  <tr><td class="label">CEP</td><td>${company.cep || "—"}</td></tr>
+  <tr><td class="label">Risco da Atividade</td><td>${company.activity_risk || "—"}</td></tr>
+  <tr><td class="label" rowspan="4" style="vertical-align:middle;">Endereço Completo</td><td><strong>Logradouro:</strong> ${company.address}</td></tr>
+  <tr><td><strong>Bairro:</strong> ${company.neighborhood || "—"}</td></tr>
+  <tr><td><strong>Cidade / Estado:</strong> ${company.city} — ${company.state}</td></tr>
+  <tr><td><strong>CEP:</strong> ${company.cep || "—"}</td></tr>
 </table>`;
 }
 
 function revisionTable() {
   return `
-<div class="rpt-section">CONTROLE DE REVISÕES</div>
+<div class="rpt-section" style="page-break-before:avoid; text-align:center;">CONTROLE DE REVISÕES</div>
 <table class="rpt-table">
-  <tr><th>Revisão</th><th>Data</th><th>Descrição</th></tr>
-  <tr><td>00</td><td>${getToday()}</td><td>Emissão do documento.</td></tr>
-</table>`;
+  <tr><th style="text-align:center;">REVISÃO</th><th style="text-align:center;">DATA</th><th style="text-align:center;">DESCRIÇÃO</th></tr>
+  <tr><td style="text-align:center;">00</td><td style="text-align:center;">${getToday()}</td><td style="text-align:center;">Emissão Inicial</td></tr>
+  <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+  <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+  <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+  <tr><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>
+</table>
+<p style="margin-top:16px;"><strong>OBSERVAÇÕES:</strong></p>
+<div style="border:1px solid #000; min-height:120px; padding:8px;"></div>`;
 }
 
 function signatureBlock(consultant: string, title: string = "Engenheiro de Segurança do Trabalho", registration: string = "CREA/CONFEA: XXXXX", rt?: TechnicalResponsibleInfo) {
@@ -343,27 +399,22 @@ function signatureBlock(consultant: string, title: string = "Engenheiro de Segur
   return `
 <div class="rpt-divider"></div>
 <div class="rpt-sig">
-  <div style="display:flex; justify-content:center; align-items:center; gap:16px; margin-bottom:12px;">
-    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:50px; border-radius:50%;" onerror="this.style.display='none'" />
-  </div>
-  <p>_____________________________________________</p>
+  <p style="margin-top:60px;">_____________________________________________</p>
   <p style="font-size:14px; margin-bottom:2px;"><strong>${rtName}</strong></p>
   <p style="font-size:12px; color:#333; margin:2px 0;">${rtTitle}</p>
   ${rtSpec ? `<p style="font-size:11px; color:#555; margin:2px 0;">${rtSpec}</p>` : ""}
   <p style="font-size:12px; font-family:monospace; color:#333; margin:4px 0;">${rtReg}</p>
   ${rt?.cpf ? `<p style="font-size:11px; color:#555; margin:2px 0;">CPF: ${rt.cpf}</p>` : ""}
-  <p style="font-size:10px; color:#777; margin-top:16px; border-top:1px solid #ddd; padding-top:8px;">
-    <em>Documento gerado pelo sistema Focus Spartan — MG Consultoria em Ergonomia &amp; Segurança do Trabalho</em>
-  </p>
 </div>`;
 }
 
 function footer() {
-  return `<div class="rpt-page-footer" style="display:flex; align-items:center; justify-content:center; gap:8px;">
-    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:24px; border-radius:50%;" onerror="this.style.display='none'" />
-    <span>MG Consultoria — Ergonomia &amp; Segurança do Trabalho &nbsp;|&nbsp; ${getToday()}</span>
+  return `<div class="rpt-page-footer">
+    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:30px;" onerror="this.style.display='none'" />
   </div>`;
 }
+
+
 
 function getCtxData(ctx: ReportContext) {
   const { company, workstations, analyses } = ctx;
