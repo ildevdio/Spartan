@@ -37,7 +37,6 @@ const sections = [
     label: "Cadastro",
     icon: Building2,
     items: [
-      { title: "Dashboard", url: "/", icon: LayoutDashboard },
       { title: "Empresas", url: "/empresas", icon: Building2 },
       { title: "Setores", url: "/setores", icon: Layers },
       { title: "Postos", url: "/postos", icon: Monitor },
@@ -107,6 +106,30 @@ export function AppSidebar() {
 
       <SidebarContent className="overflow-y-auto overflow-x-hidden">
         <div className="py-1">
+          <SidebarMenu className="px-1 mb-2">
+            <SidebarMenuItem className="my-0">
+              <SidebarMenuButton asChild className="h-9">
+                <NavLink
+                  to="/"
+                  end
+                  className={cn(
+                    "hover:bg-sidebar-accent/50 transition-all duration-200 cursor-pointer rounded-md border border-transparent mx-1",
+                    location.pathname === "/"
+                      ? "text-sidebar-primary bg-sidebar-accent/30 border-sidebar-primary/20"
+                      : "text-sidebar-muted",
+                    collapsed && "justify-center px-1.5"
+                  )}
+                  activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
+                >
+                  <LayoutDashboard className={cn("h-4 w-4 shrink-0", collapsed ? "" : "mr-2")} />
+                  {!collapsed && <span className="text-[11px] font-semibold uppercase tracking-wider">Dashboard</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+
+          <div className="h-px bg-sidebar-border/30 mx-3 mb-2 opacity-50" />
+
           {sections.map((section, sectionIdx) => {
             const isOpen = openSections[sectionIdx] ?? false;
             const hasActiveItem = section.items.some((item) =>
