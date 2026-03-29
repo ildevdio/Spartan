@@ -7,8 +7,8 @@ import { FileText, CheckCircle2, AlertTriangle, Download, Loader2, BarChart3, Sh
 import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { generateAndDownloadDocx, type DocxReportContext } from "@/lib/docx-report-generator";
-import { generateReportHTML, type TechnicalResponsibleInfo } from "@/lib/report-templates";
+import { generateAndDownloadPdf } from "@/lib/pdf-report-generator";
+import { generateReportHTML, type TechnicalResponsibleInfo, type ReportContext } from "@/lib/report-templates";
 import { Progress } from "@/components/ui/progress";
 import { ReportPreviewDialog } from "@/components/ReportPreviewDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,7 +87,7 @@ export default function RelatoriosPage() {
   const riskDist: Record<RiskLevel, number> = { low: 0, medium: 0, high: 0, critical: 0 };
   companyRisks.forEach((r) => riskDist[r.risk_level]++);
 
-  const buildCtxForWs = (wsId: string, type: ReportType): DocxReportContext | null => {
+  const buildCtxForWs = (wsId: string, type: ReportType): ReportContext | null => {
     const ws = companyWorkstations.find((w) => w.id === wsId);
     const sector = companySectors.find((s) => s.id === ws?.sector_id);
     if (!ws || !selectedCompany) return null;
@@ -96,7 +96,6 @@ export default function RelatoriosPage() {
       sector: sector || undefined,
       workstation: ws,
       workstations: [ws],
-      sectors: companySectors,
       analyses: companyAnalyses.filter((a) => a.workstation_id === ws.id),
       photos: posturePhotos.filter((p) => p.workstation_id === ws.id),
       reportType: type,
@@ -106,12 +105,11 @@ export default function RelatoriosPage() {
     };
   };
 
-  const buildCtxForAll = (type: ReportType): DocxReportContext | null => {
+  const buildCtxForAll = (type: ReportType): ReportContext | null => {
     if (!selectedCompany) return null;
     return {
       company: selectedCompany,
       workstations: companyWorkstations,
-      sectors: companySectors,
       analyses: companyAnalyses,
       photos: posturePhotos.filter((p) => companyWorkstations.some((w) => w.id === p.workstation_id)),
       reportType: type,
@@ -121,11 +119,12 @@ export default function RelatoriosPage() {
     };
   };
 
-  const handleDownloadDocx = async (ctx: DocxReportContext) => {
+  const handleDownloadPdf = async (ctx: ReportContext, title: string) => {
     setGenerating("download");
     try {
-      await generateAndDownloadDocx(ctx);
-      toast.success(`Relatório ${ctx.reportType} baixado com o mesmo HTML da visualização.`);
+      const html = generateReportHTML({ ...ctx, technicalResponsible: technicalResponsible || undefined });
+      generateAndDownloadPdf(html, title);
+      toast.success(`Relatório ${ctx.reportType} gerado em PDF.`);
     } catch (err) {
       console.error(err);
       toast.error("Erro ao gerar relatório.");
@@ -134,7 +133,7 @@ export default function RelatoriosPage() {
     }
   };
 
-  const handlePreview = (ctx: DocxReportContext, label: string) => {
+  const handlePreview = (ctx: ReportContext, label: string) => {
     const html = generateReportHTML({
       company: ctx.company,
       sector: ctx.sector,
@@ -150,7 +149,7 @@ export default function RelatoriosPage() {
     });
     setPreviewHtml(html);
     setPreviewTitle(label);
-    setPreviewDownload(() => () => handleDownloadDocx(ctx));
+    setPreviewDownload(() => () => handleDownloadPdf(ctx, label));
     
   };
 
@@ -170,13 +169,16 @@ export default function RelatoriosPage() {
   const handleDownloadAll = async (type: ReportType) => {
     const ctx = buildCtxForAll(type);
     if (!ctx) return;
-    await handleDownloadDocx(ctx);
+    const title = `${type} — ${selectedCompany?.name}`;
+    await handleDownloadPdf(ctx, title);
   };
 
   const handleDownloadWs = async (wsId: string, type: ReportType) => {
     const ctx = buildCtxForWs(wsId, type);
     if (!ctx) return;
-    await handleDownloadDocx(ctx);
+    const ws = companyWorkstations.find((w) => w.id === wsId);
+    const title = `${type} — ${ws?.name}`;
+    await handleDownloadPdf(ctx, title);
   };
 
   return (
@@ -379,7 +381,6 @@ export default function RelatoriosPage() {
         onOpenChange={(open) => { if (!open) { setPreviewHtml(null); setPreviewDownload(null); } }}
         html={previewHtml || ""}
         title={previewTitle}
-        onDownloadDocx={previewDownload || undefined}
         technicalResponsible={technicalResponsible}
       />
     </div>
