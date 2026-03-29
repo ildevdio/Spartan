@@ -22,6 +22,9 @@ export interface DocxReportContext {
   photos: PosturePhoto[];
   reportType: ReportType;
   consultantName?: string;
+  risks?: RiskAssessment[];
+  actionPlans?: ActionPlan[];
+  questionnaireResponses?: any[];
 }
 
 // ============ COLOR PALETTE ============
@@ -1941,6 +1944,9 @@ function buildPreviewHtmlDocument(ctx: DocxReportContext): string {
     photos: ctx.photos,
     reportType: ctx.reportType,
     consultantName: ctx.consultantName,
+    risks: ctx.risks,
+    actionPlans: ctx.actionPlans,
+    questionnaireResponses: ctx.questionnaireResponses,
   });
 }
 

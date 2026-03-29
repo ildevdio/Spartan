@@ -37,10 +37,16 @@ export default function RelatoriosPage() {
   const [previewTitle, setPreviewTitle] = useState("");
   const [previewDownload, setPreviewDownload] = useState<(() => void) | null>(null);
   const [technicalResponsible, setTechnicalResponsible] = useState<TechnicalResponsibleInfo | null>(null);
+  const [questionnaireResponses, setQuestionnaireResponses] = useState<any[]>([]);
 
   // Fetch technical responsible for the selected company
   useEffect(() => {
-    if (!selectedCompanyId) { setTechnicalResponsible(null); return; }
+    if (!selectedCompanyId) { 
+      setTechnicalResponsible(null); 
+      setQuestionnaireResponses([]);
+      return; 
+    }
+    
     supabase
       .from("technical_responsibles")
       .select("name, title, specialization, professional_registration, cpf, email")
@@ -54,6 +60,13 @@ export default function RelatoriosPage() {
           setTechnicalResponsible(null);
         }
       });
+      
+    supabase
+      .from("questionnaire_responses")
+      .select("*")
+      .eq("company_id", selectedCompanyId)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => setQuestionnaireResponses(data || []));
   }, [selectedCompanyId]);
 
   const wsReadyForReport = companyWorkstations.filter((ws) => {
@@ -87,6 +100,9 @@ export default function RelatoriosPage() {
       analyses: companyAnalyses.filter((a) => a.workstation_id === ws.id),
       photos: posturePhotos.filter((p) => p.workstation_id === ws.id),
       reportType: type,
+      risks: companyRisks,
+      actionPlans: companyActions,
+      questionnaireResponses: questionnaireResponses,
     };
   };
 
@@ -99,6 +115,9 @@ export default function RelatoriosPage() {
       analyses: companyAnalyses,
       photos: posturePhotos.filter((p) => companyWorkstations.some((w) => w.id === p.workstation_id)),
       reportType: type,
+      risks: companyRisks,
+      actionPlans: companyActions,
+      questionnaireResponses: questionnaireResponses,
     };
   };
 
@@ -125,6 +144,9 @@ export default function RelatoriosPage() {
       photos: ctx.photos,
       reportType: ctx.reportType,
       technicalResponsible: technicalResponsible || undefined,
+      risks: ctx.risks,
+      actionPlans: ctx.actionPlans,
+      questionnaireResponses: ctx.questionnaireResponses,
     });
     setPreviewHtml(html);
     setPreviewTitle(label);

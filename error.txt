@@ -1,0 +1,9 @@
+TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+    at generateAETReport (C:\Users\geral\Desktop\Projetos\Spartan\src\lib\report-templates.ts:1133:90)
+    at Module.generateReportHTML (C:\Users\geral\Desktop\Projetos\Spartan\src\lib\report-templates.ts:40:24)
+    at C:\Users\geral\Desktop\Projetos\Spartan\test-report.ts:20:3
+    at ViteNodeRunner.runModule (file:///C:/Users/geral/Desktop/Projetos/Spartan/node_modules/vite-node/dist/client.mjs:397:4)
+    at ViteNodeRunner.directRequest (file:///C:/Users/geral/Desktop/Projetos/Spartan/node_modules/vite-node/dist/client.mjs:375:3)
+    at ViteNodeRunner.cachedRequest (file:///C:/Users/geral/Desktop/Projetos/Spartan/node_modules/vite-node/dist/client.mjs:189:11)
+    at ViteNodeRunner.executeFile (file:///C:/Users/geral/Desktop/Projetos/Spartan/node_modules/vite-node/dist/client.mjs:162:10)
+    at CAC.run (file:///C:/Users/geral/Desktop/Projetos/Spartan/node_modules/vite-node/dist/cli.mjs:102:28)

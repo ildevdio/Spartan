@@ -158,6 +158,18 @@ export interface Report {
 
 export type ReportType = "AEP" | "AET" | "PGR" | "PCMSO" | "LTCAT" | "Insalubridade" | "Periculosidade" | "PCA" | "PPR" | "APR";
 
+export interface QuestionnaireResponse {
+  id: string;
+  company_id: string;
+  workstation_id: string | null;
+  questionnaire_type: string;
+  respondent_name: string;
+  responses: Record<string, number>;
+  scores: Record<string, number>;
+  total_score: number;
+  created_at: string;
+}
+
 export const MIN_PHOTOS_REQUIRED = 5;
 
 export function calculateRiskScore(probability: number, exposure: number, consequence: number): number {

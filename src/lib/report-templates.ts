@@ -1,6 +1,7 @@
-import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, ReportType, Task, PsychosocialAnalysis } from "./types";
+import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, ReportType, Task, PsychosocialAnalysis, ActionPlan, RiskAssessment, QuestionnaireResponse } from "./types";
 import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses } from "./mock-data";
 import { riskLevelLabel, statusLabel, analysisStatusLabel } from "./types";
+import { QUESTIONNAIRE_DEFS, type QuestionnaireType } from "./questionnaire-data";
 
 export interface TechnicalResponsibleInfo {
   name: string;
@@ -21,6 +22,9 @@ interface ReportContext {
   reportType: ReportType;
   consultantName?: string;
   technicalResponsible?: TechnicalResponsibleInfo;
+  actionPlans?: ActionPlan[];
+  risks?: RiskAssessment[];
+  questionnaireResponses?: any[];
 }
 
 function getToday(): string {
@@ -422,10 +426,11 @@ function getCtxData(ctx: ReportContext) {
   const consultant = rt?.name || ctx.consultantName || "Engenheiro de Segurança do Trabalho";
   const analysisIds = analyses.map(a => a.id);
   const wsIds = workstations.map(w => w.id);
-  const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
-  const actions = mockActionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
+  const risks = ctx.risks || mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
+  const actions = ctx.actionPlans || mockActionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
   const tasks = mockTasks.filter(t => wsIds.includes(t.workstation_id));
-  const psychosocial = mockPsychosocialAnalyses.filter(p => p.company_id === company.id);
+  const questionnaires = ctx.questionnaireResponses || [];
+  const psychosocial = mockPsychosocialAnalyses.filter(p => p.company_id === company.id); // Keeping for backward compat in other functions
   const sectors = [...new Set(workstations.map(w => w.sector?.name || "Geral"))];
   const sectorMap = new Map<string, { sectorName: string; workstations: typeof workstations }>();
   workstations.forEach(ws => {
@@ -434,7 +439,7 @@ function getCtxData(ctx: ReportContext) {
     if (!sectorMap.has(sectorId)) sectorMap.set(sectorId, { sectorName, workstations: [] });
     sectorMap.get(sectorId)!.workstations.push(ws);
   });
-  return { consultant, rt, risks, actions, tasks, psychosocial, sectors, sectorMap };
+  return { consultant, rt, risks, actions, tasks, psychosocial, questionnaires, sectors, sectorMap };
 }
 
 function gheTable(workstations: Workstation[], ctx: ReportContext) {
@@ -1034,7 +1039,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
 // ==================== AET ====================
 function generateAETReport(ctx: ReportContext): string {
   const { company, sector, workstation, workstations, analyses, photos } = ctx;
-  const { consultant, rt, risks, actions, tasks, psychosocial } = getCtxData(ctx);
+  const { consultant, rt, risks, actions, tasks, psychosocial, questionnaires } = getCtxData(ctx);
   const methods = [...new Set(analyses.map(a => a.method))].join(", ") || "N/A";
   const sectorName = sector?.name || "Geral";
   const wsName = workstation?.name || workstations.map(w => w.name).join(", ");
@@ -1125,7 +1130,7 @@ ${companyDataTable(company)}
 </table>
 
 <div class="rpt-section">5. ANÁLISE DA DEMANDA E DO FUNCIONAMENTO DA ORGANIZAÇÃO</div>
-<p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description.toLowerCase() || "atividades comerciais/industriais"}, com CNAE principal <strong>${company.cnae_principal || "—"}</strong> e grau de risco <strong>${company.activity_risk || "—"}</strong>. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
+<p>A empresa <strong>${company.name}</strong> opera no segmento de ${company.description?.toLowerCase() || "atividades comerciais/industriais"}, com CNAE principal <strong>${company.cnae_principal || "—"}</strong> e grau de risco <strong>${company.activity_risk || "—"}</strong>. A organização do trabalho foi avaliada considerando a estrutura setorial, distribuição de tarefas, jornada de trabalho e ritmo de produção.</p>
 
 <p>A análise da demanda foi conduzida por meio de observação direta dos postos de trabalho, entrevistas semiestruturadas com trabalhadores e gestores, análise documental (PPRA/PGR, PCMSO, CIPA, atestados médicos) e levantamento fotográfico das condições ergonômicas. As queixas mais frequentes foram compiladas e confrontadas com os achados objetivos das avaliações biomecânicas.</p>
 
@@ -1310,50 +1315,22 @@ ${equipmentTable()}
 
 <div class="page-break"></div>
 <div class="rpt-section">ANEXO III — RELATÓRIO TÉCNICO DE FATORES PSICOSSOCIAIS</div>
-${psychosocial.length > 0 ? `
-<p>Avaliações psicossociais realizadas: <strong>${psychosocial.length}</strong></p>
-${psychosocial.map((psa, idx) => {
-    let html = `<div class="rpt-section2">Avaliação ${idx + 1} — ${psa.evaluator_name}</div>`;
-    if (psa.nasa_tlx_details) {
-      const nasaClass = psa.nasa_tlx_score! <= 30 ? "green" : psa.nasa_tlx_score! <= 50 ? "yellow" : psa.nasa_tlx_score! <= 70 ? "orange" : "red";
-      html += `<div class="rpt-section3">NASA-TLX (Carga de Trabalho)</div>
-    <table class="rpt-table">
-      <tr><th class="alt">Dimensão</th><th class="alt">Score (0-100)</th></tr>
-      <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
-      <tr><td>Demanda Física</td><td>${psa.nasa_tlx_details.physical_demand}</td></tr>
-      <tr><td>Demanda Temporal</td><td>${psa.nasa_tlx_details.temporal_demand}</td></tr>
-      <tr><td>Performance</td><td>${psa.nasa_tlx_details.performance}</td></tr>
-      <tr><td>Esforço</td><td>${psa.nasa_tlx_details.effort}</td></tr>
-      <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
-      <tr><td class="label">Score Geral</td><td><span class="rpt-badge ${nasaClass}"><strong>${psa.nasa_tlx_score}</strong></span></td></tr>
-    </table>`;
-    }
-    if (psa.hse_it_details) {
-      const hseClass = psa.hse_it_score! >= 4 ? "green" : psa.hse_it_score! >= 3 ? "yellow" : psa.hse_it_score! >= 2 ? "orange" : "red";
-      html += `<div class="rpt-section3">HSE-IT (Estresse Ocupacional)</div>
-    <table class="rpt-table">
-      <tr><th class="teal">Dimensão</th><th class="teal">Score (1-5)</th></tr>
-      <tr><td>Demandas</td><td>${psa.hse_it_details.demands}</td></tr>
-      <tr><td>Controle</td><td>${psa.hse_it_details.control}</td></tr>
-      <tr><td>Suporte</td><td>${psa.hse_it_details.support}</td></tr>
-      <tr><td>Relacionamentos</td><td>${psa.hse_it_details.relationships}</td></tr>
-      <tr><td>Papel</td><td>${psa.hse_it_details.role}</td></tr>
-      <tr><td>Mudança</td><td>${psa.hse_it_details.change}</td></tr>
-      <tr><td class="label">Score Geral</td><td><span class="rpt-badge ${hseClass}"><strong>${psa.hse_it_score}</strong></span></td></tr>
-    </table>`;
-    }
-    if (psa.copenhagen_details) {
-      const cd = psa.copenhagen_details;
-      html += `<div class="rpt-section3">COPSOQ II (Copenhagen)</div>
-    <table class="rpt-table">
-      <tr><th class="teal">Dimensão</th><th class="teal">Score (0-100)</th></tr>
-      ${([["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support]] as [string, number][]).map(([d, v]) => `<tr><td>${d}</td><td><strong>${v}</strong></td></tr>`).join("")}
-      <tr><td class="label">Score Geral</td><td><strong>${psa.copenhagen_score}</strong></td></tr>
-    </table>`;
-    }
-    if (psa.observations) html += `<div class="rpt-callout">${psa.observations}</div>`;
-    return html;
-  }).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial registrada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX, HSE-IT e JSS.</div>'}
+${questionnaires.length > 0 ? `
+<p>Questionários psicossociais respondidos: <strong>${questionnaires.length}</strong></p>
+${questionnaires.map((q, idx) => `
+<div class="rpt-section2">Resposta ${idx + 1} — ${q.respondent_name}</div>
+<table class="rpt-table">
+  <tr><th class="alt" style="width:150px;">Questionário</th><td>${QUESTIONNAIRE_DEFS[q.questionnaire_type]?.label || q.questionnaire_type}</td></tr>
+  <tr><th class="alt">Posto de Trabalho</th><td>${ctx.workstations.find(w => w.id === q.workstation_id)?.name || "Geral"}</td></tr>
+  <tr><th class="alt">Data</th><td>${new Date(q.created_at).toLocaleDateString("pt-BR")}</td></tr>
+  <tr><th class="alt">Score Total</th><td><strong>${q.total_score}</strong></td></tr>
+</table>
+<div class="rpt-section3">Scores por Dimensão</div>
+<table class="rpt-table">
+  <tr><th class="teal">Dimensão</th><th class="teal" style="width:100px; text-align:center;">Pontuação</th></tr>
+  ${Object.entries(q.scores || {}).map(([dim, score]) => `<tr><td>${dim}</td><td style="text-align:center;"><strong>${score}</strong></td></tr>`).join("")}
+</table>
+`).join("")}` : '<div class="rpt-callout warning">Nenhum questionário psicossocial respondido.</div>'}
 
 <div class="page-break"></div>
 <div class="rpt-section">ANEXO IV — PLANO DE AÇÃO ERGONÔMICO</div>
