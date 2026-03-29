@@ -91,10 +91,6 @@ export function ReportPreviewDialog({ open, onOpenChange, html, title, onDownloa
                 <span className="hidden sm:inline">{signatureResult ? "Reassinar" : "Assinar (A3)"}</span>
                 <span className="sm:hidden">A3</span>
               </Button>
-              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={handlePrint}>
-                <Printer className="h-3.5 w-3.5 mr-1" />
-                <span className="hidden sm:inline">Imprimir</span>
-              </Button>
               <Button size="sm" variant="default" className="h-7 text-xs" onClick={handlePrint}>
                 <Download className="h-3.5 w-3.5 mr-1" />
                 <span className="hidden sm:inline">Baixar PDF</span>
