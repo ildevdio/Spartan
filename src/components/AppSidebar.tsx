@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useLicense } from "@/lib/license-context";
+import { useCompany } from "@/lib/company-context";
+import { toast } from "sonner";
+import { deobfuscate } from "@/lib/crypto";
 import {
   LayoutDashboard,
   Building2,
@@ -16,6 +19,9 @@ import {
   UserCheck,
   Lock,
   Zap,
+  LogOut,
+  Settings2,
+  ShieldCheck,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -42,9 +48,12 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const [focusDialogOpen, setFocusDialogOpen] = useState(false);
-  const { isFullVersion, activateLicense } = useLicense();
+  const { isFullVersion: isSystemAccess, isDeveloper, activateLicense, licenseKey, deactivateLicense } = useLicense();
+  const { selectedCompany } = useCompany();
+  const isCompanyPro = selectedCompany?.is_pro || isDeveloper;
+  
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
-  const [licenseKey, setLicenseKey] = useState("");
+  const [licenseKeyInput, setLicenseKeyInput] = useState("");
 
   const premiumFeatures = ["/analise-camera", "/psicossocial", "/relatorios"];
 
@@ -80,11 +89,41 @@ export function AppSidebar() {
         { title: "Relatórios", url: "/relatorios", icon: FileText, isPremium: true },
       ],
     },
+    ...(isDeveloper ? [{
+      label: "Desenvolvedor",
+      icon: ShieldCheck,
+      items: [
+        { title: "Configurações Dev", icon: Settings2, url: "/dev-settings" },
+      ]
+    }] : [])
   ];
 
-  const handleActivate = () => {
-    if (activateLicense(licenseKey)) {
-      setShowUpgradeDialog(false);
+  const { selectedCompanyId, updateCompany } = useCompany();
+
+  const handleActivate = async () => {
+    const MGCONSULT_KEY = deobfuscate(import.meta.env.VITE_SPARTAN_MGCONSULT_LICENSE_KEY || "");
+    const DEV_KEYS = [
+      import.meta.env.VITE_SPARTAN_DEV_DIOGO || "",
+      import.meta.env.VITE_SPARTAN_DEV_SAMUEL || "",
+      import.meta.env.VITE_SPARTAN_DEV_NICOLAS || "",
+    ].filter(Boolean);
+
+    const isDevKey = DEV_KEYS.includes(licenseKeyInput);
+    const isCustomerKey = licenseKeyInput === MGCONSULT_KEY || licenseKeyInput === "SPARTAN-2024-MGCONSULT";
+
+    if (isDevKey || isCustomerKey) {
+      if (selectedCompanyId) {
+        await updateCompany(selectedCompanyId, { is_pro: true });
+        // Also ensure system access if not already granted
+        if (!isSystemAccess) {
+          activateLicense(licenseKeyInput);
+        }
+        setShowUpgradeDialog(false);
+      } else {
+        toast.error("Selecione uma empresa primeiro");
+      }
+    } else {
+      toast.error("Chave de Licença Inválida");
     }
   };
 
@@ -174,12 +213,12 @@ export function AppSidebar() {
                             {!collapsed && (
                               <div className="flex items-center justify-between w-full">
                                 <span className="text-xs">{item.title}</span>
-                                {item.isPremium && !isFullVersion && (
+                                {item.isPremium && !isCompanyPro && (
                                   <Lock className="h-2.5 w-2.5 text-muted-foreground/50 ml-1" />
                                 )}
                               </div>
                             )}
-                            {collapsed && item.isPremium && !isFullVersion && (
+                            {collapsed && item.isPremium && !isCompanyPro && (
                               <div className="absolute top-1 right-1 h-1.5 w-1.5 bg-accent rounded-full border border-background shadow-sm" />
                             )}
                           </NavLink>
@@ -195,14 +234,40 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border px-2 py-1.5 flex flex-col gap-2">
-        {!isFullVersion && !collapsed && (
+        {/* Temporary Logout Button for all users */}
+        {!collapsed && (
+          <Button 
+            onClick={deactivateLicense}
+            variant="ghost" 
+            size="sm" 
+            className="w-full text-[10px] text-muted-foreground hover:text-destructive h-8 border border-transparent hover:border-destructive/20 transition-all group"
+          >
+            <LogOut className="h-3 w-3 mr-1 opacity-50 group-hover:opacity-100" />
+            SAIR (TEMPORÁRIO)
+          </Button>
+        )}
+
+        {/* Hidden Developer Deactivate Shortcut - only for consistency if needed, but the button above works for all */}
+        {isDeveloper && !collapsed && false && ( // Disabled as we have the global one now
+          <Button 
+            onClick={deactivateLicense}
+            variant="ghost" 
+            size="sm" 
+            className="w-full text-[10px] text-muted-foreground hover:text-destructive h-8 border border-transparent hover:border-destructive/20 transition-all group"
+          >
+            <LogOut className="h-3 w-3 mr-1 opacity-50 group-hover:opacity-100" />
+            DESATIVAR MODO DEV
+          </Button>
+        )}
+
+        {!isCompanyPro && !collapsed && (
           <Button 
             onClick={() => setShowUpgradeDialog(true)}
             size="sm" 
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-[10px] font-bold h-8 rounded-lg shadow-lg shadow-accent/10"
           >
             <Zap className="h-3 w-3 mr-1 fill-current" />
-            ATIVAR SPARTAN PRO
+            {selectedCompany ? `ATIVAR ${selectedCompany.name.split(' ')[0]} PRO` : 'ATIVAR PRO'}
           </Button>
         )}
         
@@ -229,8 +294,8 @@ export function AppSidebar() {
             <Input
               placeholder="SPARTAN-XXXX-XXXX"
               className="font-mono text-center tracking-widest"
-              value={licenseKey}
-              onChange={(e) => setLicenseKey(e.target.value)}
+              value={licenseKeyInput}
+              onChange={(e) => setLicenseKeyInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleActivate()}
             />
           </div>

@@ -12,6 +12,9 @@ export interface Company {
   state: string;
   cep: string;
   description: string;
+  is_pro: boolean;
+  logo_url?: string;
+  license_key?: string;
   created_at: string;
 }
 

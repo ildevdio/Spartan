@@ -19,6 +19,7 @@ import PsicossocialPage from "./pages/PsicossocialPage";
 import QuestionariosPsicossociaisPage from "./pages/QuestionariosPsicossociaisPage";
 import ResponsavelTecnicoPage from "./pages/ResponsavelTecnicoPage";
 import FormularioOnlinePage from "./pages/FormularioOnlinePage";
+import DevSettingsPage from "./pages/DevSettingsPage";
 import { LicenseProvider } from "@/lib/license-context";
 import NotFound from "./pages/NotFound";
 import { useNativeApp } from "@/hooks/use-native-app";
@@ -53,6 +54,7 @@ const App = () => {
                       <Route path="/psicossocial" element={<PsicossocialPage />} />
                       <Route path="/questionarios-psicossociais" element={<QuestionariosPsicossociaisPage />} />
                       <Route path="/responsavel-tecnico" element={<ResponsavelTecnicoPage />} />
+                      <Route path="/dev-settings" element={<DevSettingsPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </AppLayout>

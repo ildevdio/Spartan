@@ -50,7 +50,7 @@ interface CompanyContextType {
   addPsychosocialAnalysis: (p: Omit<PsychosocialAnalysis, "id" | "created_at">) => Promise<void>;
   deletePsychosocialAnalysis: (id: string) => Promise<void>;
   deletePosturePhoto: (id: string) => Promise<void>;
-  refreshData: () => Promise<void>;
+  refreshCompanies: () => Promise<void>;
 }
 
 const CompanyContext = createContext<CompanyContextType | null>(null);
@@ -292,7 +292,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       addActionPlan, updateActionPlan,
       addPsychosocialAnalysis, deletePsychosocialAnalysis,
       deletePosturePhoto,
-      refreshData: fetchAll,
+      refreshCompanies: fetchAll,
     }}>
       {children}
     </CompanyContext.Provider>
