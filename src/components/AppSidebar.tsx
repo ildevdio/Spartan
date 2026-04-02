@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLicense } from "@/lib/license-context";
 import {
   LayoutDashboard,
   Building2,
@@ -13,6 +14,8 @@ import {
   Printer,
   ChevronDown,
   UserCheck,
+  Lock,
+  Zap,
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
@@ -27,50 +30,63 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import spartanLogo from "@/assets/spartan-logo.png";
 import focusLogo from "@/assets/focus-logo.png";
-
-const sections = [
-  {
-    label: "Cadastro",
-    icon: Building2,
-    items: [
-      { title: "Dashboard", url: "/", icon: LayoutDashboard },
-      { title: "Empresas", url: "/empresas", icon: Building2 },
-      { title: "Setores", url: "/setores", icon: Layers },
-      { title: "Postos", url: "/postos", icon: Monitor },
-      { title: "Resp. Técnico", url: "/responsavel-tecnico", icon: UserCheck },
-    ],
-  },
-  {
-    label: "Análise",
-    icon: ClipboardCheck,
-    items: [
-      { title: "Captura", url: "/captura-posturas", icon: Camera },
-      { title: "Análises", url: "/analises", icon: ClipboardCheck },
-      { title: "Câmera", url: "/analise-camera", icon: Camera },
-      { title: "Psicossocial", url: "/psicossocial", icon: Brain },
-      { title: "Questionários", url: "/questionarios-psicossociais", icon: Printer },
-    ],
-  },
-  {
-    label: "Resultados",
-    icon: FileText,
-    items: [
-      { title: "Riscos", url: "/riscos", icon: AlertTriangle },
-      { title: "Ações", url: "/acoes", icon: ListTodo },
-      { title: "Relatórios", url: "/relatorios", icon: FileText },
-    ],
-  },
-];
 
 export function AppSidebar() {
   const { state, toggleSidebar } = useSidebar();
   const collapsed = state === "collapsed";
   const location = useLocation();
   const [focusDialogOpen, setFocusDialogOpen] = useState(false);
+  const { isFullVersion, activateLicense } = useLicense();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [licenseKey, setLicenseKey] = useState("");
+
+  const premiumFeatures = ["/analise-camera", "/psicossocial", "/relatorios"];
+
+  const sections = [
+    {
+      label: "Cadastro",
+      icon: Building2,
+      items: [
+        { title: "Dashboard", url: "/", icon: LayoutDashboard },
+        { title: "Empresas", url: "/empresas", icon: Building2 },
+        { title: "Setores", url: "/setores", icon: Layers },
+        { title: "Postos", url: "/postos", icon: Monitor },
+        { title: "Resp. Técnico", url: "/responsavel-tecnico", icon: UserCheck },
+      ],
+    },
+    {
+      label: "Análise",
+      icon: ClipboardCheck,
+      items: [
+        { title: "Captura", url: "/captura-posturas", icon: Camera },
+        { title: "Análises", url: "/analises", icon: ClipboardCheck },
+        { title: "Câmera", url: "/analise-camera", icon: Camera, isPremium: true },
+        { title: "Psicossocial", url: "/psicossocial", icon: Brain, isPremium: true },
+        { title: "Questionários", url: "/questionarios-psicossociais", icon: Printer },
+      ],
+    },
+    {
+      label: "Resultados",
+      icon: FileText,
+      items: [
+        { title: "Riscos", url: "/riscos", icon: AlertTriangle },
+        { title: "Ações", url: "/acoes", icon: ListTodo },
+        { title: "Relatórios", url: "/relatorios", icon: FileText, isPremium: true },
+      ],
+    },
+  ];
+
+  const handleActivate = () => {
+    if (activateLicense(licenseKey)) {
+      setShowUpgradeDialog(false);
+    }
+  };
 
   // Determine which section is active based on current route
   const activeSectionIndex = sections.findIndex((s) =>
@@ -144,7 +160,7 @@ export function AppSidebar() {
                   <SidebarMenu className="px-1">
                     {section.items.map((item) => (
                       <SidebarMenuItem key={item.title} className="my-0">
-                        <SidebarMenuButton asChild className="h-7">
+                        <SidebarMenuButton asChild className="h-7 relative">
                           <NavLink
                             to={item.url}
                             end={item.url === "/"}
@@ -155,7 +171,17 @@ export function AppSidebar() {
                             activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
                           >
                             <item.icon className="mr-1.5 h-3 w-3 shrink-0" />
-                            {!collapsed && <span className="text-xs">{item.title}</span>}
+                            {!collapsed && (
+                              <div className="flex items-center justify-between w-full">
+                                <span className="text-xs">{item.title}</span>
+                                {item.isPremium && !isFullVersion && (
+                                  <Lock className="h-2.5 w-2.5 text-muted-foreground/50 ml-1" />
+                                )}
+                              </div>
+                            )}
+                            {collapsed && item.isPremium && !isFullVersion && (
+                              <div className="absolute top-1 right-1 h-1.5 w-1.5 bg-accent rounded-full border border-background shadow-sm" />
+                            )}
                           </NavLink>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
@@ -168,7 +194,18 @@ export function AppSidebar() {
         </div>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border px-2 py-1.5">
+      <SidebarFooter className="border-t border-sidebar-border px-2 py-1.5 flex flex-col gap-2">
+        {!isFullVersion && !collapsed && (
+          <Button 
+            onClick={() => setShowUpgradeDialog(true)}
+            size="sm" 
+            className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-[10px] font-bold h-8 rounded-lg shadow-lg shadow-accent/10"
+          >
+            <Zap className="h-3 w-3 mr-1 fill-current" />
+            ATIVAR SPARTAN PRO
+          </Button>
+        )}
+        
         {!collapsed && (
           <button
             onClick={() => setFocusDialogOpen(true)}
@@ -180,6 +217,29 @@ export function AppSidebar() {
         )}
       </SidebarFooter>
 
+      <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Ativar Spartan Pro</DialogTitle>
+            <DialogDescription>
+              Insira sua chave de licença para desbloquear todas as funcionalidades e conectar ao banco de dados oficial.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <Input
+              placeholder="SPARTAN-XXXX-XXXX"
+              className="font-mono text-center tracking-widest"
+              value={licenseKey}
+              onChange={(e) => setLicenseKey(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleActivate()}
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={handleActivate} className="w-full bg-accent hover:bg-accent/90">Ativar Agora</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={focusDialogOpen} onOpenChange={setFocusDialogOpen}>
         <DialogContent className="sm:max-w-md border-0 bg-transparent shadow-none overflow-visible [&>button]:hidden">
           <div className="relative flex items-center justify-center p-10">
@@ -187,16 +247,13 @@ export function AppSidebar() {
             <div className="absolute inset-0 rounded-full bg-accent/20 blur-3xl animate-pulse" />
             <div className="absolute inset-4 rounded-full bg-accent/10 blur-2xl animate-pulse [animation-delay:0.5s]" />
             <div className="absolute inset-8 rounded-full bg-info/10 blur-xl animate-pulse [animation-delay:1s]" />
-            {/* Shimmer overlay */}
-            <div className="absolute inset-0 gradient-accent-animated opacity-20 rounded-3xl" />
-            {/* Logo */}
             <div className="relative z-10 flex flex-col items-center gap-4">
               <img
                 src={focusLogo}
                 alt="Focus"
-                className="h-20 drop-shadow-[0_0_30px_hsl(174,58%,42%,0.6)] animate-scale-in"
+                className="h-20 drop-shadow-[0_0_30px_hsl(174,58%,42%,0.6)]"
               />
-              <p className="text-xs text-muted-foreground/80 tracking-widest uppercase animate-fade-in">
+              <p className="text-xs text-muted-foreground/80 tracking-widest uppercase">
                 Tecnologia & Inovação
               </p>
             </div>

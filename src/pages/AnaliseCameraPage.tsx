@@ -24,6 +24,8 @@ import { toast } from "sonner";
 
 type AnalysisStep = "upload" | "detecting" | "results" | "details" | "saved";
 
+import { LockedFeatureWrapper } from "@/components/LockedFeatureWrapper";
+
 export default function AnaliseCameraPage() {
   const { companySectors, companyWorkstations, selectedCompanyId, posturePhotos, addPosturePhoto } = useCompany();
   const [step, setStep] = useState<AnalysisStep>("upload");
@@ -357,324 +359,335 @@ export default function AnaliseCameraPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold">Live Posture Analysis</h1>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Rastreamento postural contínuo com BlazePose em tempo real
-          </p>
+    <LockedFeatureWrapper 
+      title="Análise com Câmera IA" 
+      description="Utilize visão computacional avançada para rastrear articulações e calcular riscos ergonômicos em tempo real."
+    >
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold">Live Posture Analysis</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              Rastreamento postural contínuo com BlazePose em tempo real
+            </p>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <CompanySelector />
+            {step !== "upload" && (
+              <Button variant="outline" size="sm" onClick={reset}>
+                <RotateCcw className="h-4 w-4 mr-1" /> Nova Análise
+              </Button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <CompanySelector />
-          {step !== "upload" && (
-            <Button variant="outline" size="sm" onClick={reset}>
-              <RotateCcw className="h-4 w-4 mr-1" /> Nova Análise
-            </Button>
-          )}
-        </div>
-      </div>
 
-      {/* Step indicators */}
-      <div className="flex items-center gap-1 sm:gap-2 text-sm overflow-x-auto">
-        {["Upload", "Detecção", "Resultados", "Detalhes", "Salvo"].map((label, i) => {
-          const steps: AnalysisStep[] = ["upload", "detecting", "results", "details", "saved"];
-          const isActive = steps.indexOf(step) >= i;
-          return (
-            <div key={label} className="flex items-center gap-1 sm:gap-2 shrink-0">
-              <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-semibold ${isActive ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
-                {i + 1}
+        {/* Step indicators */}
+        <div className="flex items-center gap-1 sm:gap-2 text-sm overflow-x-auto">
+          {["Upload", "Detecção", "Resultados", "Detalhes", "Salvo"].map((label, i) => {
+            const steps: AnalysisStep[] = ["upload", "detecting", "results", "details", "saved"];
+            const isActive = steps.indexOf(step) >= i;
+            return (
+              <div key={label} className="flex items-center gap-1 sm:gap-2 shrink-0">
+                <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-semibold ${isActive ? "bg-accent text-accent-foreground" : "bg-muted text-muted-foreground"}`}>
+                  {i + 1}
+                </div>
+                <span className={`text-[10px] sm:text-sm ${isActive ? "text-foreground font-medium" : "text-muted-foreground"}`}>{label}</span>
+                {i < 4 && <div className={`w-4 sm:w-8 h-0.5 ${isActive ? "bg-accent" : "bg-muted"}`} />}
               </div>
-              <span className={`text-[10px] sm:text-sm ${isActive ? "text-foreground font-medium" : "text-muted-foreground"}`}>{label}</span>
-              {i < 4 && <div className={`w-4 sm:w-8 h-0.5 ${isActive ? "bg-accent" : "bg-muted"}`} />}
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Camera/Upload area */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Fonte da Imagem</CardTitle>
-            <CardDescription>Use a câmera ou envie uma foto/vídeo do posto de trabalho</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {step === "upload" && !isStreaming && (
-              <Tabs defaultValue="file" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="file" className="text-xs sm:text-sm">
-                    <Upload className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Arquivo</span><span className="sm:hidden">Arquivo</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="camera" className="text-xs sm:text-sm">
-                    <Camera className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Câmera</span><span className="sm:hidden">Câmera</span>
-                  </TabsTrigger>
-                </TabsList>
-                <TabsContent value="file" className="space-y-4">
-                  <div
-                    className="border-2 border-dashed border-border rounded-lg p-12 text-center cursor-pointer hover:border-accent transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <p className="font-medium">Clique para enviar</p>
-                    <p className="text-sm text-muted-foreground mt-1">Fotos (JPG, PNG) ou Vídeos (MP4, WebM)</p>
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*,video/*"
-                    className="hidden"
-                    onChange={handleFileUpload}
-                  />
-                </TabsContent>
-                <TabsContent value="camera" className="space-y-4">
-                  <Button onClick={startCamera} className="w-full" disabled={isModelLoading}>
-                    {isModelLoading ? (
-                      <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando modelo...</>
-                    ) : (
-                      <><Camera className="h-4 w-4 mr-2" /> Iniciar Câmera</>
-                    )}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left: Camera/Upload area */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Fonte da Imagem</CardTitle>
+              <CardDescription>Use a câmera ou envie uma foto/vídeo do posto de trabalho</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {step === "upload" && !isStreaming && (
+                <Tabs defaultValue="file" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="file" className="text-xs sm:text-sm">
+                      <Upload className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Arquivo</span><span className="sm:hidden">Arquivo</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="camera" className="text-xs sm:text-sm">
+                      <Camera className="h-4 w-4 mr-1 sm:mr-2" /> <span className="hidden sm:inline">Câmera</span><span className="sm:hidden">Câmera</span>
+                    </TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="file" className="space-y-4">
+                    <div
+                      className="border-2 border-dashed border-border rounded-lg p-12 text-center cursor-pointer hover:border-accent transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <p className="font-medium">Clique para enviar</p>
+                      <p className="text-sm text-muted-foreground mt-1">Fotos (JPG, PNG) ou Vídeos (MP4, WebM)</p>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,video/*"
+                      className="hidden"
+                      onChange={handleFileUpload}
+                    />
+                  </TabsContent>
+                  <TabsContent value="camera" className="space-y-4">
+                    <Button onClick={startCamera} className="w-full" disabled={isModelLoading}>
+                      {isModelLoading ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Carregando modelo...</>
+                      ) : (
+                        <><Camera className="h-4 w-4 mr-2" /> Iniciar Câmera</>
+                      )}
+                    </Button>
+                  </TabsContent>
+                </Tabs>
+              )}
+
+              {step === "detecting" && (
+                <div className="flex flex-col items-center gap-4 py-8">
+                  <Loader2 className="h-12 w-12 animate-spin text-accent" />
+                  <p className="font-medium">Analisando postura...</p>
+                  <p className="text-sm text-muted-foreground">Detectando articulações e calculando ângulos</p>
+                </div>
+              )}
+
+              {/* Video + Canvas overlay for camera */}
+              <div className={isStreaming ? "relative w-full" : "hidden"}>
+                <video
+                  ref={videoRef}
+                  className="w-full rounded-lg"
+                  playsInline
+                  muted
+                />
+                <canvas
+                  ref={canvasRef}
+                  className="absolute top-0 left-0 w-full h-full rounded-lg pointer-events-none"
+                  style={{ zIndex: 10 }}
+                />
+              </div>
+
+              {/* Canvas for file-based detection (no video) */}
+              {!isStreaming && step !== "upload" && (
+                <canvas
+                  ref={canvasRef}
+                  className="w-full rounded-lg border border-border"
+                />
+              )}
+
+              <img ref={imageRef} className="hidden" alt="" />
+
+              {isStreaming && (
+                <div className="flex gap-2">
+                  <Button onClick={captureFrame} className="flex-1">
+                    <Eye className="h-4 w-4 mr-2" /> Capturar e Analisar
                   </Button>
-                </TabsContent>
-              </Tabs>
-            )}
+                  <Button variant="destructive" onClick={stopCamera}>
+                    <Square className="h-4 w-4 mr-2" /> Parar
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-            {step === "detecting" && (
-              <div className="flex flex-col items-center gap-4 py-8">
-                <Loader2 className="h-12 w-12 animate-spin text-accent" />
-                <p className="font-medium">Analisando postura...</p>
-                <p className="text-sm text-muted-foreground">Detectando articulações e calculando ângulos</p>
-              </div>
-            )}
-
-            {/* Video + Canvas overlay for camera */}
-            <div className={isStreaming ? "relative w-full" : "hidden"}>
-              <video
-                ref={videoRef}
-                className="w-full rounded-lg"
-                playsInline
-                muted
-              />
-              <canvas
-                ref={canvasRef}
-                className="absolute top-0 left-0 w-full h-full rounded-lg pointer-events-none"
-                style={{ zIndex: 10 }}
-              />
-            </div>
-
-            {/* Canvas for file-based detection (no video) */}
-            {!isStreaming && step !== "upload" && (
-              <canvas
-                ref={canvasRef}
-                className="w-full rounded-lg border border-border"
-              />
-            )}
-
-            <img ref={imageRef} className="hidden" alt="" />
-
+          {/* Right: Results / Details */}
+          <div className="space-y-6">
+            {/* Live scores when streaming */}
             {isStreaming && (
-              <div className="flex gap-2">
-                <Button onClick={captureFrame} className="flex-1">
-                  <Eye className="h-4 w-4 mr-2" /> Capturar e Analisar
-                </Button>
-                <Button variant="destructive" onClick={stopCamera}>
-                  <Square className="h-4 w-4 mr-2" /> Parar
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Live Posture Analysis</CardTitle>
+                  <CardDescription>
+                    {liveStatus === "tracking" && "Rastreamento ativo com atualização contínua"}
+                    {liveStatus === "incomplete" && "Análise incompleta: faltam keypoints com confiança mínima"}
+                    {liveStatus === "no_pose" && "Nenhuma postura detectada no momento"}
+                    {liveStatus === "ready" && "Aguardando início da análise"}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {scores ? (
+                    <div className="grid grid-cols-5 gap-2">
+                      {Object.entries(scores).map(([method, score]) => (
+                        <div key={method} className="text-center">
+                          <Badge className={`${getRiskColor(score, method)} mb-1`}>{score}</Badge>
+                          <p className="text-xs font-medium">{method}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                      {liveStatus === "incomplete"
+                        ? "Postura incompleta detectada — mova-se para manter nariz, ombros, cotovelos, punhos, quadris, joelhos e tornozelos visíveis."
+                        : "Aguardando detecção corporal para iniciar pontuação dinâmica."}
+                    </div>
+                  )}
 
-        {/* Right: Results / Details */}
-        <div className="space-y-6">
-          {/* Live scores when streaming */}
-          {isStreaming && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Live Posture Analysis</CardTitle>
-                <CardDescription>
-                  {liveStatus === "tracking" && "Rastreamento ativo com atualização contínua"}
-                  {liveStatus === "incomplete" && "Análise incompleta: faltam keypoints com confiança mínima"}
-                  {liveStatus === "no_pose" && "Nenhuma postura detectada no momento"}
-                  {liveStatus === "ready" && "Aguardando início da análise"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {scores ? (
-                  <div className="grid grid-cols-5 gap-2">
+                  {angles && (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                      <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
+                        <span className="text-muted-foreground">Knee angle</span>
+                        <span className="font-mono font-semibold">{Math.min(angles.kneeLeft, angles.kneeRight).toFixed(1)}°</span>
+                      </div>
+                      <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
+                        <span className="text-muted-foreground">Trunk angle</span>
+                        <span className="font-mono font-semibold">{angles.trunk.toFixed(1)}°</span>
+                      </div>
+                      <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
+                        <span className="text-muted-foreground">Arm elevation</span>
+                        <span className="font-mono font-semibold">{Math.max(angles.upperArmLeft, angles.upperArmRight).toFixed(1)}°</span>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Results after detection */}
+            {(step === "results" || step === "details" || step === "saved") && scores && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Resultados Ergonômicos</CardTitle>
+                  <CardDescription>Pontuação calculada automaticamente por método</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 gap-3">
                     {Object.entries(scores).map(([method, score]) => (
-                      <div key={method} className="text-center">
-                        <Badge className={`${getRiskColor(score, method)} mb-1`}>{score}</Badge>
-                        <p className="text-xs font-medium">{method}</p>
+                      <div
+                        key={method}
+                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${selectedMethod === method ? "border-accent bg-accent/5" : "border-border hover:border-accent/50"}`}
+                        onClick={() => setSelectedMethod(method)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Badge variant="outline" className="font-mono">{method}</Badge>
+                          <span className="text-sm text-muted-foreground">Score:</span>
+                          <span className="font-bold text-lg">{score}</span>
+                        </div>
+                        <Badge className={getRiskColor(score, method)}>
+                          {getRiskLabel(score, method)}
+                        </Badge>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-                    {liveStatus === "incomplete"
-                      ? "Postura incompleta detectada — mova-se para manter nariz, ombros, cotovelos, punhos, quadris, joelhos e tornozelos visíveis."
-                      : "Aguardando detecção corporal para iniciar pontuação dinâmica."}
-                  </div>
-                )}
 
-                {angles && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-                    <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
-                      <span className="text-muted-foreground">Knee angle</span>
-                      <span className="font-mono font-semibold">{Math.min(angles.kneeLeft, angles.kneeRight).toFixed(1)}°</span>
-                    </div>
-                    <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
-                      <span className="text-muted-foreground">Trunk angle</span>
-                      <span className="font-mono font-semibold">{angles.trunk.toFixed(1)}°</span>
-                    </div>
-                    <div className="rounded-md border border-border px-3 py-2 flex items-center justify-between">
-                      <span className="text-muted-foreground">Arm elevation</span>
-                      <span className="font-mono font-semibold">{Math.max(angles.upperArmLeft, angles.upperArmRight).toFixed(1)}°</span>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Results after detection */}
-          {(step === "results" || step === "details" || step === "saved") && scores && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Resultados Ergonômicos</CardTitle>
-                <CardDescription>Pontuação calculada automaticamente por método</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-3">
-                  {Object.entries(scores).map(([method, score]) => (
-                    <div
-                      key={method}
-                      className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${selectedMethod === method ? "border-accent bg-accent/5" : "border-border hover:border-accent/50"}`}
-                      onClick={() => setSelectedMethod(method)}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="font-mono">{method}</Badge>
-                        <span className="text-sm text-muted-foreground">Score:</span>
-                        <span className="font-bold text-lg">{score}</span>
+                  {angles && (
+                    <div className="pt-4 border-t border-border">
+                      <p className="text-sm font-medium mb-2">Ângulos Articulares Detectados</p>
+                      <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div className="flex justify-between"><span className="text-muted-foreground">Pescoço</span><span className="font-mono">{angles.neck.toFixed(1)}°</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Tronco</span><span className="font-mono">{angles.trunk.toFixed(1)}°</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Braço Esq.</span><span className="font-mono">{angles.upperArmLeft.toFixed(1)}°</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Braço Dir.</span><span className="font-mono">{angles.upperArmRight.toFixed(1)}°</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Antebraço Esq.</span><span className="font-mono">{angles.lowerArmLeft.toFixed(1)}°</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Antebraço Dir.</span><span className="font-mono">{angles.lowerArmRight.toFixed(1)}°</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Punho Esq.</span><span className="font-mono">{angles.wristLeft.toFixed(1)}°</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Punho Dir.</span><span className="font-mono">{angles.wristRight.toFixed(1)}°</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Joelho Esq.</span><span className="font-mono">{angles.kneeLeft.toFixed(1)}°</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">Joelho Dir.</span><span className="font-mono">{angles.kneeRight.toFixed(1)}°</span></div>
                       </div>
-                      <Badge className={getRiskColor(score, method)}>
-                        {getRiskLabel(score, method)}
-                      </Badge>
                     </div>
-                  ))}
-                </div>
+                  )}
 
-                {angles && (
-                  <div className="pt-4 border-t border-border">
-                    <p className="text-sm font-medium mb-2">Ângulos Articulares Detectados</p>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="flex justify-between"><span className="text-muted-foreground">Pescoço</span><span className="font-mono">{angles.neck.toFixed(1)}°</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Tronco</span><span className="font-mono">{angles.trunk.toFixed(1)}°</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Braço Esq.</span><span className="font-mono">{angles.upperArmLeft.toFixed(1)}°</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Braço Dir.</span><span className="font-mono">{angles.upperArmRight.toFixed(1)}°</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Antebraço Esq.</span><span className="font-mono">{angles.lowerArmLeft.toFixed(1)}°</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Antebraço Dir.</span><span className="font-mono">{angles.lowerArmRight.toFixed(1)}°</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Punho Esq.</span><span className="font-mono">{angles.wristLeft.toFixed(1)}°</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Punho Dir.</span><span className="font-mono">{angles.wristRight.toFixed(1)}°</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Joelho Esq.</span><span className="font-mono">{angles.kneeLeft.toFixed(1)}°</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Joelho Dir.</span><span className="font-mono">{angles.kneeRight.toFixed(1)}°</span></div>
-                    </div>
-                  </div>
-                )}
+                  {step === "results" && (
+                    <Button onClick={() => setStep("details")} className="w-full mt-4">
+                      Preencher Informações da Análise
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
-                {step === "results" && (
-                  <Button onClick={() => setStep("details")} className="w-full mt-4">
-                    Preencher Informações da Análise
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Details form */}
-          {(step === "details") && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Informações da Análise</CardTitle>
-                <CardDescription>Preencha os dados para gerar a AEP/AET</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Método Selecionado</label>
-                  <Select value={selectedMethod} onValueChange={setSelectedMethod}>
-                    <SelectTrigger><SelectValue placeholder="Selecione o método" /></SelectTrigger>
-                    <SelectContent>
-                      {["RULA", "REBA", "ROSA", "OWAS", "OCRA"].map((m) => (
-                        <SelectItem key={m} value={m}>{m} — Score: {scores?.[m as keyof ErgonomicScores]}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Setor</label>
-                  <Select value={sectorId} onValueChange={(v) => { setSectorId(v); setWorkstationId(""); }}>
-                    <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
-                    <SelectContent>
-                      {companySectors.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Posto de Trabalho</label>
-                  <Select value={workstationId} onValueChange={(v) => {
-                    setWorkstationId(v);
-                    const ws = companyWorkstations.find((w) => w.id === v);
-                    if (ws?.activity_description) setActivity(ws.activity_description);
-                  }}>
-                    <SelectTrigger><SelectValue placeholder="Selecione o posto" /></SelectTrigger>
-                    <SelectContent>
-                      {companyWorkstations
-                        .filter((w) => !sectorId || w.sector_id === sectorId)
-                        .map((w) => (
-                          <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+            {/* Details form */}
+            {(step === "details") && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Informações da Análise</CardTitle>
+                  <CardDescription>Preencha os dados para gerar a AEP/AET</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Método Selecionado</label>
+                    <Select value={selectedMethod} onValueChange={setSelectedMethod}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o método" /></SelectTrigger>
+                      <SelectContent>
+                        {["RULA", "REBA", "ROSA", "OWAS", "OCRA"].map((m) => (
+                          <SelectItem key={m} value={m}>{m} — Score: {scores?.[m as keyof ErgonomicScores]}</SelectItem>
                         ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Atividade</label>
-                  <Input placeholder="Descrição da atividade" value={activity} onChange={(e) => setActivity(e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Cargo</label>
-                  <Input placeholder="Cargo do trabalhador" value={role} onChange={(e) => setRole(e.target.value)} />
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1.5 block">Observações</label>
-                  <Textarea placeholder="Informações adicionais para AEP/AET..." value={notes} onChange={(e) => setNotes(e.target.value)} />
-                </div>
-                <Button onClick={handleSave} className="w-full">
-                  <Save className="h-4 w-4 mr-2" /> Salvar Análise
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Setor</label>
+                    <Select value={sectorId} onValueChange={(v) => { setSectorId(v); setWorkstationId(""); }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                      <SelectContent>
+                        {companySectors.map((s) => (
+                          <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Posto de Trabalho</label>
+                    <Select value={workstationId} onValueChange={(v) => {
+                      setWorkstationId(v);
+                      const ws = companyWorkstations.find((w) => w.id === v);
+                      if (ws?.activity_description) setActivity(ws.activity_description);
+                    }}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o posto" /></SelectTrigger>
+                      <SelectContent>
+                        {companyWorkstations
+                          .filter((w) => !sectorId || w.sector_id === sectorId)
+                          .map((w) => (
+                            <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Atividade</label>
+                    <Input placeholder="Descrição da atividade" value={activity} onChange={(e) => setActivity(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Cargo</label>
+                    <Input placeholder="Cargo do trabalhador" value={role} onChange={(e) => setRole(e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium mb-1.5 block">Observações</label>
+                    <Select value={notes} onValueChange={setNotes}>
+                      <SelectTrigger><SelectValue placeholder="Informações adicionais..." /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Postura adequada">Postura adequada</SelectItem>
+                        <SelectItem value="Risco médio">Risco médio</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={handleSave} className="w-full">
+                    <Save className="h-4 w-4 mr-2" /> Salvar Análise
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
-          {step === "saved" && (
-            <Card className="border-accent">
-              <CardContent className="p-6 text-center">
-                <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
-                  <Save className="h-8 w-8 text-accent" />
-                </div>
-                <h3 className="text-lg font-bold mb-2">Análise Salva!</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Método {selectedMethod} — Score {scores?.[selectedMethod as keyof ErgonomicScores]} — {getRiskLabel(scores?.[selectedMethod as keyof ErgonomicScores] || 0, selectedMethod)}
-                </p>
-                <Button onClick={reset} variant="outline">
-                  <RotateCcw className="h-4 w-4 mr-2" /> Nova Análise
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+            {step === "saved" && (
+              <Card className="border-accent">
+                <CardContent className="p-6 text-center">
+                  <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
+                    <Save className="h-8 w-8 text-accent" />
+                  </div>
+                  <h3 className="text-lg font-bold mb-2">Análise Salva!</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Método {selectedMethod} — Score {scores?.[selectedMethod as keyof ErgonomicScores]} — {getRiskLabel(scores?.[selectedMethod as keyof ErgonomicScores] || 0, selectedMethod)}
+                  </p>
+                  <Button onClick={reset} variant="outline">
+                    <RotateCcw className="h-4 w-4 mr-2" /> Nova Análise
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </LockedFeatureWrapper>
   );
 }
