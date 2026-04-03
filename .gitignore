@@ -32,5 +32,4 @@ dist-ssr
 .env.production.local
 
 # Sensitive files
-src/lib/crypto.ts
-src/integrations/supabase/client.ts
+

@@ -36,5 +36,5 @@ CREATE TRIGGER update_master_licenses_updated_at
 -- Insert a sample entry for current project to maintain consistency
 -- This assumes the master project can also act as its own client for migration/bootstrapping
 INSERT INTO public.master_licenses (license_id, client_name, target_supabase_url, target_supabase_anon_key)
-VALUES ('SPARTAN-2024-MGCONSULT', 'MG Consultoria', 'https://rpoojydlaryaxtznihlx.supabase.co', 'sb_publishable_Lzv1uhPfMFaYzl7LLGOHGw_HBpfgV4R')
+VALUES ('SPARTAN-2024-EXEMPLO', 'Empresa Exemplo', 'https://your-project.supabase.co', 'your-anon-key')
 ON CONFLICT (license_id) DO NOTHING;
