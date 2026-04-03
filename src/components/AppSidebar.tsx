@@ -19,7 +19,6 @@ import {
   UserCheck,
   Lock,
   Zap,
-  LogOut,
   Settings2,
   ShieldCheck,
 } from "lucide-react";
@@ -222,33 +221,7 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border px-2 py-1.5 flex flex-col gap-2">
-        {/* Logout Button - always visible as icon when collapsed */}
-        <Button 
-          onClick={deactivateLicense}
-          variant="ghost" 
-          size="sm" 
-          className={cn(
-            "w-full text-muted-foreground hover:text-destructive h-8 border border-transparent hover:border-destructive/20 transition-all group",
-            collapsed ? "px-0 justify-center" : "text-[10px] px-2"
-          )}
-          title={collapsed ? "Sair do Sistema" : undefined}
-        >
-          <LogOut className={cn("h-3 w-3 opacity-50 group-hover:opacity-100", !collapsed && "mr-1")} />
-          {!collapsed && "SAIR (TEMPORÁRIO)"}
-        </Button>
 
-        {/* Hidden Developer Deactivate Shortcut */}
-        {isDeveloper && !collapsed && false && ( 
-          <Button 
-            onClick={deactivateLicense}
-            variant="ghost" 
-            size="sm" 
-            className="w-full text-[10px] text-muted-foreground hover:text-destructive h-8 border border-transparent hover:border-destructive/20 transition-all group"
-          >
-            <LogOut className="h-3 w-3 mr-1 opacity-50 group-hover:opacity-100" />
-            DESATIVAR MODO DEV
-          </Button>
-        )}
 
         {!isCompanyPro && !collapsed && (
           <Button 
