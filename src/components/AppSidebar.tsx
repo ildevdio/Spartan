@@ -48,11 +48,10 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const [focusDialogOpen, setFocusDialogOpen] = useState(false);
-  const { isFullVersion: isSystemAccess, isDeveloper, activateLicense, licenseKey, deactivateLicense } = useLicense();
+  const { isFullVersion: isSystemAccess, isDeveloper, activateLicense, licenseKey, deactivateLicense, showUpgradeDialog, setShowUpgradeDialog } = useLicense();
   const { selectedCompany } = useCompany();
-  const isCompanyPro = selectedCompany?.is_pro || isDeveloper;
+  const isCompanyPro = selectedCompany?.is_pro || isDeveloper || isSystemAccess;
   
-  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [licenseKeyInput, setLicenseKeyInput] = useState("");
 
   const premiumFeatures = ["/analise-camera", "/psicossocial", "/relatorios"];
@@ -108,22 +107,11 @@ export function AppSidebar() {
       import.meta.env.VITE_SPARTAN_DEV_NICOLAS || "",
     ].filter(Boolean);
 
-    const isDevKey = DEV_KEYS.includes(licenseKeyInput);
-    const isCustomerKey = licenseKeyInput === MGCONSULT_KEY || licenseKeyInput === "SPARTAN-2024-MGCONSULT";
-
-    if (isDevKey || isCustomerKey) {
-      if (selectedCompanyId) {
-        await updateCompany(selectedCompanyId, { is_pro: true });
-        // Also ensure system access if not already granted
-        if (!isSystemAccess) {
-          activateLicense(licenseKeyInput);
-        }
-        setShowUpgradeDialog(false);
-      } else {
-        toast.error("Selecione uma empresa primeiro");
-      }
-    } else {
-      toast.error("Chave de Licença Inválida");
+    if (!licenseKeyInput.trim()) return;
+    const success = await activateLicense(licenseKeyInput);
+    if (success) {
+      setLicenseKeyInput("");
+      setShowUpgradeDialog(false);
     }
   };
 
@@ -234,21 +222,23 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border px-2 py-1.5 flex flex-col gap-2">
-        {/* Temporary Logout Button for all users */}
-        {!collapsed && (
-          <Button 
-            onClick={deactivateLicense}
-            variant="ghost" 
-            size="sm" 
-            className="w-full text-[10px] text-muted-foreground hover:text-destructive h-8 border border-transparent hover:border-destructive/20 transition-all group"
-          >
-            <LogOut className="h-3 w-3 mr-1 opacity-50 group-hover:opacity-100" />
-            SAIR (TEMPORÁRIO)
-          </Button>
-        )}
+        {/* Logout Button - always visible as icon when collapsed */}
+        <Button 
+          onClick={deactivateLicense}
+          variant="ghost" 
+          size="sm" 
+          className={cn(
+            "w-full text-muted-foreground hover:text-destructive h-8 border border-transparent hover:border-destructive/20 transition-all group",
+            collapsed ? "px-0 justify-center" : "text-[10px] px-2"
+          )}
+          title={collapsed ? "Sair do Sistema" : undefined}
+        >
+          <LogOut className={cn("h-3 w-3 opacity-50 group-hover:opacity-100", !collapsed && "mr-1")} />
+          {!collapsed && "SAIR (TEMPORÁRIO)"}
+        </Button>
 
-        {/* Hidden Developer Deactivate Shortcut - only for consistency if needed, but the button above works for all */}
-        {isDeveloper && !collapsed && false && ( // Disabled as we have the global one now
+        {/* Hidden Developer Deactivate Shortcut */}
+        {isDeveloper && !collapsed && false && ( 
           <Button 
             onClick={deactivateLicense}
             variant="ghost" 

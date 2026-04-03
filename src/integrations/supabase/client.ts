@@ -1,41 +1,46 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './types';
-import { mockSupabase } from '@/lib/mock-db';
-import { deobfuscate } from '@/lib/crypto';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "";
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+// Initial config from environment (Master/Primary Database)
+const masterUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const masterKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
 
-// Customer keys (stored obfuscated in .env)
-const MGCONSULT_KEY = deobfuscate(import.meta.env.VITE_SPARTAN_MGCONSULT_LICENSE_KEY || "");
+/**
+ * masterSupabase is the FIXED connection to the primary project
+ * used for managing licenses and developer settings.
+ */
+export const masterSupabase = createClient(masterUrl, masterKey, {
+  auth: { persistSession: false }
+});
 
-// Developer keys (stored plain in .env)
-const DEV_KEYS = [
-  import.meta.env.VITE_SPARTAN_DEV_DIOGO || "",
-  import.meta.env.VITE_SPARTAN_DEV_SAMUEL || "",
-  import.meta.env.VITE_SPARTAN_DEV_NICOLAS || "",
-].filter(Boolean);
+// We'll use a local variable to hold the active client (initially pointing to master)
+let activeClient = createClient(masterUrl, masterKey, {
+  auth: { persistSession: true }
+});
 
-const checkAccess = () => {
-  const stored = localStorage.getItem("spartan_license_key");
-  if (!stored) return false;
-
-  // Key is valid if it's a dev key OR if its deobfuscated version matches a customer key
-  const isDev = DEV_KEYS.includes(stored);
-  const deobfuscatedStored = deobfuscate(stored);
-  const isCustomer = deobfuscatedStored === MGCONSULT_KEY;
-  
-  return isDev || isCustomer;
+/**
+ * Updates the global Supabase client with new credentials.
+ * This is used for Multi-Tenant database switching.
+ */
+export const updateSupabaseConfig = (url: string, key: string) => {
+  console.log(`[Spartan] Switching database to: ${url}`);
+  activeClient = createClient(url, key, {
+    auth: { persistSession: true }
+  });
 };
 
-export const isRealDb = checkAccess();
+/**
+ * Proxy handler to intercept all calls to the 'supabase' export
+ * and forward them to the current 'activeClient'.
+ */
+const dynamicHandler = {
+  get: (_target: any, prop: string) => {
+    return (activeClient as any)[prop];
+  }
+};
 
-export const supabase = isRealDb 
-  ? createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-    auth: {
-      storage: localStorage,
-      persistSession: true,
-      autoRefreshToken: true,
-    }
-  })
-  : mockSupabase as any;
+// The exported 'supabase' instance is now a Proxy that always points to the activeClient
+export const supabase = new Proxy({}, dynamicHandler) as ReturnType<typeof createClient>;
+
+// Export connection status helpers
+export const supabaseUrl = masterUrl;
+export const isRealDb = masterUrl && !masterUrl.includes("supabase.co"); 

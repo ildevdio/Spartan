@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useMemo, useEffect, useCallback, type ReactNode } from "react";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, RiskAssessment, ActionPlan, PsychosocialAnalysis, PostureAnalysis } from "./types";
-import { supabase } from "@/integrations/supabase/client";
+import { masterSupabase, supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { obfuscate } from "./crypto";
 
 interface CompanyContextType {
   loading: boolean;
@@ -28,7 +29,7 @@ interface CompanyContextType {
   companyReports: Report[];
 
   // CRUD helpers
-  addCompany: (c: Omit<Company, "id" | "created_at">) => Promise<void>;
+  addCompany: (c: Omit<Company, "id" | "created_at">, dbConfig?: { url: string; key: string }) => Promise<void>;
   updateCompany: (id: string, c: Partial<Company>) => Promise<void>;
   deleteCompany: (id: string) => Promise<void>;
   addSector: (s: Omit<Sector, "id" | "created_at">) => Promise<void>;
@@ -77,16 +78,16 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         { data: ph }, { data: rp }, { data: ra }, { data: ap },
         { data: psa }, { data: pa }
       ] = await Promise.all([
-        supabase.from("companies").select("*").order("created_at"),
-        supabase.from("sectors").select("*").order("created_at"),
-        supabase.from("workstations").select("*").order("created_at"),
-        supabase.from("analyses").select("*").order("created_at"),
-        supabase.from("posture_photos").select("*").order("created_at"),
-        supabase.from("reports").select("*").order("created_at"),
-        supabase.from("risk_assessments").select("*").order("created_at"),
-        supabase.from("action_plans").select("*").order("created_at"),
-        supabase.from("psychosocial_analyses").select("*").order("created_at"),
-        supabase.from("posture_analyses").select("*").order("created_at"),
+        supabase.from("companies").select("*").order("created_at") as any,
+        supabase.from("sectors").select("*").order("created_at") as any,
+        supabase.from("workstations").select("*").order("created_at") as any,
+        supabase.from("analyses").select("*").order("created_at") as any,
+        supabase.from("posture_photos").select("*").order("created_at") as any,
+        supabase.from("reports").select("*").order("created_at") as any,
+        supabase.from("risk_assessments").select("*").order("created_at") as any,
+        supabase.from("action_plans").select("*").order("created_at") as any,
+        supabase.from("psychosocial_analyses").select("*").order("created_at") as any,
+        supabase.from("posture_analyses").select("*").order("created_at") as any,
       ]);
       
       const mappedCompanies = (comp || []).map(c => ({ ...c, created_at: c.created_at?.split("T")[0] || "", trade_name: c.trade_name || "", cnae_principal: c.cnae_principal || "", cnae_secundario: c.cnae_secundario || "", activity_risk: c.activity_risk || "", cep: c.cep || "", neighborhood: c.neighborhood || "" })) as Company[];
@@ -147,10 +148,60 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   }), [reports, companyWsIds, companySectorIds, selectedCompanyId]);
 
   // CRUD helpers
-  const addCompany = async (c: Omit<Company, "id" | "created_at">) => {
-    const { error } = await supabase.from("companies").insert(c);
-    if (error) { toast.error("Erro ao criar empresa"); return; }
-    await fetchAll();
+  const addCompany = async (c: Omit<Company, "id" | "created_at">, dbConfig?: { url: string; key: string }) => {
+    try {
+      const { logo_preview, ...cleanData } = c as any;
+      let finalLicenseKey = cleanData.license_key;
+
+      // Automated Database Registration Logic
+      if (dbConfig?.url && dbConfig?.key) {
+        const slug = (cleanData.trade_name || cleanData.name)
+          .toUpperCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^A-Z0-9]/g, "-")
+          .replace(/-+/g, "-")
+          .replace(/^-|-$/g, "");
+        
+        const licenseId = `SPARTAN-2024-${slug}`;
+        
+        // 1. Register in Master Database
+        const { error: masterError } = await masterSupabase
+          .from('master_licenses')
+          .insert([{
+            license_id: licenseId,
+            client_name: cleanData.name,
+            target_supabase_url: dbConfig.url,
+            target_supabase_anon_key: dbConfig.key
+          }]);
+
+        if (masterError) {
+          console.error("Master license creation error:", masterError);
+          toast.error("Erro ao registrar instância mestre. A empresa será criada sem vínculo automático.");
+        } else {
+          finalLicenseKey = obfuscate(licenseId);
+          toast.info(`Instância vinculada: ${licenseId}`);
+        }
+      }
+
+      // 2. Save Company (with potentially new license key)
+      const { error } = await supabase.from("companies").insert({
+        ...cleanData,
+        license_key: finalLicenseKey
+      });
+
+      if (error) {
+        console.error("Add company error:", error);
+        toast.error("Erro ao criar empresa: " + (error.message || "Erro desconhecido"));
+        return;
+      }
+
+      toast.success("Novo cliente registrado com sucesso!");
+      await fetchAll();
+    } catch (err: any) {
+      console.error("Add company exception:", err);
+      toast.error("Falha no cadastro: " + (err.message || "Tente novamente"));
+    }
   };
   const updateCompany = async (id: string, c: Partial<Company>) => {
     const { error } = await supabase.from("companies").update(c).eq("id", id);

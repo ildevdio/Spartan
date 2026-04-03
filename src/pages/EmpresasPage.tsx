@@ -3,16 +3,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { useCompany } from "@/lib/company-context";
 import type { Company } from "@/lib/types";
 import { MIN_PHOTOS_REQUIRED } from "@/lib/types";
-import { Plus, Building2, Pencil, Trash2, Monitor, Layers, Camera, ClipboardCheck, AlertTriangle, MapPin, Search, Loader2, ShieldCheck } from "lucide-react";
+import { Plus, Building2, Pencil, Trash2, Monitor, Layers, Camera, ClipboardCheck, AlertTriangle, MapPin, Search, Loader2, ShieldCheck, Image as ImageIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
+import { Switch } from "@/components/ui/switch";
+import { Server, Globe } from "lucide-react";
 
 async function fetchAddressByCep(cep: string) {
   const cleanCep = cep.replace(/\D/g, "");
@@ -45,13 +47,25 @@ async function fetchRiskFromCnae(cnae: string): Promise<{ risk: string; descript
   }
 }
 
-function CompanyForm({
+async function fetchCompanyByCnpj(cnpj: string) {
+  const cleanCnpj = cnpj.replace(/\D/g, "");
+  if (cleanCnpj.length !== 14) return null;
+  try {
+    const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cleanCnpj}`);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export function CompanyForm({
   editing,
   onSave,
   onCancel,
 }: {
   editing: Company | null;
-  onSave: (data: Omit<Company, "id" | "created_at">) => Promise<void>;
+  onSave: (data: Omit<Company, "id" | "created_at">, dbConfig?: { url: string; key: string }) => Promise<void>;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(editing?.name || "");
@@ -67,8 +81,15 @@ function CompanyForm({
   const [city, setCity] = useState(editing?.city || "");
   const [state, setState] = useState(editing?.state || "");
   const [description, setDescription] = useState(editing?.description || "");
+  const [logoUrl, setLogoUrl] = useState(editing?.logo_url || "");
   const [loadingCep, setLoadingCep] = useState(false);
   const [loadingRisk, setLoadingRisk] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  // Cloud Config State
+  const [hasPrivateDb, setHasPrivateDb] = useState(false);
+  const [dbUrl, setDbUrl] = useState("");
+  const [dbKey, setDbKey] = useState("");
 
   const handleCepLookup = async () => {
     setLoadingCep(true);
@@ -85,24 +106,95 @@ function CompanyForm({
     setLoadingCep(false);
   };
 
-  const handleCnaeChange = async (value: string) => {
-    setCnaePrincipal(value);
-    // Auto-analyze risk when CNAE has enough characters (format: XX.XX-X-XX)
-    const cleanCnae = value.replace(/\D/g, "");
+  const handleCnaeChange = async (value: any) => {
+    const safeValue = String(value || "");
+    setCnaePrincipal(safeValue);
+    const cleanCnae = safeValue.replace(/\D/g, "");
     if (cleanCnae.length >= 5) {
       setLoadingRisk(true);
       const result = await fetchRiskFromCnae(value);
       if (result) {
         setActivityRisk(result.risk);
         setRiskDescription(result.description);
-        toast.success(`Grau de risco ${result.risk} identificado pela IA`);
       }
       setLoadingRisk(false);
     }
   };
 
+  const handleCnpjLookup = async () => {
+    const safeCnpj = String(cnpj || "");
+    const cleanCnpj = safeCnpj.replace(/\D/g, "");
+    if (cleanCnpj.length !== 14) {
+      toast.error("CNPJ deve ter 14 dígitos");
+      return;
+    }
+    
+    setLoadingRisk(true);
+    const data = await fetchCompanyByCnpj(cleanCnpj);
+    if (data) {
+      setName(data.razao_social || "");
+      setTradeName(data.nome_fantasia || data.razao_social || "");
+      setCnaePrincipal(data.cnae_fiscal || "");
+      setCep(data.cep || "");
+      setAddress(`${data.logradouro || ""}, ${data.numero || ""}`);
+      setNeighborhood(data.bairro || "");
+      setCity(data.municipio || "");
+      setState(data.uf || "");
+      
+      if (data.cnae_fiscal) {
+        handleCnaeChange(data.cnae_fiscal);
+      }
+      toast.success("Dados da empresa importados com sucesso!");
+    } else {
+      toast.error("Não foi possível encontrar este CNPJ");
+    }
+    setLoadingRisk(false);
+  };
+
+  const handleLogoUpload = async (file: File) => {
+    try {
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/bmp'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Formato inválido! Use PNG ou JPEG.");
+        return;
+      }
+
+      setUploadingLogo(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('company-logos')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        // Handle common JWS/Auth errors gracefully
+        if (uploadError.message.includes("JWS") || uploadError.message.includes("Unauthorized")) {
+          throw new Error("Erro de autenticação no banco. Verifique as políticas de Storage ou se a chave de desenvolvedor está ativa.");
+        }
+        throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('company-logos')
+        .getPublicUrl(filePath);
+
+      setLogoUrl(publicUrl);
+      toast.success("Logo carregada com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro no upload: " + error.message);
+      console.error("Logo upload error:", error);
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!name.trim()) return;
+    
+    const dbConfig = hasPrivateDb ? { url: dbUrl, key: dbKey } : undefined;
+    
     await onSave({
       name,
       trade_name: tradeName,
@@ -116,11 +208,36 @@ function CompanyForm({
       city,
       state,
       description,
-    });
+      logo_url: logoUrl,
+      is_pro: editing?.is_pro || hasPrivateDb, // Auto-pro if private DB
+    }, dbConfig);
   };
 
   return (
     <div className="space-y-4 pt-2">
+      <div className="flex flex-col items-center gap-4 py-4 border-b">
+        <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Logo da Empresa (Papel Timbrado)</Label>
+        <div className="relative group cursor-pointer h-24 w-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-border hover:border-primary/50 transition-colors">
+          {logoUrl ? (
+            <img src={logoUrl} className="h-full w-full object-contain p-2" />
+          ) : (
+            <div className="text-center p-4">
+              {uploadingLogo ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : <ImageIcon className="h-6 w-6 text-muted-foreground/40 mx-auto" />}
+              <p className="text-[10px] text-muted-foreground mt-1">Upload Logo</p>
+            </div>
+          )}
+          <input 
+            type="file" 
+            className="absolute inset-0 opacity-0 cursor-pointer" 
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleLogoUpload(file);
+            }}
+          />
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <Label className="text-xs">Razão Social *</Label>
@@ -133,8 +250,17 @@ function CompanyForm({
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <Label className="text-xs">CNPJ</Label>
-          <Input placeholder="00.000.000/0000-00" value={cnpj} onChange={(e) => setCnpj(e.target.value)} />
+          <Label className="text-xs">CNPJ *</Label>
+          <div className="flex gap-2">
+            <Input 
+              placeholder="00.000.000/0000-00" 
+              value={cnpj} 
+              onChange={(e) => setCnpj(e.target.value)} 
+            />
+            <Button type="button" variant="outline" size="icon" onClick={handleCnpjLookup} disabled={loadingRisk}>
+              {loadingRisk ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
         <div>
           <Label className="text-xs">CNAE Principal</Label>
@@ -202,6 +328,55 @@ function CompanyForm({
         <Label className="text-xs">Descrição da atividade</Label>
         <Textarea placeholder="Descrição da atividade da empresa" value={description} onChange={(e) => setDescription(e.target.value)} />
       </div>
+
+      {/* Modern Cloud Config Section */}
+      {!editing && (
+        <div className="mt-4 p-4 rounded-xl border-2 border-accent/20 bg-accent/5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Server className="h-5 w-5 text-accent" />
+              <div>
+                <Label className="text-sm font-bold">Banco de Dados Privado</Label>
+                <p className="text-[10px] text-muted-foreground">Provisionar instância exclusiva para este cliente</p>
+              </div>
+            </div>
+            <Switch checked={hasPrivateDb} onCheckedChange={setHasPrivateDb} />
+          </div>
+
+          {hasPrivateDb && (
+            <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="grid grid-cols-1 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Supabase URL</Label>
+                  <div className="relative">
+                    <Globe className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground/50" />
+                    <Input 
+                      placeholder="https://client-xyz.supabase.co" 
+                      className="pl-9"
+                      value={dbUrl}
+                      onChange={(e) => setDbUrl(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] uppercase font-bold text-muted-foreground">Anon Public Key (JWT)</Label>
+                  <Input 
+                    placeholder="eyJ..." 
+                    type="password"
+                    value={dbKey}
+                    onChange={(e) => setDbKey(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="p-2.5 bg-background/50 rounded border border-accent/10">
+                <p className="text-[10px] text-muted-foreground italic">
+                  * Ao salvar, uma Chave de Licença será gerada e vinculada a este banco automaticamente.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       <Button onClick={handleSave} className="w-full">{editing ? "Salvar" : "Criar Empresa"}</Button>
     </div>
   );
@@ -312,11 +487,11 @@ export default function EmpresasPage() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Company | null>(null);
 
-  const handleSave = async (data: Omit<Company, "id" | "created_at">) => {
+  const handleSave = async (data: Omit<Company, "id" | "created_at">, dbConfig?: { url: string; key: string }) => {
     if (editing) {
       await updateCompany(editing.id, data);
     } else {
-      await addCompany(data);
+      await addCompany(data, dbConfig);
     }
     setEditing(null);
     setOpen(false);
@@ -341,6 +516,7 @@ export default function EmpresasPage() {
           <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{editing ? "Editar Empresa" : "Nova Empresa"}</DialogTitle>
+              <DialogDescription className="text-xs">Identificação e branding corporativo</DialogDescription>
             </DialogHeader>
             <CompanyForm
               key={editing?.id || "new"}

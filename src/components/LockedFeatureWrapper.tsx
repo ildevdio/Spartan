@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useLicense } from "@/lib/license-context";
 import { Lock, Zap, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useCompany } from "@/lib/company-context";
 import { toast } from "sonner";
@@ -20,33 +20,17 @@ export function LockedFeatureWrapper({ children, title, description }: LockedFea
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [licenseKey, setLicenseKey] = useState("");
 
-  const isCompanyPro = selectedCompany?.is_pro || isDeveloper;
+  const isCompanyPro = selectedCompany?.is_pro || isDeveloper || isFullVersion;
 
   const handleActivate = async () => {
-    // Current valid keys (customer and dev)
-    const MGCONSULT_KEY = deobfuscate(import.meta.env.VITE_SPARTAN_MGCONSULT_LICENSE_KEY || "");
-    const DEV_KEYS = [
-      import.meta.env.VITE_SPARTAN_DEV_DIOGO || "",
-      import.meta.env.VITE_SPARTAN_DEV_SAMUEL || "",
-      import.meta.env.VITE_SPARTAN_DEV_NICOLAS || "",
-    ].filter(Boolean);
-
-    const isDevKey = DEV_KEYS.includes(licenseKey);
-    const isCustomerKey = licenseKey === MGCONSULT_KEY || licenseKey === "SPARTAN-2024-MGCONSULT";
-
-    if (isDevKey || isCustomerKey) {
+    if (!licenseKey.trim()) return;
+    const success = await activateLicense(licenseKey);
+    
+    if (success) {
       if (selectedCompanyId) {
         await updateCompany(selectedCompanyId, { is_pro: true });
-        // Also ensure system access if not already granted
-        if (!isFullVersion) {
-          activateLicense(licenseKey);
-        }
-        setShowUpgradeDialog(false);
-      } else {
-        toast.error("Selecione uma empresa primeiro");
       }
-    } else {
-      toast.error("Chave de Licença Inválida");
+      setShowUpgradeDialog(false);
     }
   };
 

@@ -3,7 +3,7 @@ import {
   WidthType, AlignmentType, HeadingLevel, BorderStyle, PageBreak,
   Header, Footer, TabStopPosition, TabStopType,
   ShadingType, convertInchesToTwip, ImageRun,
-  HeightRule, VerticalAlign,
+  HeightRule, VerticalAlign, PageNumber,
 } from "docx";
 import { saveAs } from "file-saver";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
@@ -318,8 +318,14 @@ function pageBreak(): Paragraph {
 }
 
 // ============ IMAGE HELPERS ============
-async function fetchImageAsBuffer(url: string): Promise<{ buffer: ArrayBuffer; width: number; height: number } | null> {
+async function fetchImageAsBuffer(url: string): Promise<{ buffer: ArrayBuffer; width: number; height: number; type: "png" | "jpg" | "gif" | "bmp" } | null> {
   try {
+    let type: "png" | "jpg" | "gif" | "bmp" = "png";
+    const extension = url.split('.').pop()?.toLowerCase();
+    if (extension === "jpg" || extension === "jpeg") type = "jpg";
+    else if (extension === "gif") type = "gif";
+    else if (extension === "bmp") type = "bmp";
+
     if (url.startsWith("data:")) {
       const base64 = url.split(",")[1];
       const binary = atob(base64);
@@ -327,7 +333,7 @@ async function fetchImageAsBuffer(url: string): Promise<{ buffer: ArrayBuffer; w
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
       const buffer = bytes.buffer;
       const dims = await getImageDimensions(url);
-      return { buffer, ...dims };
+      return { buffer, ...dims, type };
     }
     const response = await fetch(url);
     if (!response.ok) return null;
@@ -336,7 +342,7 @@ async function fetchImageAsBuffer(url: string): Promise<{ buffer: ArrayBuffer; w
     const blobUrl = URL.createObjectURL(blob);
     const dims = await getImageDimensions(blobUrl);
     URL.revokeObjectURL(blobUrl);
-    return { buffer, ...dims };
+    return { buffer, ...dims, type };
   } catch {
     return null;
   }
@@ -351,14 +357,14 @@ function getImageDimensions(src: string): Promise<{ width: number; height: numbe
   });
 }
 
-function createImageParagraph(buffer: ArrayBuffer, width: number, height: number, caption?: string): Paragraph[] {
+function createImageParagraph(img: { buffer: ArrayBuffer; width: number; height: number; type: "png" | "jpg" | "gif" | "bmp" }, caption?: string): Paragraph[] {
   const maxWidth = 500;
-  const scale = Math.min(maxWidth / width, 1);
-  const finalW = Math.round(width * scale);
-  const finalH = Math.round(height * scale);
+  const scale = Math.min(maxWidth / img.width, 1);
+  const finalW = Math.round(img.width * scale);
+  const finalH = Math.round(img.height * scale);
   const paragraphs: Paragraph[] = [
     new Paragraph({
-      children: [new ImageRun({ data: buffer, transformation: { width: finalW, height: finalH }, type: "png" })],
+      children: [new ImageRun({ data: img.buffer, transformation: { width: finalW, height: finalH }, type: img.type })],
       alignment: AlignmentType.CENTER,
       spacing: { before: 200, after: 60 },
     }),
@@ -404,12 +410,13 @@ function createCoverPage(title: string, subtitle: string, company: Company, cons
       alignment: AlignmentType.CENTER, spacing: { after: 60 },
       shading: coverShading,
     }),
-    // Divider line
-    new Paragraph({
-      shading: coverShading,
-      spacing: { after: 60 },
-      children: [new TextRun({ text: " ", size: 10 })],
-    }),
+    // Logo if exists
+    ...(company.logo_url ? [
+      new Paragraph({
+        children: [new TextRun({ text: " ", size: 20 })],
+        shading: coverShading,
+      })
+    ] : []),
     // Subtitle badge
     new Paragraph({
       children: [new TextRun({ text: `  ${subtitle}  `, size: 36, font: "Calibri", color: COLORS.accentLight, bold: false })],
@@ -554,50 +561,73 @@ function footer(): Paragraph {
   });
 }
 
-function createProfessionalHeader(reportType: string, companyName: string): Header {
-  return new Header({
-    children: [
+function createProfessionalHeader(reportType: string, companyName: string, logo?: { buffer: ArrayBuffer; width: number; height: number; type: "png" | "jpg" | "gif" | "bmp" }): Header {
+  const headerChildren: any[] = [];
+  
+  if (logo) {
+    const maxWidth = 100;
+    const scale = Math.min(maxWidth / logo.width, 1);
+    headerChildren.push(
       new Paragraph({
         children: [
-          new TextRun({ text: `${reportType} — ${companyName}`, size: 16, font: "Calibri", color: COLORS.light, italics: true }),
-          new TextRun({ text: "    |    ", size: 16, font: "Calibri", color: COLORS.border }),
-          new TextRun({ text: "MG Consultoria", size: 16, font: "Calibri", color: COLORS.secondary, bold: true }),
+          new ImageRun({
+            data: logo.buffer,
+            transformation: { width: logo.width * scale, height: logo.height * scale },
+            type: logo.type
+          })
         ],
-        alignment: AlignmentType.RIGHT,
-        border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: COLORS.accentBright, space: 4 } },
-        spacing: { after: 200 },
-      }),
-    ],
-  });
+        alignment: AlignmentType.LEFT,
+        spacing: { after: 100 }
+      })
+    );
+  }
+
+  headerChildren.push(
+    new Paragraph({
+      children: [
+        new TextRun({ text: `${reportType} — ${companyName}`, size: 16, font: "Calibri", color: COLORS.light, italics: true }),
+        new TextRun({ text: "    |    ", size: 16, font: "Calibri", color: COLORS.border }),
+        new TextRun({ text: "Oficial Certified Document", size: 16, font: "Calibri", color: COLORS.secondary, bold: true }),
+      ],
+      alignment: AlignmentType.RIGHT,
+      border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: COLORS.accentBright, space: 4 } },
+      spacing: { after: 200 },
+    })
+  );
+
+  return new Header({ children: headerChildren });
 }
 
-function createProfessionalFooter(): Footer {
+function createProfessionalFooter(company?: Company): Footer {
   return new Footer({
     children: [
       new Paragraph({
         children: [
-          new TextRun({ text: "Documento confidencial — ", size: 14, font: "Calibri", color: COLORS.light, italics: true }),
-          new TextRun({ text: "Spartan / MG Consultoria", size: 14, font: "Calibri", color: COLORS.secondary, italics: true, bold: true }),
+          new TextRun({ text: "Spartan Ecosystem — Gestão de Saúde e Segurança do Trabalho", size: 14, font: "Calibri", color: COLORS.muted }),
+          new TextRun({ text: "    |    Página ", size: 14, font: "Calibri", color: COLORS.muted }),
+          new TextRun({ children: [PageNumber.CURRENT], size: 14, font: "Calibri", color: COLORS.muted, bold: true }),
+          new TextRun({ text: " de ", size: 14, font: "Calibri", color: COLORS.muted }),
+          new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, font: "Calibri", color: COLORS.muted, bold: true }),
         ],
         alignment: AlignmentType.CENTER,
-        border: { top: { style: BorderStyle.SINGLE, size: 4, color: COLORS.accentBright, space: 4 } },
+        border: { top: { style: BorderStyle.SINGLE, size: 1, color: COLORS.border, space: 4 } },
         spacing: { before: 200 },
       }),
     ],
   });
 }
 
-function createDocumentShell(title: string, companyName: string, reportType: string, children: any[]): Document {
+function createDocumentShell(title: string, company: Company, reportType: string, children: any[], logo?: { buffer: ArrayBuffer; width: number; height: number; type: "png" | "jpg" | "gif" | "bmp" }): Document {
   return new Document({
     creator: "Spartan - MG Consultoria",
-    title: `${reportType} - ${companyName}`,
+    title: `${reportType} - ${company.name}`,
     description: title,
     sections: [{
       properties: {
         page: { margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(0.8), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) } },
       },
-      headers: { default: createProfessionalHeader(reportType, companyName) },
-      footers: { default: createProfessionalFooter() },
+      headers: { default: createProfessionalHeader(reportType, company.name, logo) },
+      footers: { default: createProfessionalFooter(company) },
       children,
     }],
   });
@@ -642,6 +672,44 @@ function gheTable(workstations: Workstation[], ctx: DocxReportContext): Table {
   });
 }
 
+export async function generateDocxReport(ctx: DocxReportContext): Promise<Blob> {
+  let doc: Document;
+
+  switch (ctx.reportType as string) {
+    case "AET":
+      doc = await generateAETDocx(ctx);
+      break;
+    case "PGR":
+      doc = await generatePGRDocx(ctx);
+      break;
+    case "APR":
+      doc = await generateAPRDocx(ctx);
+      break;
+    case "PCMSO":
+      doc = await generatePCMSODocx(ctx);
+      break;
+    case "LTCAT":
+      doc = await generateLTCATDocx(ctx);
+      break;
+    case "Insalubridade":
+      doc = await generateInsalubridadeDocx(ctx);
+      break;
+    case "Periculosidade":
+      doc = await generatePericulosidadeDocx(ctx);
+      break;
+    case "PCA":
+      doc = await generatePCADocx(ctx);
+      break;
+    case "PPR":
+      doc = await generatePPRDocx(ctx);
+      break;
+    default:
+      doc = await generateGenericDocx(ctx);
+      break;
+  }
+  return await Packer.toBlob(doc);
+}
+
 // ========== AET REPORT — Matches HTML preview exactly ==========
 async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   const { company, sector, workstation, workstations, sectors, analyses, photos } = ctx;
@@ -651,6 +719,7 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
   const wsName = workstation?.name || workstations.map(w => w.name).join(", ");
 
   const children: any[] = [];
+  const logoBuffer = company.logo_url ? await fetchImageAsBuffer(company.logo_url) : undefined;
 
   // Cover
   children.push(...createCoverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant));
@@ -1001,14 +1070,15 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
     ],
   }));
 
-  children.push(footer());
-  return createDocumentShell("Análise Ergonômica do Trabalho", company.name, "AET", children);
+  children.push(createProfessionalFooter(company));
+  return createDocumentShell("Análise Ergonômica do Trabalho", company, "AET", children, logoBuffer || undefined);
 }
 
 // ========== PGR REPORT — Matches HTML preview ==========
-function generatePGRDocx(ctx: DocxReportContext): Document {
+async function generatePGRDocx(ctx: DocxReportContext): Promise<Document> {
   const { company, workstations, sectors, analyses } = ctx;
   const { consultant, risks, actions, tasks, sectorMap } = getCtxData(ctx);
+  const logoBuffer = company.logo_url ? await fetchImageAsBuffer(company.logo_url) : undefined;
 
   const children: any[] = [];
   children.push(...createCoverPage("PROGRAMA DE GERENCIAMENTO DE RISCOS", "PGR", company, consultant));
@@ -1168,14 +1238,15 @@ function generatePGRDocx(ctx: DocxReportContext): Document {
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
-  children.push(footer());
-  return createDocumentShell("Programa de Gerenciamento de Riscos", company.name, "PGR", children);
+  children.push(createProfessionalFooter(company));
+  return createDocumentShell("Programa de Gerenciamento de Riscos", company, "PGR", children, logoBuffer || undefined);
 }
 
 // ========== APR REPORT — Matches HTML preview ==========
-function generateAPRDocx(ctx: DocxReportContext): Document {
+async function generateAPRDocx(ctx: DocxReportContext): Promise<Document> {
   const { company, workstations, sectors } = ctx;
   const { consultant, psychosocial, sectorMap } = getCtxData(ctx);
+  const logoBuffer = company.logo_url ? await fetchImageAsBuffer(company.logo_url) : undefined;
   const sectorNames = [...new Set(workstations.map(w => w.sector?.name || sectors.find(s => s.id === w.sector_id)?.name || "Geral"))];
 
   const children: any[] = [];
@@ -1299,14 +1370,15 @@ function generateAPRDocx(ctx: DocxReportContext): Document {
   children.push(body(`A implementação das ações recomendadas contribuirá significativamente para a redução dos riscos psicossociais e promoção da saúde mental no ambiente de trabalho da ${company.trade_name || company.name}.`));
 
   children.push(...signatureBlock(consultant));
-  children.push(footer());
-  return createDocumentShell("Avaliação Preliminar de Riscos Psicossociais", company.name, "APR", children);
+  children.push(createProfessionalFooter(company));
+  return createDocumentShell("Avaliação Preliminar de Riscos Psicossociais", company, "APR", children, logoBuffer || undefined);
 }
 
 // ========== PCMSO REPORT — Matches HTML preview ==========
-function generatePCMSODocx(ctx: DocxReportContext): Document {
+async function generatePCMSODocx(ctx: DocxReportContext): Promise<Document> {
   const { company, workstations, sectors, analyses } = ctx;
   const { consultant, risks, sectorMap } = getCtxData(ctx);
+  const logoBuffer = company.logo_url ? await fetchImageAsBuffer(company.logo_url) : undefined;
   const medico = ctx.consultantName || "Médico do Trabalho";
 
   const children: any[] = [];
@@ -1403,14 +1475,15 @@ function generatePCMSODocx(ctx: DocxReportContext): Document {
   children.push(accentCallout("O PCMSO deve ser revisado anualmente ou sempre que houver alteração nos riscos ocupacionais.", "info"));
 
   children.push(...signatureBlock(medico, "Médico do Trabalho", "CRM: XXXXX"));
-  children.push(footer());
-  return createDocumentShell("PCMSO", company.name, "PCMSO", children);
+  children.push(createProfessionalFooter(company));
+  return createDocumentShell("PCMSO", company, "PCMSO", children, logoBuffer || undefined);
 }
 
 // ========== LTCAT REPORT — Matches HTML preview ==========
-function generateLTCATDocx(ctx: DocxReportContext): Document {
+async function generateLTCATDocx(ctx: DocxReportContext): Promise<Document> {
   const { company, workstations, sectors, analyses } = ctx;
   const { consultant, risks, sectorMap } = getCtxData(ctx);
+  const logoBuffer = company.logo_url ? await fetchImageAsBuffer(company.logo_url) : undefined;
 
   const children: any[] = [];
   children.push(...createCoverPage("LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DE TRABALHO", "LTCAT", company, consultant));
@@ -1485,14 +1558,15 @@ function generateLTCATDocx(ctx: DocxReportContext): Document {
   ["Anexo I — Equipamentos de Medição e Certificados de Calibração", "Anexo II — Avaliações de Ruído/Químico", "Anexo III — Habilitação do Responsável Técnico e ART"].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
-  children.push(footer());
-  return createDocumentShell("LTCAT", company.name, "LTCAT", children);
+  children.push(createProfessionalFooter(company));
+  return createDocumentShell("LTCAT", company, "LTCAT", children, logoBuffer || undefined);
 }
 
 // ========== INSALUBRIDADE REPORT — Matches HTML preview ==========
-function generateInsalubridadeDocx(ctx: DocxReportContext): Document {
+async function generateInsalubridadeDocx(ctx: DocxReportContext): Promise<Document> {
   const { company, workstations, analyses } = ctx;
   const { consultant, risks, sectorMap } = getCtxData(ctx);
+  const logoBuffer = company.logo_url ? await fetchImageAsBuffer(company.logo_url) : undefined;
 
   const children: any[] = [];
   children.push(...createCoverPage("LAUDO TÉCNICO DE INSALUBRIDADE", "NR-15", company, consultant));
@@ -1561,14 +1635,15 @@ function generateInsalubridadeDocx(ctx: DocxReportContext): Document {
   ["Anexo I — Certificados de Calibração dos Equipamentos", "Anexo II — Resultados das Medições Ambientais", "Anexo III — ART do Responsável Técnico"].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
-  children.push(footer());
-  return createDocumentShell("Laudo de Insalubridade", company.name, "Insalubridade", children);
+  children.push(createProfessionalFooter(company));
+  return createDocumentShell("Laudo de Insalubridade", company, "Insalubridade", children, logoBuffer || undefined);
 }
 
 // ========== PERICULOSIDADE REPORT — Matches HTML preview ==========
-function generatePericulosidadeDocx(ctx: DocxReportContext): Document {
+async function generatePericulosidadeDocx(ctx: DocxReportContext): Promise<Document> {
   const { company, workstations, analyses } = ctx;
   const { consultant, risks, sectorMap } = getCtxData(ctx);
+  const logoBuffer = company.logo_url ? await fetchImageAsBuffer(company.logo_url) : undefined;
 
   const children: any[] = [];
   children.push(...createCoverPage("LAUDO TÉCNICO DE PERICULOSIDADE", "NR-16", company, consultant));
@@ -1642,14 +1717,15 @@ function generatePericulosidadeDocx(ctx: DocxReportContext): Document {
   children.push(accentCallout("O laudo deve ser atualizado sempre que houver alteração nas condições de trabalho, processos ou introdução de novos agentes perigosos.", "info"));
 
   children.push(...signatureBlock(consultant));
-  children.push(footer());
-  return createDocumentShell("Laudo de Periculosidade", company.name, "Periculosidade", children);
+  children.push(createProfessionalFooter(company));
+  return createDocumentShell("Laudo de Periculosidade", company, "Periculosidade", children, logoBuffer || undefined);
 }
 
 // ========== PCA REPORT — Matches HTML preview ==========
-function generatePCADocx(ctx: DocxReportContext): Document {
+async function generatePCADocx(ctx: DocxReportContext): Promise<Document> {
   const { company, workstations } = ctx;
   const { consultant, sectorMap } = getCtxData(ctx);
+  const logoBuffer = company.logo_url ? await fetchImageAsBuffer(company.logo_url) : undefined;
 
   const children: any[] = [];
   children.push(...createCoverPage("PROGRAMA DE CONSERVAÇÃO AUDITIVA", "PCA", company, consultant));
@@ -1743,14 +1819,15 @@ function generatePCADocx(ctx: DocxReportContext): Document {
   ["Anexo I — Certificados de Calibração (Dosímetro/Decibelímetro)", "Anexo II — Laudos de Audiometria", "Anexo III — Fichas de Entrega de EPA"].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
-  children.push(footer());
-  return createDocumentShell("PCA", company.name, "PCA", children);
+  children.push(createProfessionalFooter(company));
+  return createDocumentShell("PCA", company, "PCA", children, logoBuffer || undefined);
 }
 
 // ========== PPR REPORT — Matches HTML preview ==========
-function generatePPRDocx(ctx: DocxReportContext): Document {
+async function generatePPRDocx(ctx: DocxReportContext): Promise<Document> {
   const { company, workstations } = ctx;
   const { consultant, sectorMap } = getCtxData(ctx);
+  const logoBuffer = company.logo_url ? await fetchImageAsBuffer(company.logo_url) : undefined;
 
   const children: any[] = [];
   children.push(...createCoverPage("PROGRAMA DE PROTEÇÃO RESPIRATÓRIA", "PPR", company, consultant));
@@ -1868,17 +1945,15 @@ function generatePPRDocx(ctx: DocxReportContext): Document {
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
-  children.push(footer());
-  return createDocumentShell("PPR", company.name, "PPR", children);
+  children.push(createProfessionalFooter(company));
+  return createDocumentShell("PPR", company, "PPR", children, logoBuffer || undefined);
 }
 
 // ========== GENERIC REPORT ==========
-function generateGenericDocx(ctx: DocxReportContext): Document {
-  const { company, sector, workstation, workstations, analyses, reportType } = ctx;
-  const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
-  const analysisIds = analyses.map(a => a.id);
-  const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
-  const actions = mockActionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
+async function generateGenericDocx(ctx: DocxReportContext): Promise<Document> {
+  const { company, workstations, analyses, reportType } = ctx;
+  const { consultant, risks, actions } = getCtxData(ctx);
+  const logoBuffer = company.logo_url ? await fetchImageAsBuffer(company.logo_url) : undefined;
 
   const children: any[] = [];
   children.push(...createCoverPage(reportType, reportType, company, consultant));
@@ -1909,7 +1984,7 @@ function generateGenericDocx(ctx: DocxReportContext): Document {
       rows: [
         new TableRow({ children: [headerCell("Descrição", 50), headerCell("Score", 25), headerCell("Nível", 25)] }),
         ...risks.map(r => new TableRow({
-          children: [textCell(r.description, false, 50), textCell(String(r.risk_score), true, 25), textCell(riskLevelLabel(r.risk_level), true, 25)],
+          children: [textCell(r.description, false, 50), textCell(String(r.risk_score || 0), true, 25), textCell(riskLevelLabel(r.risk_level), true, 25)],
         })),
       ],
     }));
@@ -1925,8 +2000,8 @@ function generateGenericDocx(ctx: DocxReportContext): Document {
   }
 
   children.push(...signatureBlock(consultant));
-  children.push(footer());
-  return createDocumentShell(reportType, company.name, reportType, children);
+  children.push(createProfessionalFooter(company));
+  return createDocumentShell(reportType, company, reportType, children, logoBuffer || undefined);
 }
 
 // ========== MAIN EXPORT ==========

@@ -314,10 +314,11 @@ function sharedStyles() {
 }
 
 function coverPage(title: string, subtitle: string, company: Company, consultant: string) {
+  const logo = company.logo_url || "/mg-consult-logo.png";
   return `
 <div class="rpt-cover">
   <div class="cover-logo">
-    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:60px;" onerror="this.style.display='none'" />
+    <img src="${logo}" alt="Company Logo" style="height:100px; max-width:250px; object-fit:contain;" onerror="this.style.display='none'" />
   </div>
   <div class="rpt-cover-inner">
     <h1>${subtitle}</h1>
@@ -332,14 +333,16 @@ function coverPage(title: string, subtitle: string, company: Company, consultant
 }
 
 function pageHeader(docTitle: string, company: Company, sheetNum: string = "01") {
+  const logo = company.logo_url || "/mg-consult-logo.png";
   return `
 <table class="rpt-page-header">
   <tr>
     <td class="hdr-logo" rowspan="2">
-      <img src="/mg-consult-logo.png" alt="MG Consult" style="height:36px; max-width:110px;" onerror="this.innerHTML='<strong style=font-size:9px>MG<br>Consult</strong>'" />
+      <img src="${logo}" alt="Logo" style="height:45px; max-width:130px; object-fit:contain;" onerror="this.innerHTML='<strong style=font-size:9px>CERTIFIED<br>DOCUMENT</strong>'" />
     </td>
     <td class="hdr-title" rowspan="2" style="padding:6px;">
       <div style="font-size:12px; font-weight:bold;">${docTitle}</div>
+      <div style="font-size:9px; color:#666; margin-top:2px;">${company.trade_name || company.name} — CNPJ: ${company.cnpj}</div>
     </td>
     <td class="hdr-sms">
       <table class="sms-table">
@@ -408,9 +411,10 @@ function signatureBlock(consultant: string, title: string = "Engenheiro de Segur
 </div>`;
 }
 
-function footer() {
+function footer(company?: Company) {
+  const logo = company?.logo_url || "/mg-consult-logo.png";
   return `<div class="rpt-page-footer">
-    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:30px;" onerror="this.style.display='none'" />
+    <img src="${logo}" alt="Logo" style="height:35px; max-width:150px; object-fit:contain;" onerror="this.style.display='none'" />
   </div>`;
 }
 
