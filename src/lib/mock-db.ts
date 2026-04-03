@@ -1,54 +1,32 @@
 import { v4 as uuidv4 } from "uuid";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, RiskAssessment, ActionPlan, PsychosocialAnalysis, PostureAnalysis } from "./types";
 
+import { 
+  mockCompanies, 
+  mockSectors, 
+  mockWorkstations, 
+  mockAnalyses, 
+  mockPosturePhotos, 
+  mockReports, 
+  mockRiskAssessments, 
+  mockActionPlans, 
+  mockPsychosocialAnalyses, 
+  mockPostureAnalyses 
+} from "./mock-data";
+
 const INITIAL_DATA = {
-  companies: [
-    {
-      id: "demo-company-1",
-      name: "Empresa de Demonstração S.A.",
-      trade_name: "Demo Logística",
-      cnpj: "00.000.000/0001-91",
-      cnae_principal: "4930-2/02",
-      cnae_secundario: "5211-7/99",
-      activity_risk: "Grau 3",
-      address: "Av. das Américas, 1000",
-      neighborhood: "Barra da Tijuca",
-      city: "Rio de Janeiro",
-      state: "RJ",
-      cep: "22640-100",
-      description: "Empresa fictícia para demonstração do sistema Spartan.",
-      is_pro: false,
-      created_at: new Date().toISOString(),
-    },
-  ] as Company[],
-  sectors: [
-    {
-      id: "demo-sector-1",
-      company_id: "demo-company-1",
-      name: "Operacional / Armazém",
-      description: "Área de recebimento e expedição de mercadorias.",
-      created_at: new Date().toISOString(),
-    },
-  ] as Sector[],
-  workstations: [
-    {
-      id: "demo-ws-1",
-      sector_id: "demo-sector-1",
-      name: "Auxiliar de Carga e Descarga",
-      description: "Posto responsável pela movimentação de caixas e paletes.",
-      activity_description: "Levantamento manual de cargas, transporte e estocagem.",
-      tasks_performed: "Carregar caminhões, Organizar estoque, Conferir notas.",
-      created_at: new Date().toISOString(),
-    },
-  ] as Workstation[],
-  analyses: [] as Analysis[],
-  posture_photos: [] as PosturePhoto[],
-  reports: [] as Report[],
-  risk_assessments: [] as RiskAssessment[],
-  action_plans: [] as ActionPlan[],
-  psychosocial_analyses: [] as PsychosocialAnalysis[],
-  posture_analyses: [] as PostureAnalysis[],
+  companies: mockCompanies,
+  sectors: mockSectors,
+  workstations: mockWorkstations,
+  analyses: mockAnalyses,
+  posture_photos: mockPosturePhotos,
+  reports: mockReports,
+  risk_assessments: mockRiskAssessments,
+  action_plans: mockActionPlans,
+  psychosocial_analyses: mockPsychosocialAnalyses,
+  posture_analyses: mockPostureAnalyses,
 };
+
 
 class MockQueryBuilder {
   private table: string;
@@ -127,7 +105,7 @@ class MockDb {
   private data: typeof INITIAL_DATA;
 
   constructor() {
-    const saved = localStorage.getItem("spartan_mock_db");
+    const saved = localStorage.getItem("spartan_mock_db_v2");
     if (saved) {
       try {
         this.data = JSON.parse(saved);
@@ -141,8 +119,9 @@ class MockDb {
   }
 
   private save() {
-    localStorage.setItem("spartan_mock_db", JSON.stringify(this.data));
+    localStorage.setItem("spartan_mock_db_v2", JSON.stringify(this.data));
   }
+
 
   from(table: keyof typeof INITIAL_DATA | string) {
     const tableData = (this.data as any)[table] || [];

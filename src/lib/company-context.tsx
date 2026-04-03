@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useMemo, useEffect, useCallback, type ReactNode } from "react";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, RiskAssessment, ActionPlan, PsychosocialAnalysis, PostureAnalysis } from "./types";
 import { masterSupabase, supabase } from "@/integrations/supabase/client";
+import { useLicense } from "./license-context";
+import { mockSupabase } from "./mock-db";
 import { toast } from "sonner";
 import { obfuscate } from "./crypto";
 
@@ -70,6 +72,9 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const [psychosocialAnalyses, setPsychosocialAnalyses] = useState<PsychosocialAnalysis[]>([]);
   const [postureAnalyses, setPostureAnalyses] = useState<PostureAnalysis[]>([]);
 
+  const { isFullVersion } = useLicense();
+  const db = isFullVersion ? supabase : mockSupabase;
+
   const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
@@ -78,16 +83,16 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         { data: ph }, { data: rp }, { data: ra }, { data: ap },
         { data: psa }, { data: pa }
       ] = await Promise.all([
-        supabase.from("companies").select("*").order("created_at") as any,
-        supabase.from("sectors").select("*").order("created_at") as any,
-        supabase.from("workstations").select("*").order("created_at") as any,
-        supabase.from("analyses").select("*").order("created_at") as any,
-        supabase.from("posture_photos").select("*").order("created_at") as any,
-        supabase.from("reports").select("*").order("created_at") as any,
-        supabase.from("risk_assessments").select("*").order("created_at") as any,
-        supabase.from("action_plans").select("*").order("created_at") as any,
-        supabase.from("psychosocial_analyses").select("*").order("created_at") as any,
-        supabase.from("posture_analyses").select("*").order("created_at") as any,
+        db.from("companies").select("*").order("created_at") as any,
+        db.from("sectors").select("*").order("created_at") as any,
+        db.from("workstations").select("*").order("created_at") as any,
+        db.from("analyses").select("*").order("created_at") as any,
+        db.from("posture_photos").select("*").order("created_at") as any,
+        db.from("reports").select("*").order("created_at") as any,
+        db.from("risk_assessments").select("*").order("created_at") as any,
+        db.from("action_plans").select("*").order("created_at") as any,
+        db.from("psychosocial_analyses").select("*").order("created_at") as any,
+        db.from("posture_analyses").select("*").order("created_at") as any,
       ]);
       
       const mappedCompanies = (comp || []).map(c => ({ ...c, created_at: c.created_at?.split("T")[0] || "", trade_name: c.trade_name || "", cnae_principal: c.cnae_principal || "", cnae_secundario: c.cnae_secundario || "", activity_risk: c.activity_risk || "", cep: c.cep || "", neighborhood: c.neighborhood || "" })) as Company[];
@@ -128,7 +133,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [db]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -185,7 +190,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       }
 
       // 2. Save Company (with potentially new license key)
-      const { error } = await supabase.from("companies").insert({
+      const { error } = await db.from("companies").insert({
         ...cleanData,
         license_key: finalLicenseKey
       });
@@ -204,47 +209,47 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     }
   };
   const updateCompany = async (id: string, c: Partial<Company>) => {
-    const { error } = await supabase.from("companies").update(c).eq("id", id);
+    const { error } = await db.from("companies").update(c).eq("id", id);
     if (error) { toast.error("Erro ao atualizar empresa"); return; }
     await fetchAll();
   };
   const deleteCompany = async (id: string) => {
-    const { error } = await supabase.from("companies").delete().eq("id", id);
+    const { error } = await db.from("companies").delete().eq("id", id);
     if (error) { toast.error("Erro ao excluir empresa"); return; }
     await fetchAll();
   };
   const addSector = async (s: Omit<Sector, "id" | "created_at">) => {
-    const { error } = await supabase.from("sectors").insert(s);
+    const { error } = await db.from("sectors").insert(s);
     if (error) { toast.error("Erro ao criar setor"); return; }
     await fetchAll();
   };
   const updateSector = async (id: string, s: Partial<Sector>) => {
-    const { error } = await supabase.from("sectors").update(s).eq("id", id);
+    const { error } = await db.from("sectors").update(s).eq("id", id);
     if (error) { toast.error("Erro ao atualizar setor"); return; }
     await fetchAll();
   };
   const deleteSector = async (id: string) => {
-    const { error } = await supabase.from("sectors").delete().eq("id", id);
+    const { error } = await db.from("sectors").delete().eq("id", id);
     if (error) { toast.error("Erro ao excluir setor"); return; }
     await fetchAll();
   };
   const addWorkstation = async (w: Omit<Workstation, "id" | "created_at">) => {
-    const { error } = await supabase.from("workstations").insert(w);
+    const { error } = await db.from("workstations").insert(w);
     if (error) { toast.error("Erro ao criar posto"); return; }
     await fetchAll();
   };
   const updateWorkstation = async (id: string, w: Partial<Workstation>) => {
-    const { error } = await supabase.from("workstations").update(w).eq("id", id);
+    const { error } = await db.from("workstations").update(w).eq("id", id);
     if (error) { toast.error("Erro ao atualizar posto"); return; }
     await fetchAll();
   };
   const deleteWorkstation = async (id: string) => {
-    const { error } = await supabase.from("workstations").delete().eq("id", id);
+    const { error } = await db.from("workstations").delete().eq("id", id);
     if (error) { toast.error("Erro ao excluir posto"); return; }
     await fetchAll();
   };
   const addAnalysis = async (a: Omit<Analysis, "id" | "created_at">) => {
-    const { error } = await supabase.from("analyses").insert({
+    const { error } = await db.from("analyses").insert({
       workstation_id: a.workstation_id,
       method: a.method,
       score: a.score,
@@ -256,52 +261,52 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     await fetchAll();
   };
   const updateAnalysis = async (id: string, a: Partial<Analysis>) => {
-    const { error } = await supabase.from("analyses").update(a).eq("id", id);
+    const { error } = await db.from("analyses").update(a).eq("id", id);
     if (error) { toast.error("Erro ao atualizar análise"); return; }
     await fetchAll();
   };
   const deleteAnalysis = async (id: string) => {
-    const { error } = await supabase.from("analyses").delete().eq("id", id);
+    const { error } = await db.from("analyses").delete().eq("id", id);
     if (error) { toast.error("Erro ao excluir análise"); return; }
     await fetchAll();
   };
   const addPosturePhoto = async (p: Omit<PosturePhoto, "id" | "created_at">) => {
-    const { error } = await supabase.from("posture_photos").insert(p);
+    const { error } = await db.from("posture_photos").insert(p);
     if (error) { toast.error("Erro ao adicionar foto"); return; }
     await fetchAll();
   };
   const addReport = async (r: Omit<Report, "id" | "created_at">) => {
-    const { error } = await supabase.from("reports").insert(r);
+    const { error } = await db.from("reports").insert(r);
     if (error) { toast.error("Erro ao criar relatório"); return; }
     await fetchAll();
   };
   const updateReport = async (id: string, r: Partial<Report>) => {
-    const { error } = await supabase.from("reports").update(r).eq("id", id);
+    const { error } = await db.from("reports").update(r).eq("id", id);
     if (error) { toast.error("Erro ao atualizar relatório"); return; }
     await fetchAll();
   };
   const addRiskAssessment = async (r: Omit<RiskAssessment, "id" | "created_at">) => {
-    const { error } = await supabase.from("risk_assessments").insert(r);
+    const { error } = await db.from("risk_assessments").insert(r);
     if (error) { toast.error("Erro ao criar avaliação de risco"); return; }
     await fetchAll();
   };
   const updateRiskAssessment = async (id: string, r: Partial<RiskAssessment>) => {
-    const { error } = await supabase.from("risk_assessments").update(r).eq("id", id);
+    const { error } = await db.from("risk_assessments").update(r).eq("id", id);
     if (error) { toast.error("Erro ao atualizar avaliação"); return; }
     await fetchAll();
   };
   const addActionPlan = async (a: Omit<ActionPlan, "id" | "created_at">) => {
-    const { error } = await supabase.from("action_plans").insert(a);
+    const { error } = await db.from("action_plans").insert(a);
     if (error) { toast.error("Erro ao criar ação"); return; }
     await fetchAll();
   };
   const updateActionPlan = async (id: string, a: Partial<ActionPlan>) => {
-    const { error } = await supabase.from("action_plans").update(a).eq("id", id);
+    const { error } = await db.from("action_plans").update(a).eq("id", id);
     if (error) { toast.error("Erro ao atualizar ação"); return; }
     await fetchAll();
   };
   const addPsychosocialAnalysis = async (p: Omit<PsychosocialAnalysis, "id" | "created_at">) => {
-    const { error } = await supabase.from("psychosocial_analyses").insert({
+    const { error } = await db.from("psychosocial_analyses").insert({
       company_id: p.company_id,
       workstation_id: p.workstation_id || null,
       evaluator_name: p.evaluator_name,
@@ -317,12 +322,12 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     await fetchAll();
   };
   const deletePsychosocialAnalysis = async (id: string) => {
-    const { error } = await supabase.from("psychosocial_analyses").delete().eq("id", id);
+    const { error } = await db.from("psychosocial_analyses").delete().eq("id", id);
     if (error) { toast.error("Erro ao excluir avaliação psicossocial"); return; }
     await fetchAll();
   };
   const deletePosturePhoto = async (id: string) => {
-    const { error } = await supabase.from("posture_photos").delete().eq("id", id);
+    const { error } = await db.from("posture_photos").delete().eq("id", id);
     if (error) { toast.error("Erro ao excluir foto de postura"); return; }
     await fetchAll();
   };
