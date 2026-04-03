@@ -235,15 +235,33 @@ export function AppSidebar() {
         )}
         
         {!collapsed && (
+          <div className="flex flex-col gap-1 px-1 mb-1">
+            <div className="flex items-center gap-1.5 opacity-80 transition-all">
+              <div className={cn(
+                "h-1.5 w-1.5 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]",
+                isDeveloper ? "bg-amber-500" : (isSystemAccess ? "bg-emerald-500" : "bg-blue-500")
+              )} />
+              <span className={cn(
+                "text-[9px] font-bold uppercase tracking-widest",
+                isDeveloper ? "text-amber-600/80" : (isSystemAccess ? "text-emerald-600/80" : "text-blue-600/80")
+              )}>
+                {isDeveloper ? "Ambiente: Dev" : (isSystemAccess ? "Sistema: Produção" : "Modo: Demonstração")}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {!collapsed && (
           <button
             onClick={() => setFocusDialogOpen(true)}
             className="flex items-center justify-center gap-1.5 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
           >
             <span className="text-[8px] text-sidebar-muted/70 tracking-wider uppercase whitespace-nowrap">Desenvolvido por:</span>
-            <img src={focusLogo} alt="Focus" className="h-5" />
+            <img src={focusLogo} alt="Focus" className="h-4" />
           </button>
         )}
       </SidebarFooter>
+
 
       <Dialog open={showUpgradeDialog} onOpenChange={setShowUpgradeDialog}>
         <DialogContent className="sm:max-w-[425px]">
