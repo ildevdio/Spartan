@@ -36,12 +36,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <span className="text-sm font-medium text-foreground tracking-wide truncate">Dashboard</span>
               </div>
               
-              {!isRealDb && (
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20">
-                  <div className="h-2 w-2 rounded-full bg-yellow-500 animate-pulse" />
-                  <span className="text-[10px] uppercase font-bold text-yellow-600 tracking-widest">Modo de Demonstração</span>
-                </div>
-              )}
+
             </div>
           </header>
           <main className="flex-1 px-4 py-5 sm:p-6 overflow-x-hidden overflow-y-auto safe-area-bottom w-full">

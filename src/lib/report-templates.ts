@@ -1,5 +1,4 @@
-import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, ReportType, Task, PsychosocialAnalysis } from "./types";
-import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses } from "./mock-data";
+import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
 import { riskLevelLabel, statusLabel, analysisStatusLabel } from "./types";
 
 export interface TechnicalResponsibleInfo {
@@ -21,6 +20,10 @@ interface ReportContext {
   reportType: ReportType;
   consultantName?: string;
   technicalResponsible?: TechnicalResponsibleInfo;
+  riskAssessments?: RiskAssessment[];
+  actionPlans?: ActionPlan[];
+  tasks?: Task[];
+  psychosocialAnalyses?: PsychosocialAnalysis[];
 }
 
 function getToday(): string {
@@ -421,15 +424,15 @@ function footer(company?: Company) {
 
 
 function getCtxData(ctx: ReportContext) {
-  const { company, workstations, analyses } = ctx;
+  const { company, workstations, analyses, riskAssessments = [], actionPlans = [], tasks: ctxTasks = [], psychosocialAnalyses = [] } = ctx;
   const rt = ctx.technicalResponsible;
   const consultant = rt?.name || ctx.consultantName || "Engenheiro de Segurança do Trabalho";
   const analysisIds = analyses.map(a => a.id);
   const wsIds = workstations.map(w => w.id);
-  const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
-  const actions = mockActionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
-  const tasks = mockTasks.filter(t => wsIds.includes(t.workstation_id));
-  const psychosocial = mockPsychosocialAnalyses.filter(p => p.company_id === company.id);
+  const risks = riskAssessments.filter(r => analysisIds.includes(r.analysis_id));
+  const actions = actionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
+  const tasks = ctxTasks.filter(t => wsIds.includes(t.workstation_id));
+  const psychosocial = psychosocialAnalyses.filter(p => p.company_id === company.id);
   const sectors = [...new Set(workstations.map(w => w.sector?.name || "Geral"))];
   const sectorMap = new Map<string, { sectorName: string; workstations: typeof workstations }>();
   workstations.forEach(ws => {
@@ -1505,7 +1508,7 @@ ${Array.from(sectorMap.entries()).map(([sectorId, { sectorName, workstations: se
   ${wsRisks.length > 0 ? wsRisks.map(r => {
       const analysis = analyses.find(a => a.id === r.analysis_id);
       const ws = analysis ? sectorWs.find(w => w.id === analysis.workstation_id) : null;
-      return `<tr><td>${r.description}</td><td>${ws?.name || "—"}</td><td style="text-align:center;">${r.probability}</td><td style="text-align:center;">${r.consequence}</td><td style="text-align:center;">${riskLevelLabel(r.risk_level)}</td><td>${mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I."}</td></tr>`;
+      return `<tr><td>${r.description}</td><td>${ws?.name || "—"}</td><td style="text-align:center;">${r.probability}</td><td style="text-align:center;">${r.consequence}</td><td style="text-align:center;">${riskLevelLabel(r.risk_level)}</td><td>${actions.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I."}</td></tr>`;
     }).join("") : `<tr><td colspan="6" style="text-align:center;">Nenhum risco identificado para este setor</td></tr>`}
 </table>`;
   }).join("")}

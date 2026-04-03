@@ -16,9 +16,18 @@ export const obfuscate = (text: string): string => {
 export const deobfuscate = (encoded: string): string => {
   if (!encoded || typeof encoded !== "string") return "";
   try {
+    // Reverse first, but handle potentially invalid base64 if it wasn't reversed initially
     const reversed = encoded.split("").reverse().join("");
-    return decodeURIComponent(escape(atob(reversed)));
+    
+    // Check if directly base64-able (some legacy keys might not be reversed)
+    try {
+      return decodeURIComponent(escape(atob(reversed)));
+    } catch {
+      // Fallback: try without reverse
+      return decodeURIComponent(escape(atob(encoded)));
+    }
   } catch (e) {
     return encoded;
   }
 };
+

@@ -8,7 +8,6 @@ import {
 import { saveAs } from "file-saver";
 import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
 import { riskLevelLabel, statusLabel } from "./types";
-import { mockRiskAssessments, mockActionPlans, mockTasks, mockPsychosocialAnalyses, mockPostureAnalyses } from "./mock-data";
 import { generateReportHTML } from "./report-templates";
 
 
@@ -22,6 +21,10 @@ export interface DocxReportContext {
   photos: PosturePhoto[];
   reportType: ReportType;
   consultantName?: string;
+  riskAssessments?: RiskAssessment[];
+  actionPlans?: ActionPlan[];
+  tasks?: Task[];
+  psychosocialAnalyses?: PsychosocialAnalysis[];
 }
 
 // ============ COLOR PALETTE ============
@@ -635,14 +638,14 @@ function createDocumentShell(title: string, company: Company, reportType: string
 
 // ============ DATA HELPERS ============
 function getCtxData(ctx: DocxReportContext) {
-  const { company, workstations, sectors, analyses } = ctx;
+  const { company, workstations, sectors, analyses, riskAssessments = [], actionPlans = [], tasks: ctxTasks = [], psychosocialAnalyses = [] } = ctx;
   const consultant = ctx.consultantName || "Engenheiro de Segurança do Trabalho";
   const analysisIds = analyses.map(a => a.id);
   const wsIds = workstations.map(w => w.id);
-  const risks = mockRiskAssessments.filter(r => analysisIds.includes(r.analysis_id));
-  const actions = mockActionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
-  const tasks = mockTasks.filter(t => wsIds.includes(t.workstation_id));
-  const psychosocial = mockPsychosocialAnalyses.filter(p => p.company_id === company.id);
+  const risks = riskAssessments.filter(r => analysisIds.includes(r.analysis_id));
+  const actions = actionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
+  const tasks = ctxTasks.filter(t => wsIds.includes(t.workstation_id));
+  const psychosocial = psychosocialAnalyses.filter(p => p.company_id === company.id);
   const sectorMap = new Map<string, { sectorName: string; workstations: typeof workstations }>();
   workstations.forEach(ws => {
     const sectorId = ws.sector?.id || ws.sector_id || "unknown";
@@ -1191,7 +1194,7 @@ async function generatePGRDocx(ctx: DocxReportContext): Promise<Document> {
           const a = analyses.find(an => an.id === r.analysis_id);
           const ws = a ? sectorWs.find(w => w.id === a.workstation_id) : null;
           return new TableRow({
-            children: [textCell(r.description, false, 20), textCell(ws?.name || "—", false, 20), textCell(String(r.probability), false, 10), textCell(String(r.consequence), false, 10), textCell(riskLevelLabel(r.risk_level).charAt(0), false, 10), textCell(mockActionPlans.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I.", false, 30)],
+            children: [textCell(r.description, false, 20), textCell(ws?.name || "—", false, 20), textCell(String(r.probability), false, 10), textCell(String(r.consequence), false, 10), textCell(riskLevelLabel(r.risk_level).charAt(0), false, 10), textCell(actions.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I.", false, 30)],
           });
         }) : [new TableRow({ children: [mergedCell("Nenhum risco identificado para este setor", 6)] })]),
       ],

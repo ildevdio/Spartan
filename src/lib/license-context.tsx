@@ -42,23 +42,51 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (!stored) return;
+    const checkPersistedLicense = async () => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) return;
 
-    const isDev = DEV_KEYS.includes(stored);
-    const deobfuscatedStored = deobfuscate(stored);
-    const isCustomer = deobfuscatedStored === MGCONSULT_KEY;
+      const isDev = DEV_KEYS.includes(stored);
+      const deobfuscatedStored = deobfuscate(stored);
+      const isCustomer = deobfuscatedStored === MGCONSULT_KEY;
 
-    if (isDev) {
-      setIsDeveloper(true);
-      setIsFullVersion(true);
-      setLicenseKey(stored);
-    } else if (isCustomer) {
-      setIsDeveloper(false);
-      setIsFullVersion(true);
-      setLicenseKey(deobfuscatedStored);
-    }
+      if (isDev) {
+        setIsDeveloper(true);
+        setIsFullVersion(true);
+        setLicenseKey(stored);
+      } else if (isCustomer) {
+        setIsDeveloper(false);
+        setIsFullVersion(true);
+        setLicenseKey(deobfuscatedStored);
+      } else {
+        // It's likely a private instance (plain key stored)
+        // Re-verify with master DB to get config
+        const { data: masterLicense } = await masterSupabase
+          .from('master_licenses')
+          .select('*')
+          .eq('license_id', stored)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (masterLicense) {
+          if (masterLicense.target_supabase_url) {
+            updateSupabaseConfig(
+              masterLicense.target_supabase_url, 
+              masterLicense.target_supabase_anon_key
+            );
+          }
+          setLicenseKey(stored);
+          setIsFullVersion(true);
+        } else {
+          // Key no longer valid or deactivated
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
+    };
+    
+    checkPersistedLicense();
   }, []);
+
 
   const activateLicense = async (inputKey: string) => {
     try {

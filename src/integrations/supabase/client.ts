@@ -43,4 +43,4 @@ export const supabase = new Proxy({}, dynamicHandler) as ReturnType<typeof creat
 
 // Export connection status helpers
 export const supabaseUrl = masterUrl;
-export const isRealDb = masterUrl && !masterUrl.includes("supabase.co"); 
+export const isRealDb = !!masterUrl && (masterUrl.includes("supabase.co") || !masterUrl.includes("localhost"));
