@@ -41,8 +41,9 @@ async function fetchRiskFromCnae(cnae: string): Promise<{ risk: string; descript
     });
     if (error) throw error;
     return data;
-  } catch (err) {
+  } catch (err: any) {
     console.error("Error fetching risk:", err);
+    // Silent fail if it's a 404/CORS issue (likely function not deployed)
     return null;
   }
 }
@@ -63,11 +64,16 @@ export function CompanyForm({
   editing,
   onSave,
   onCancel,
+  showCloudConfig = false,
+  isInitialReadonly = false,
 }: {
   editing: Company | null;
   onSave: (data: Omit<Company, "id" | "created_at">, dbConfig?: { url: string; key: string }) => Promise<void>;
   onCancel: () => void;
+  showCloudConfig?: boolean;
+  isInitialReadonly?: boolean;
 }) {
+  const [isReadonly, setIsReadonly] = useState(isInitialReadonly);
   const [name, setName] = useState(editing?.name || "");
   const [tradeName, setTradeName] = useState(editing?.trade_name || "");
   const [cnpj, setCnpj] = useState(editing?.cnpj || "");
@@ -116,6 +122,9 @@ export function CompanyForm({
       if (result) {
         setActivityRisk(result.risk);
         setRiskDescription(result.description);
+      } else {
+        // Fallback or hint
+        setRiskDescription("O sistema de IA para Grau de Risco está offline. Você poderá definir isso manualmente no futuro ou aguardar a ativação.");
       }
       setLoadingRisk(false);
     }
@@ -193,7 +202,7 @@ export function CompanyForm({
   const handleSave = async () => {
     if (!name.trim()) return;
     
-    const dbConfig = hasPrivateDb ? { url: dbUrl, key: dbKey } : undefined;
+    const dbConfig = (showCloudConfig && hasPrivateDb) ? { url: dbUrl, key: dbKey } : undefined;
     
     await onSave({
       name,
@@ -214,7 +223,19 @@ export function CompanyForm({
   };
 
   return (
-    <div className="space-y-4 pt-2">
+    <div className="space-y-4 pt-2 relative">
+      {editing && isInitialReadonly && (
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="absolute -top-12 right-0 text-xs gap-2"
+          onClick={() => setIsReadonly(!isReadonly)}
+        >
+          {isReadonly ? <Pencil className="h-3 w-3" /> : <ShieldCheck className="h-3 w-3" />}
+          {isReadonly ? "Editar Informações" : "Bloquear Edição"}
+        </Button>
+      )}
+
       <div className="flex flex-col items-center gap-4 py-4 border-b">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Logo da Empresa (Papel Timbrado)</Label>
         <div className="relative group cursor-pointer h-24 w-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-border hover:border-primary/50 transition-colors">
@@ -228,8 +249,9 @@ export function CompanyForm({
           )}
           <input 
             type="file" 
-            className="absolute inset-0 opacity-0 cursor-pointer" 
+            className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
             accept="image/*"
+            disabled={isReadonly}
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleLogoUpload(file);
@@ -241,11 +263,11 @@ export function CompanyForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <Label className="text-xs">Razão Social *</Label>
-          <Input placeholder="Razão Social" value={name} onChange={(e) => setName(e.target.value)} />
+          <Input placeholder="Razão Social" value={name} onChange={(e) => setName(e.target.value)} disabled={isReadonly} />
         </div>
         <div>
           <Label className="text-xs">Nome Fantasia</Label>
-          <Input placeholder="Nome Fantasia" value={tradeName} onChange={(e) => setTradeName(e.target.value)} />
+          <Input placeholder="Nome Fantasia" value={tradeName} onChange={(e) => setTradeName(e.target.value)} disabled={isReadonly} />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -256,21 +278,22 @@ export function CompanyForm({
               placeholder="00.000.000/0000-00" 
               value={cnpj} 
               onChange={(e) => setCnpj(e.target.value)} 
+              disabled={isReadonly}
             />
-            <Button type="button" variant="outline" size="icon" onClick={handleCnpjLookup} disabled={loadingRisk}>
+            <Button type="button" variant="outline" size="icon" onClick={handleCnpjLookup} disabled={loadingRisk || isReadonly}>
               {loadingRisk ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
             </Button>
           </div>
         </div>
         <div>
           <Label className="text-xs">CNAE Principal</Label>
-          <Input placeholder="Ex: 69.20-6-01" value={cnaePrincipal} onChange={(e) => handleCnaeChange(e.target.value)} />
+          <Input placeholder="Ex: 69.20-6-01" value={cnaePrincipal} onChange={(e) => handleCnaeChange(e.target.value)} disabled={isReadonly} />
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <Label className="text-xs">CNAE Secundário</Label>
-          <Input placeholder="Ex: 56.11-2-01" value={cnaeSecundario} onChange={(e) => setCnaeSecundario(e.target.value)} />
+          <Input placeholder="Ex: 56.11-2-01" value={cnaeSecundario} onChange={(e) => setCnaeSecundario(e.target.value)} disabled={isReadonly} />
         </div>
         <div>
           <Label className="text-xs">Grau de Risco (NR-04) — Definido por IA</Label>
@@ -295,10 +318,10 @@ export function CompanyForm({
         <div className="grid grid-cols-3 gap-2 mt-2">
           <div className="col-span-2">
             <Label className="text-xs">CEP</Label>
-            <Input placeholder="00000-000" value={cep} onChange={(e) => setCep(e.target.value)} />
+            <Input placeholder="00000-000" value={cep} onChange={(e) => setCep(e.target.value)} disabled={isReadonly} />
           </div>
           <div className="flex items-end">
-            <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleCepLookup} disabled={loadingCep}>
+            <Button type="button" variant="outline" size="sm" className="w-full" onClick={handleCepLookup} disabled={loadingCep || isReadonly}>
               {loadingCep ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5 mr-1" />}
               Buscar
             </Button>
@@ -306,31 +329,31 @@ export function CompanyForm({
         </div>
         <div className="mt-2">
           <Label className="text-xs">Logradouro</Label>
-          <Input placeholder="Endereço completo" value={address} onChange={(e) => setAddress(e.target.value)} />
+          <Input placeholder="Endereço completo" value={address} onChange={(e) => setAddress(e.target.value)} disabled={isReadonly} />
         </div>
         <div className="grid grid-cols-3 gap-2 mt-2">
           <div>
             <Label className="text-xs">Bairro</Label>
-            <Input placeholder="Bairro" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} />
+            <Input placeholder="Bairro" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} disabled={isReadonly} />
           </div>
           <div>
             <Label className="text-xs">Cidade</Label>
-            <Input placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
+            <Input placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} disabled={isReadonly} />
           </div>
           <div>
             <Label className="text-xs">UF</Label>
-            <Input placeholder="UF" value={state} onChange={(e) => setState(e.target.value)} />
+            <Input placeholder="UF" value={state} onChange={(e) => setState(e.target.value)} disabled={isReadonly} />
           </div>
         </div>
       </div>
 
       <div>
         <Label className="text-xs">Descrição da atividade</Label>
-        <Textarea placeholder="Descrição da atividade da empresa" value={description} onChange={(e) => setDescription(e.target.value)} />
+        <Textarea placeholder="Descrição da atividade da empresa" value={description} onChange={(e) => setDescription(e.target.value)} disabled={isReadonly} />
       </div>
 
-      {/* Modern Cloud Config Section */}
-      {!editing && (
+      {/* Modern Cloud Config Section - Only for Developers/Master mode */}
+      {showCloudConfig && !editing && (
         <div className="mt-4 p-4 rounded-xl border-2 border-accent/20 bg-accent/5 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -340,7 +363,7 @@ export function CompanyForm({
                 <p className="text-[10px] text-muted-foreground">Provisionar instância exclusiva para este cliente</p>
               </div>
             </div>
-            <Switch checked={hasPrivateDb} onCheckedChange={setHasPrivateDb} />
+            <Switch checked={hasPrivateDb} onCheckedChange={setHasPrivateDb} disabled={isReadonly} />
           </div>
 
           {hasPrivateDb && (
@@ -355,6 +378,7 @@ export function CompanyForm({
                       className="pl-9"
                       value={dbUrl}
                       onChange={(e) => setDbUrl(e.target.value)}
+                      disabled={isReadonly}
                     />
                   </div>
                 </div>
@@ -365,6 +389,7 @@ export function CompanyForm({
                     type="password"
                     value={dbKey}
                     onChange={(e) => setDbKey(e.target.value)}
+                    disabled={isReadonly}
                   />
                 </div>
               </div>
@@ -377,7 +402,8 @@ export function CompanyForm({
           )}
         </div>
       )}
-      <Button onClick={handleSave} className="w-full">{editing ? "Salvar" : "Criar Empresa"}</Button>
+
+      <Button onClick={handleSave} className="w-full" disabled={isReadonly}>{editing ? "Salvar" : "Criar Empresa"}</Button>
     </div>
   );
 }

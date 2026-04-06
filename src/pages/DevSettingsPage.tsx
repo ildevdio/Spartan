@@ -25,8 +25,10 @@ import {
   LogOut,
   Plus,
   Terminal,
-  ExternalLink
+  ExternalLink,
+  Globe
 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function DevSettingsPage() {
   const { isDeveloper, isFullVersion, licenseKey, activateLicense, deactivateLicense } = useLicense();
@@ -42,10 +44,12 @@ export default function DevSettingsPage() {
   const [isAddingMasterLicense, setIsAddingMasterLicense] = useState(false);
   const [newMasterLicense, setNewMasterLicense] = useState({
     license_id: "",
+    company_id: "",
     client_name: "",
     target_supabase_url: "",
     target_supabase_anon_key: ""
   });
+  const [detailCompany, setDetailCompany] = useState<any>(null);
 
   useEffect(() => {
     if (isDeveloper) {
@@ -76,21 +80,44 @@ export default function DevSettingsPage() {
 
   const handleAddMasterLicense = async () => {
     try {
-      if (!newMasterLicense.license_id || !newMasterLicense.target_supabase_url) {
-        toast.error("Preencha os campos obrigatórios");
+      if (!newMasterLicense.company_id || !newMasterLicense.target_supabase_url) {
+        toast.error("Selecione uma empresa e preencha a URL");
         return;
       }
 
+      const company = companies.find(c => c.id === newMasterLicense.company_id);
+      if (!company) return;
+
+      const slug = (company.trade_name || company.name)
+        .toUpperCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^A-Z0-9]/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
+      
+      const licenseId = `SPARTAN-2024-${slug}`;
+
       const { error } = await masterSupabase
         .from('master_licenses')
-        .insert([newMasterLicense]);
+        .insert([{
+          license_id: licenseId,
+          client_name: company.name,
+          target_supabase_url: newMasterLicense.target_supabase_url,
+          target_supabase_anon_key: newMasterLicense.target_supabase_anon_key,
+          is_active: true
+        }]);
 
       if (error) throw error;
 
-      toast.success("Nova instância registrada com sucesso!");
+      // Update company with the generated license key
+      await updateCompany(company.id, { license_key: obfuscate(licenseId) });
+
+      toast.success("Nova instância vinculada com sucesso!");
       setIsAddingMasterLicense(false);
       setNewMasterLicense({
         license_id: "",
+        company_id: "",
         client_name: "",
         target_supabase_url: "",
         target_supabase_anon_key: ""
@@ -153,8 +180,13 @@ export default function DevSettingsPage() {
   };
 
   const handleSaveCompany = async (data: any, dbConfig?: { url: string; key: string }) => {
-    await addCompany(data, dbConfig);
-    setIsAddingCompany(false);
+    if (detailCompany) {
+      await updateCompany(detailCompany.id, data);
+      setDetailCompany(null);
+    } else {
+      await addCompany(data, dbConfig);
+      setIsAddingCompany(false);
+    }
   };
 
   const handleGenerateKey = () => {
@@ -265,25 +297,29 @@ export default function DevSettingsPage() {
     <div className="space-y-6 pb-20">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Desenvolvimento</h1>
-          <p className="text-sm text-muted-foreground">Gerencie credenciais oficiais e diagnostique o sistema</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-bold tracking-tight">Desenvolvimento</h1>
+            <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20">MASTER</Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">Portal administrativo de infraestrutura e clientes</p>
         </div>
         <div className="flex gap-2">
           <Dialog open={isAddingCompany} onOpenChange={setIsAddingCompany}>
             <DialogTrigger asChild>
               <Button size="sm" className="bg-primary hover:bg-primary/90">
-                <Plus className="h-4 w-4 mr-2" /> Novo Cliente Certificado
+                <Plus className="h-4 w-4 mr-2" /> Novo Cliente
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Gerar Credenciais para Novo Cliente</DialogTitle>
-                <DialogDescription>Cadastre as informações básicas e gere a chave de licenciamento oficial.</DialogDescription>
+                <DialogTitle>Registrar Novo Cliente</DialogTitle>
+                <DialogDescription>As credenciais oficiais serão geradas após o cadastro básico.</DialogDescription>
               </DialogHeader>
               <CompanyForm 
                 editing={null} 
                 onSave={handleSaveCompany} 
                 onCancel={() => setIsAddingCompany(false)} 
+                showCloudConfig={true}
               />
             </DialogContent>
           </Dialog>
@@ -355,154 +391,49 @@ export default function DevSettingsPage() {
         </Card>
       </div>
 
-      {/* Quick Customer Management */}
+      {/* Unified Client & Infrastructure Management */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-lg">Gestão Rápida de Clientes</CardTitle>
-              <CardDescription>Editar informações básicas e status premium</CardDescription>
+              <CardTitle className="text-lg">Gestão de Clientes & Infraestrutura</CardTitle>
+              <CardDescription>Monitoramento de instâncias Supabase e credenciais de licenciamento</CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={() => refreshCompanies()}>
-              <RefreshCw className="h-4 w-4 mr-2" /> Atualizar Lista
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[80px]">Logo</TableHead>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>CNPJ</TableHead>
-                  <TableHead className="text-center">Chave Salva</TableHead>
-                  <TableHead className="text-center">Status PRO</TableHead>
-                  <TableHead className="text-center">Ações de Desenvolvedor</TableHead>
-                  <TableHead className="text-right">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {companies && companies.length > 0 ? (
-                  companies.map((company) => (
-                    <TableRow key={company.id}>
-                    <TableCell>
-                      <div className="relative group cursor-pointer h-10 w-10 bg-muted rounded flex items-center justify-center overflow-hidden border border-border">
-                        {company.logo_url ? (
-                          <img src={company.logo_url} className="h-full w-full object-cover" />
-                        ) : (
-                          <ImageIcon className="h-5 w-5 text-muted-foreground/40" />
-                        )}
-                        <input 
-                          type="file" 
-                          className="absolute inset-0 opacity-0 cursor-pointer" 
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleLogoUpload(company.id, file);
-                          }}
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium text-sm">
-                      {company.name}
-                      <div className="text-[10px] text-muted-foreground font-normal">{company.id}</div>
-                    </TableCell>
-                    <TableCell className="text-xs">{company.cnpj}</TableCell>
-                    <TableCell className="text-center font-mono text-[10px]">
-                      {company.license_key ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <code className="bg-muted px-1 rounded truncate max-w-[80px]">...{company.license_key.slice(-6)}</code>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(`VITE_SPARTAN_LICENSE_${(company.trade_name || company.name).toUpperCase().replace(/[^A-Z0-9]/g, "_")}="${company.license_key}"`)}>
-                            <Copy className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground italic">Nenhuma</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center">
-                        <Switch 
-                          checked={!!company.is_pro} 
-                          onCheckedChange={() => handleTogglePro(company.id, !!company.is_pro)}
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Button variant={company.license_key ? "outline" : "default"} size="sm" onClick={() => handleGenerateKeyForCompany(company)} className="h-8">
-                        <Terminal className="h-3.5 w-3.5 mr-2" /> {company.license_key ? "Regerar Chave" : "Gerar Chave .env"}
-                      </Button>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" onClick={() => window.open('/empresas', '_blank')}>
-                        Ver Detalhes <ExternalLink className="h-3 w-3 ml-2" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground italic">
-                    Nenhuma empresa encontrada ou erro de conexão com o banco de dados.
-                  </TableCell>
-                </TableRow>
-              )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Private Instances (Multi-Tenant Management) */}
-      <Card className="border-accent/50 bg-accent/5">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-accent" />
-              <div>
-                <CardTitle className="text-lg">Gestão de Instâncias Privadas (Multi-Tenant)</CardTitle>
-                <CardDescription>Configure bancos de dados independentes para cada credencial</CardDescription>
-              </div>
-            </div>
-            <Dialog open={isAddingMasterLicense} onOpenChange={setIsAddingMasterLicense}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                  <Plus className="h-4 w-4 mr-2" /> Víncular Novo Banco
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Registrar Nova Instância de Cliente</DialogTitle>
-                  <DialogDescription>As informações do banco de dados do cliente ficarão vinculadas à chave de licença.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase text-muted-foreground">Nome do Cliente</label>
-                    <Input 
-                      placeholder="Ex: MG Consult - Filial SP" 
-                      value={newMasterLicense.client_name}
-                      onChange={(e) => setNewMasterLicense({...newMasterLicense, client_name: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase text-muted-foreground">ID da Chave (License ID)</label>
-                    <Input 
-                      placeholder="Ex: SPARTAN-2024-MGCONSULT" 
-                      value={newMasterLicense.license_id}
-                      onChange={(e) => setNewMasterLicense({...newMasterLicense, license_id: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase text-muted-foreground">Supabase Project URL</label>
-                    <Input 
-                      placeholder="https://xyz.supabase.co" 
-                      value={newMasterLicense.target_supabase_url}
-                      onChange={(e) => setNewMasterLicense({...newMasterLicense, target_supabase_url: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase text-muted-foreground">Anon Public Key (JWT)</label>
-                    <div className="flex gap-2">
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => refreshCompanies()}>
+                <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
+              </Button>
+              <Dialog open={isAddingMasterLicense} onOpenChange={setIsAddingMasterLicense}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+                    <Plus className="h-4 w-4 mr-2" /> Vincular Novo Banco
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Vincular Instância de Supabase</DialogTitle>
+                    <DialogDescription>Selecione um cliente existente para vincular a uma URL do Supabase.</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase text-muted-foreground">Selecionar Cliente</label>
+                      <Select value={newMasterLicense.company_id} onValueChange={(v) => setNewMasterLicense({...newMasterLicense, company_id: v})}>
+                        <SelectTrigger><SelectValue placeholder="Selecione a empresa..." /></SelectTrigger>
+                        <SelectContent>
+                          {companies.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase text-muted-foreground">Supabase Project URL</label>
+                      <Input 
+                        placeholder="https://xyz.supabase.co" 
+                        value={newMasterLicense.target_supabase_url}
+                        onChange={(e) => setNewMasterLicense({...newMasterLicense, target_supabase_url: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase text-muted-foreground">Anon Public Key</label>
                       <Input 
                         placeholder="eyJ..." 
                         type="password"
@@ -511,62 +442,123 @@ export default function DevSettingsPage() {
                       />
                     </div>
                   </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleAddMasterLicense} className="w-full bg-accent text-accent-foreground">Vincular Banco Agora</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogFooter>
+                    <Button onClick={handleAddMasterLicense} className="w-full bg-accent text-accent-foreground">Vincular Agora</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="rounded-md border bg-background/50 overflow-x-auto">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Cliente & Licença</TableHead>
-                  <TableHead>Supabase URL</TableHead>
-                  <TableHead>Anon API Key</TableHead>
-                  <TableHead className="text-center">Ações</TableHead>
+                  <TableHead className="w-[60px]">Logo</TableHead>
+                  <TableHead>Cliente & ID</TableHead>
+                  <TableHead>Configuração de Banco (Supabase)</TableHead>
+                  <TableHead className="text-center">Credenciais</TableHead>
+                  <TableHead className="text-center">Chave .env</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {masterLicenses.length > 0 ? (
-                  masterLicenses.map((ml) => (
-                    <TableRow key={ml.id}>
-                      <TableCell>
-                        <div className="font-bold text-sm">{ml.client_name}</div>
-                        <code className="text-[10px] text-accent font-mono uppercase">{ml.license_id}</code>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <code className="text-[10px] bg-muted px-1.5 py-0.5 rounded max-w-[150px] truncate">{ml.target_supabase_url}</code>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(ml.target_supabase_url)}>
-                            <Copy className="h-3.5 w-3.5" />
+                {companies && companies.length > 0 ? (
+                  companies.map((company) => {
+                    const ml = masterLicenses.find(l => l.client_name === company.name || obfuscate(l.license_id) === company.license_key);
+                    
+                    return (
+                      <TableRow key={company.id}>
+                        <TableCell>
+                          <div className="h-10 w-10 bg-muted rounded flex items-center justify-center overflow-hidden border">
+                            {company.logo_url ? (
+                              <img src={company.logo_url} className="h-full w-full object-cover" />
+                            ) : (
+                              <ImageIcon className="h-5 w-5 text-muted-foreground/30" />
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-bold text-sm">{company.name}</div>
+                          <div className="text-[10px] text-muted-foreground font-mono">{company.id}</div>
+                          {company.is_pro && <Badge variant="outline" className="text-[9px] h-4 bg-accent/5 text-accent border-accent/20 mt-1">PRO INSTANCE</Badge>}
+                        </TableCell>
+                        <TableCell>
+                          {ml ? (
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-1.5">
+                                <Globe className="h-3 w-3 text-muted-foreground" />
+                                <code className="text-[10px] bg-muted px-1.5 py-0.5 rounded max-w-[180px] truncate">{ml.target_supabase_url}</code>
+                                <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => copyToClipboard(ml.target_supabase_url)}>
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                              <div className="flex items-center gap-1.5 opacity-60">
+                                <Key className="h-3 w-3 text-muted-foreground" />
+                                <code className="text-[10px] bg-muted px-1.5 py-0.5 rounded max-w-[180px] truncate">
+                                  {ml.target_supabase_anon_key.substring(0, 12)}...
+                                </code>
+                                <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => copyToClipboard(ml.target_supabase_anon_key)}>
+                                  <Copy className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] text-muted-foreground italic">Nenhum banco vinculado</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex flex-col items-center gap-1">
+                            <Badge variant={ml ? "default" : "secondary"} className="text-[10px] h-5">
+                              {ml ? "Conectado" : "Pendente"}
+                            </Badge>
+                            {ml && <span className="text-[9px] text-muted-foreground font-mono uppercase">{ml.license_id}</span>}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-8 text-[10px] gap-2 px-2"
+                            disabled={!company.license_key}
+                            onClick={() => {
+                              const slug = (company.trade_name || company.name).toUpperCase().replace(/[^A-Z0-9]/g, "_");
+                              copyToClipboard(`VITE_SPARTAN_LICENSE_${slug}="${company.license_key}"`);
+                            }}
+                          >
+                            <Terminal className="h-3.5 w-3.5" /> Copiar .env
                           </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <code className="text-[10px] bg-muted px-1.5 py-0.5 rounded max-w-[150px] truncate">
-                            {ml.target_supabase_anon_key.substring(0, 15)}...
-                          </code>
-                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(ml.target_supabase_anon_key)}>
-                            <Copy className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteMasterLicense(ml.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Dialog open={detailCompany?.id === company.id} onOpenChange={(open) => setDetailCompany(open ? company : null)}>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-8 gap-2">
+                                <ExternalLink className="h-3 w-3" /> Detalhes
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                              <DialogHeader>
+                                <DialogTitle>Perfil do Cliente</DialogTitle>
+                                <DialogDescription>Gerencie dados cadastrais e infraestrutura de rede.</DialogDescription>
+                              </DialogHeader>
+                              <CompanyForm 
+                                editing={company} 
+                                onSave={handleSaveCompany} 
+                                onCancel={() => setDetailCompany(null)} 
+                                showCloudConfig={true}
+                                isInitialReadonly={true}
+                              />
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-6 text-muted-foreground italic">
-                      Nenhum banco de dados remoto vinculado.
+                    <TableCell colSpan={6} className="text-center py-10 text-muted-foreground italic">
+                      Nenhum cliente cadastrado no sistema central.
                     </TableCell>
                   </TableRow>
                 )}

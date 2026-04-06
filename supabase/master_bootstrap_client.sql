@@ -154,6 +154,30 @@ CREATE TABLE IF NOT EXISTS public.reports (
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
 
+-- Master Licenses (Infrastructure/Multi-tenancy)
+CREATE TABLE IF NOT EXISTS public.master_licenses (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  license_id TEXT NOT NULL UNIQUE,
+  client_name TEXT NOT NULL,
+  target_supabase_url TEXT,
+  target_supabase_anon_key TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+-- Questionnaire Responses (Psychosocial Evaluations)
+CREATE TABLE IF NOT EXISTS public.questionnaire_responses (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+  workstation_id UUID REFERENCES public.workstations(id) ON DELETE SET NULL,
+  questionnaire_type TEXT NOT NULL,
+  respondent_name TEXT NOT NULL DEFAULT 'Anônimo',
+  responses JSONB NOT NULL DEFAULT '{}',
+  total_score NUMERIC DEFAULT 0,
+  dimension_scores JSONB DEFAULT '{}',
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
 -- 4. TRIGGERS (Auto-update timestamps)
 CREATE TRIGGER update_companies_updated_at BEFORE UPDATE ON public.companies FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 CREATE TRIGGER update_sectors_updated_at BEFORE UPDATE ON public.sectors FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
@@ -172,6 +196,8 @@ ALTER TABLE public.risk_assessments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.action_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.psychosocial_analyses ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.master_licenses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.questionnaire_responses ENABLE ROW LEVEL SECURITY;
 
 -- Creating policies (simplified ALL for now)
 DROP POLICY IF EXISTS "Allow all" ON public.companies;
@@ -192,6 +218,10 @@ DROP POLICY IF EXISTS "Allow all" ON public.psychosocial_analyses;
 CREATE POLICY "Allow all" ON public.psychosocial_analyses FOR ALL USING (true) WITH CHECK (true);
 DROP POLICY IF EXISTS "Allow all" ON public.reports;
 CREATE POLICY "Allow all" ON public.reports FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow all" ON public.master_licenses;
+CREATE POLICY "Allow all" ON public.master_licenses FOR ALL USING (true) WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow all" ON public.questionnaire_responses;
+CREATE POLICY "Allow all" ON public.questionnaire_responses FOR ALL USING (true) WITH CHECK (true);
 
 -- 6. STORAGE BUCKETS
 INSERT INTO storage.buckets (id, name, public) VALUES ('posture-photos', 'posture-photos', true) ON CONFLICT (id) DO NOTHING;

@@ -47,24 +47,27 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
       if (!stored) return;
 
       const isDev = DEV_KEYS.includes(stored);
-      const deobfuscatedStored = deobfuscate(stored);
-      const isCustomer = deobfuscatedStored === MGCONSULT_KEY;
-
+      
       if (isDev) {
         setIsDeveloper(true);
         setIsFullVersion(true);
         setLicenseKey(stored);
-      } else if (isCustomer) {
-        setIsDeveloper(false);
-        setIsFullVersion(true);
-        setLicenseKey(deobfuscatedStored);
       } else {
-        // It's likely a private instance (plain key stored)
-        // Re-verify with master DB to get config
+        // It's a customer instance (obfuscated or plain key stored)
+        const deobfuscatedStored = deobfuscate(stored);
+        
+        // 1. Check if it's the internal MG_Consult fallback
+        if (deobfuscatedStored === MGCONSULT_KEY) {
+          setLicenseKey(deobfuscatedStored);
+          setIsFullVersion(true);
+          return;
+        }
+
+        // 2. We always verify with master DB to get config
         const { data: masterLicense } = await masterSupabase
           .from('master_licenses')
           .select('*')
-          .eq('license_id', stored)
+          .or(`license_id.eq.${stored},license_id.eq.${deobfuscatedStored}`)
           .eq('is_active', true)
           .maybeSingle();
 
@@ -75,7 +78,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
               masterLicense.target_supabase_anon_key
             );
           }
-          setLicenseKey(stored);
+          setLicenseKey(masterLicense.license_id);
           setIsFullVersion(true);
         } else {
           // Key no longer valid or deactivated
@@ -105,7 +108,9 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
          console.error("Master DB lookup error:", masterError);
       }
 
-      if (isDev || masterLicense || inputKey === MGCONSULT_KEY) {
+      const isMGConsult = inputKey === MGCONSULT_KEY;
+
+      if (isDev || masterLicense || isMGConsult) {
         // If it's a private instance, switch the database!
         if (masterLicense && masterLicense.target_supabase_url) {
           updateSupabaseConfig(
@@ -114,7 +119,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
           );
         }
 
-        const isCustomer = inputKey === MGCONSULT_KEY || (masterLicense && !isDev);
+        const isCustomer = !isDev;
         const storageValue = isCustomer ? obfuscate(inputKey) : inputKey;
         
         localStorage.setItem(STORAGE_KEY, storageValue);
@@ -122,7 +127,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
         setIsDeveloper(isDev);
         setIsFullVersion(true);
         
-        toast.success(isDev ? "Modo Desenvolvedor Ativado!" : `Acesso Pro: ${masterLicense?.client_name || "MG Consult"}`);
+        toast.success(isDev ? "Modo Desenvolvedor Ativado!" : `Acesso Pro: ${masterLicense?.client_name || "Spartan Pro"}`);
         
         // Reload to ensure all contexts (CompanyContext) refresh their queries with the NEW client
         setTimeout(() => window.location.reload(), 1000);

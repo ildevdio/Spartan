@@ -6,7 +6,7 @@ import {
   HeightRule, VerticalAlign, PageNumber,
 } from "docx";
 import { saveAs } from "file-saver";
-import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
+import type { Company, Sector, Workstation, Analysis, PosturePhoto, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan, QuestionnaireResponse } from "./types";
 import { riskLevelLabel, statusLabel } from "./types";
 import { generateReportHTML } from "./report-templates";
 
@@ -25,6 +25,7 @@ export interface DocxReportContext {
   actionPlans?: ActionPlan[];
   tasks?: Task[];
   psychosocialAnalyses?: PsychosocialAnalysis[];
+  questionnaireResponses?: QuestionnaireResponse[];
 }
 
 // ============ COLOR PALETTE ============
@@ -646,6 +647,46 @@ function getCtxData(ctx: DocxReportContext) {
   const actions = actionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
   const tasks = ctxTasks.filter(t => wsIds.includes(t.workstation_id));
   const psychosocial = psychosocialAnalyses.filter(p => p.company_id === company.id);
+  
+  // Aggregate new questionnaire responses by workstation and type
+  const questionnaireResponses = ctx.questionnaireResponses || [];
+  const psychosocialAverages: any[] = [];
+  
+  // Group by workstation and then by type
+  const groupedResponses: Record<string, Record<string, QuestionnaireResponse[]>> = {};
+  questionnaireResponses.forEach(r => {
+    const wsId = r.workstation_id || "Geral";
+    const type = r.questionnaire_type;
+    if (!groupedResponses[wsId]) groupedResponses[wsId] = {};
+    if (!groupedResponses[wsId][type]) groupedResponses[wsId][type] = [];
+    groupedResponses[wsId][type].push(r);
+  });
+
+  Object.entries(groupedResponses).forEach(([wsId, types]) => {
+    Object.entries(types).forEach(([type, reps]) => {
+      if (reps.length === 0) return;
+      
+      // Calculate average scores and dimension scores
+      const avgTotalScore = Math.round(reps.reduce((s, r) => s + r.total_score, 0) / reps.length);
+      const allDimensions = new Set<string>();
+      reps.forEach(r => Object.keys(r.scores).forEach(d => allDimensions.add(d)));
+      
+      const avgScores: Record<string, number> = {};
+      allDimensions.forEach(dim => {
+        const scores = reps.map(r => r.scores[dim] || 0);
+        avgScores[dim] = Math.round(scores.reduce((s, v) => s + v, 0) / reps.length);
+      });
+
+      psychosocialAverages.push({
+        workstation_id: wsId === "Geral" ? null : wsId,
+        questionnaire_type: type,
+        total_score: avgTotalScore,
+        scores: avgScores,
+        response_count: reps.length,
+      });
+    });
+  });
+
   const sectorMap = new Map<string, { sectorName: string; workstations: typeof workstations }>();
   workstations.forEach(ws => {
     const sectorId = ws.sector?.id || ws.sector_id || "unknown";
@@ -653,8 +694,9 @@ function getCtxData(ctx: DocxReportContext) {
     if (!sectorMap.has(sectorId)) sectorMap.set(sectorId, { sectorName, workstations: [] });
     sectorMap.get(sectorId)!.workstations.push(ws);
   });
-  return { consultant, risks, actions, tasks, psychosocial, sectorMap };
+  return { consultant, risks, actions, tasks, psychosocial, psychosocialAverages, sectorMap };
 }
+
 
 function gheTable(workstations: Workstation[], ctx: DocxReportContext): Table {
   return new Table({

@@ -4,6 +4,8 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useLicense } from "@/lib/license-context";
+import { cn } from "@/lib/utils";
 
 import { isRealDb } from "@/integrations/supabase/client";
 
@@ -22,6 +24,7 @@ function MobileMenuButton() {
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
+  const { isFullVersion, isDeveloper } = useLicense();
   return (
     <SidebarProvider>
         <div className="min-h-screen flex w-full overflow-x-hidden bg-background">
@@ -32,7 +35,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <MobileMenuButton />
             <div className="flex items-center justify-between w-full relative z-10">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse shrink-0" />
+                <div className={cn(
+                  "h-1.5 w-1.5 rounded-full animate-pulse shrink-0",
+                  isDeveloper ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.4)]" : 
+                  (isFullVersion ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" : "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]")
+                )} />
                 <span className="text-sm font-medium text-foreground tracking-wide truncate">Dashboard</span>
               </div>
               

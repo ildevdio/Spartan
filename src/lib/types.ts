@@ -119,6 +119,18 @@ export interface PsychosocialAnalysis {
   created_at: string;
 }
 
+export interface QuestionnaireResponse {
+  id: string;
+  company_id: string;
+  workstation_id: string | null;
+  questionnaire_type: string;
+  respondent_name: string;
+  responses: Record<string, number>;
+  scores: Record<string, number>;
+  total_score: number;
+  created_at: string;
+}
+
 export interface RiskAssessment {
   id: string;
   analysis_id: string;

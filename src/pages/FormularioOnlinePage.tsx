@@ -1,38 +1,41 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CheckCircle2, AlertCircle, Loader2, ArrowRight, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { QUESTIONNAIRE_DEFS, calculateScores, type QuestionnaireType } from "@/lib/questionnaire-data";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { CheckCircle2 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 export default function FormularioOnlinePage() {
   const { companyId, type } = useParams<{ companyId: string; type: string }>();
   const [companyName, setCompanyName] = useState("");
   const [workstations, setWorkstations] = useState<{ id: string; name: string }[]>([]);
   const [selectedWs, setSelectedWs] = useState("");
-  const [respondentName, setRespondentName] = useState("");
+
   const [responses, setResponses] = useState<Record<string, number>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  const questionnaire = type ? QUESTIONNAIRE_DEFS[type as QuestionnaireType] : undefined;
-
   useEffect(() => {
-    if (!companyId) return;
     const fetchData = async () => {
+      if (!companyId) return;
       setLoading(true);
-      const { data: company } = await supabase
+      
+      const { data: companyData } = await supabase
         .from("companies")
         .select("name, trade_name")
         .eq("id", companyId)
         .single();
 
-      if (company) {
-        setCompanyName(company.trade_name || company.name);
+      if (companyData) {
+        setCompanyName((companyData as any).trade_name || (companyData as any).name);
       }
 
-      // Get workstations via sectors
       const { data: sectors } = await supabase
         .from("sectors")
         .select("id")
@@ -40,134 +43,119 @@ export default function FormularioOnlinePage() {
 
       if (sectors && sectors.length > 0) {
         const sectorIds = sectors.map((s) => s.id);
-        const { data: ws } = await supabase
+        const { data: wsData } = await supabase
           .from("workstations")
           .select("id, name")
-          .in("sector_id", sectorIds)
-          .order("name");
-        setWorkstations(ws || []);
+          .in("sector_id", sectorIds);
+        
+        if (wsData) {
+          setWorkstations(wsData as any[]);
+        }
       }
       setLoading(false);
     };
     fetchData();
   }, [companyId]);
 
-  if (!questionnaire || !companyId) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-        <div className="bg-white rounded-xl shadow-lg p-8 text-center max-w-md">
-          <h1 className="text-xl font-bold text-red-600 mb-2">Formulário inválido</h1>
-          <p className="text-slate-500">O link do formulário está incorreto ou expirado.</p>
-        </div>
-      </div>
-    );
-  }
+  const def = QUESTIONNAIRE_DEFS[type as QuestionnaireType];
+  if (!def && !loading) return <div className="p-10 text-center">Questionário inválido</div>;
 
-  const totalQuestions = questionnaire.dimensions.reduce((s, d) => s + d.questions.length, 0);
+  const totalQuestions = def?.dimensions.reduce((acc, dim) => acc + dim.questions.length, 0) || 0;
   const answeredCount = Object.keys(responses).length;
   const progress = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
   const handleSubmit = async () => {
-    if (!respondentName.trim()) {
-      toast.error("Preencha seu nome.");
-      return;
-    }
     if (!selectedWs) {
       toast.error("Selecione o posto de trabalho.");
       return;
     }
     if (answeredCount < totalQuestions) {
-      toast.error(`Responda todas as ${totalQuestions} perguntas. Faltam ${totalQuestions - answeredCount}.`);
+      toast.error("Por favor, responda todas as perguntas.");
       return;
     }
 
     setSubmitting(true);
     const { dimensionScores, totalScore } = calculateScores(type as QuestionnaireType, responses);
 
-    const { error } = await supabase.from("questionnaire_responses").insert({
+    const { error } = await supabase.from("questionnaire_responses").insert([{
       company_id: companyId,
       workstation_id: selectedWs,
       questionnaire_type: type,
-      respondent_name: respondentName.trim(),
+      respondent_name: "Anônimo",
       responses,
       scores: dimensionScores,
       total_score: totalScore,
-    });
+    }] as any[]);
 
     setSubmitting(false);
     if (error) {
-      toast.error("Erro ao enviar respostas. Tente novamente.");
+      toast.error("Erro ao enviar respostas.");
       console.error(error);
-      return;
+    } else {
+      setSubmitted(true);
+      window.scrollTo(0, 0);
     }
-    setSubmitted(true);
   };
-
-  if (submitted) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md w-full">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 className="w-8 h-8 text-green-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-slate-800 mb-2">Obrigado!</h1>
-          <p className="text-slate-500">Suas respostas foram registradas com sucesso.</p>
-          <p className="text-xs text-slate-400 mt-4">Você pode fechar esta janela.</p>
-        </div>
-      </div>
-    );
-  }
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+        <Card className="max-w-md w-full text-center p-8 space-y-4 shadow-lg border-t-4 border-t-green-500">
+          <div className="mx-auto bg-green-100 h-16 w-16 rounded-full flex items-center justify-center">
+            <CheckCircle2 className="h-10 w-10 text-green-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-900">Enviado com Sucesso!</h1>
+          <p className="text-slate-600">Obrigado por sua participação. Suas respostas foram registradas de forma anônima e ajudarão a melhorar as condições de trabalho.</p>
+          <Button variant="outline" className="mt-4" onClick={() => window.close()}>Fechar Página</Button>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-slate-50 pb-20">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[#0A1F44] to-[#1565C0] text-white">
-        <div className="max-w-2xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-3 mb-2">
-            <img src="/mg-consult-logo.png" alt="MG Consult" className="h-8 rounded" onError={(e) => (e.currentTarget.style.display = "none")} />
-            <span className="text-xs opacity-80">MG Consultoria — Ergonomia & Segurança</span>
+      <div className="bg-[#0A1F44] text-white p-6 sticky top-0 z-10 shadow-md">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-xl font-bold line-clamp-1">{def.label}</h1>
+          <p className="text-blue-200 text-xs sm:text-sm mt-1">{companyName}</p>
+          
+          <div className="mt-4 space-y-1">
+            <div className="flex justify-between text-[10px] uppercase font-bold tracking-wider">
+              <span>Progresso</span>
+              <span>{progress}%</span>
+            </div>
+            <Progress value={progress} className="h-1.5 bg-blue-900/50" indicatorClassName="bg-blue-400" />
           </div>
-          <h1 className="text-xl font-bold">{questionnaire.label}</h1>
-          <p className="text-sm opacity-80">{questionnaire.description}</p>
-          <p className="text-xs opacity-60 mt-1">Empresa: {companyName}</p>
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="sticky top-0 z-10 bg-white/90 backdrop-blur border-b">
-        <div className="max-w-2xl mx-auto px-4 py-2 flex items-center gap-3">
-          <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-[#1565C0] to-[#00BCD4] rounded-full transition-all duration-300"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <span className="text-xs text-slate-500 whitespace-nowrap">{answeredCount}/{totalQuestions}</span>
-        </div>
-      </div>
+      <div className="max-w-3xl mx-auto px-4 mt-6 space-y-6">
+        <Card className="border-l-4 border-l-blue-500 shadow-sm">
+          <CardHeader className="p-5">
+            <CardTitle className="text-base flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-blue-500" />
+              Instruções
+            </CardTitle>
+            <CardDescription className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+              {def.instructions}
+              <br />
+              <span className="mt-2 block font-medium text-blue-700">Esta pesquisa é totalmente anônima.</span>
+            </CardDescription>
+          </CardHeader>
+        </Card>
 
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Identification */}
         <div className="bg-white rounded-xl shadow-sm border p-5 space-y-4">
           <h2 className="text-sm font-semibold text-[#0A1F44]">Identificação</h2>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Seu nome completo *</label>
-            <input
-              type="text"
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
-              value={respondentName}
-              onChange={(e) => setRespondentName(e.target.value)}
-              placeholder="Digite seu nome"
-            />
-          </div>
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Posto de trabalho *</label>
             <select
@@ -175,7 +163,7 @@ export default function FormularioOnlinePage() {
               value={selectedWs}
               onChange={(e) => setSelectedWs(e.target.value)}
             >
-              <option value="">Selecione seu posto...</option>
+              <option value="">Selecione seu posto de trabalho</option>
               {workstations.map((ws) => (
                 <option key={ws.id} value={ws.id}>{ws.name}</option>
               ))}
@@ -183,83 +171,80 @@ export default function FormularioOnlinePage() {
           </div>
         </div>
 
-        {/* Instructions */}
-        <div className="bg-blue-50 border-l-4 border-[#1565C0] rounded-r-xl p-4">
-          <p className="text-sm text-[#0A1F44]">
-            <strong>Instruções: </strong>{questionnaire.instructions}
-          </p>
-        </div>
+        {/* Questions */}
+        <div className="space-y-6">
+          {def.dimensions.map((dim, dimIdx) => (
+            <div key={dim.label} className="space-y-4">
+              <div className="sticky top-[136px] bg-slate-50 py-2 z-[5]">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-blue-800 bg-blue-50 px-3 py-1.5 rounded-md inline-block border border-blue-100">
+                  {dimIdx + 1}. {dim.label}
+                </h3>
+              </div>
+              
+              <div className="space-y-4">
+                {dim.questions.map((q, qIdx) => (
+                  <Card key={q.id} className={`overflow-hidden transition-all duration-300 ${responses[q.id] !== undefined ? 'border-blue-200 bg-blue-50/20' : 'border-slate-200'}`}>
+                    <CardContent className="p-5 space-y-4">
+                      <div className="flex gap-3">
+                        <span className="bg-slate-100 text-slate-500 rounded-full h-5 w-5 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
+                          {qIdx + 1}
+                        </span>
+                        <p className="text-[15px] text-slate-800 leading-tight font-medium">{q.text}</p>
+                      </div>
 
-        {/* Questions by dimension */}
-        {questionnaire.dimensions.map((dim, dimIdx) => (
-          <div key={dim.label} className="bg-white rounded-xl shadow-sm border overflow-hidden">
-            <div className="bg-gradient-to-r from-[#0A1F44] to-[#1565C0] px-5 py-3">
-              <h3 className="text-white font-semibold text-sm">{dim.label}</h3>
-            </div>
-            <div className="divide-y">
-              {dim.questions.map((q, qIdx) => (
-                <div key={q.id} className="p-5">
-                  <p className="text-sm text-slate-700 mb-3">
-                    <span className="text-xs font-bold text-[#1565C0] mr-1">
-                      {dimIdx + 1}.{qIdx + 1}
-                    </span>
-                    {q.text}
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {questionnaire.scales.map((scale) => (
-                      <label
-                        key={scale.value}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-all ${
-                          responses[q.id] === scale.value
-                            ? "bg-[#1565C0] text-white border-[#1565C0] shadow-sm"
-                            : "bg-white text-slate-600 border-slate-200 hover:border-[#1565C0]/50 hover:bg-blue-50"
-                        }`}
+                      <RadioGroup
+                        value={responses[q.id]?.toString()}
+                        onValueChange={(val) => setResponses({ ...responses, [q.id]: parseInt(val) })}
+                        className="grid grid-cols-1 gap-2 pt-1"
                       >
-                        <input
-                          type="radio"
-                          name={q.id}
-                          value={scale.value}
-                          checked={responses[q.id] === scale.value}
-                          onChange={() => setResponses((prev) => ({ ...prev, [q.id]: scale.value }))}
-                          className="sr-only"
-                        />
-                        <div
-                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                            responses[q.id] === scale.value ? "border-white" : "border-slate-300"
-                          }`}
-                        >
-                          {responses[q.id] === scale.value && (
-                            <div className="w-2 h-2 rounded-full bg-white" />
-                          )}
-                        </div>
-                        <span className="text-xs">{scale.label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                        {def.scales.map((scale) => (
+                          <div
+                            key={scale.value}
+                            className={`flex items-center space-x-3 p-3 rounded-lg border transition-colors cursor-pointer hover:bg-slate-50 ${
+                              responses[q.id] === scale.value ? 'bg-blue-50 border-blue-300 ring-1 ring-blue-300' : 'bg-white border-slate-200'
+                            }`}
+                            onClick={() => setResponses({ ...responses, [q.id]: scale.value })}
+                          >
+                            <RadioGroupItem value={scale.value.toString()} id={`${q.id}-${scale.value}`} />
+                            <Label 
+                              htmlFor={`${q.id}-${scale.value}`} 
+                              className="text-sm font-normal flex-1 cursor-pointer"
+                            >
+                              {scale.label}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
 
         {/* Submit */}
-        <div className="bg-white rounded-xl shadow-sm border p-5">
-          <button
+        <div className="pt-8 pb-12">
+          <Button
+            className="w-full bg-[#1565C0] hover:bg-[#0D47A1] text-white py-6 rounded-xl text-lg font-bold shadow-lg shadow-blue-200 transition-all active:scale-[0.98]"
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full bg-gradient-to-r from-[#0A1F44] to-[#1565C0] text-white font-semibold py-3 rounded-lg hover:opacity-90 transition-opacity disabled:opacity-50 text-sm"
           >
-            {submitting ? "Enviando..." : "Enviar Respostas"}
-          </button>
-          <p className="text-xs text-slate-400 text-center mt-2">
-            Suas respostas são confidenciais e utilizadas apenas para fins de análise ergonômica.
-          </p>
+            {submitting ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              <>
+                Finalizar e Enviar
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </>
+            )}
+          </Button>
+          <div className="text-center mt-4">
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold flex items-center justify-center gap-1">
+              <CheckCircle2 className="h-3 w-3" /> Conexão Segura e Anônima
+            </p>
+          </div>
         </div>
-      </div>
-
-      {/* Footer */}
-      <div className="text-center py-4 text-xs text-slate-400 border-t bg-white mt-6">
-        Focus Spartan — MG Consultoria | Ergonomia & Segurança do Trabalho
       </div>
     </div>
   );

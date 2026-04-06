@@ -60,7 +60,6 @@ export function AppSidebar() {
       label: "Cadastro",
       icon: Building2,
       items: [
-        { title: "Dashboard", url: "/", icon: LayoutDashboard },
         { title: "Empresas", url: "/empresas", icon: Building2 },
         { title: "Setores", url: "/setores", icon: Layers },
         { title: "Postos", url: "/postos", icon: Monitor },
@@ -74,7 +73,6 @@ export function AppSidebar() {
         { title: "Captura", url: "/captura-posturas", icon: Camera },
         { title: "Análises", url: "/analises", icon: ClipboardCheck },
         { title: "Câmera", url: "/analise-camera", icon: Camera, isPremium: true },
-        { title: "Psicossocial", url: "/psicossocial", icon: Brain, isPremium: true },
         { title: "Questionários", url: "/questionarios-psicossociais", icon: Printer },
       ],
     },
@@ -149,6 +147,26 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="overflow-y-auto overflow-x-hidden">
+        <div className="py-2 px-1">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild className="h-9 relative px-3">
+                <NavLink
+                  to="/"
+                  end
+                  className={cn(
+                    "flex items-center gap-2 hover:bg-sidebar-accent/50 transition-all duration-200 rounded-md",
+                    location.pathname === "/" && "bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
+                  )}
+                  activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
+                >
+                  <LayoutDashboard className="h-4 w-4 shrink-0" />
+                  {!collapsed && <span className="text-sm">Dashboard</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </div>
         <div className="py-1">
           {sections.map((section, sectionIdx) => {
             const isOpen = openSections[sectionIdx] ?? false;
@@ -230,26 +248,10 @@ export function AppSidebar() {
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-[10px] font-bold h-8 rounded-lg shadow-lg shadow-accent/10"
           >
             <Zap className="h-3 w-3 mr-1 fill-current" />
-            {selectedCompany ? `ATIVAR ${selectedCompany.name.split(' ')[0]} PRO` : 'ATIVAR PRO'}
+            SPARTAN PRO
           </Button>
         )}
         
-        {!collapsed && (
-          <div className="flex flex-col gap-1 px-1 mb-1">
-            <div className="flex items-center gap-1.5 opacity-80 transition-all">
-              <div className={cn(
-                "h-1.5 w-1.5 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.4)]",
-                isDeveloper ? "bg-amber-500" : (isSystemAccess ? "bg-emerald-500" : "bg-blue-500")
-              )} />
-              <span className={cn(
-                "text-[9px] font-bold uppercase tracking-widest",
-                isDeveloper ? "text-amber-600/80" : (isSystemAccess ? "text-emerald-600/80" : "text-blue-600/80")
-              )}>
-                {isDeveloper ? "Ambiente: Dev" : (isSystemAccess ? "Sistema: Produção" : "Modo: Demonstração")}
-              </span>
-            </div>
-          </div>
-        )}
 
         {!collapsed && (
           <button
@@ -303,6 +305,19 @@ export function AppSidebar() {
                 Tecnologia & Inovação
               </p>
             </div>
+            
+            {/* Hidden Demo Mode Trigger - Only for Producton (non-dev) */}
+            {isSystemAccess && !isDeveloper && (
+              <button 
+                onClick={() => {
+                  deactivateLicense();
+                  setFocusDialogOpen(false);
+                }}
+                className="absolute bottom-2 left-2 text-[6px] text-muted-foreground/20 hover:text-muted-foreground/40 transition-colors uppercase tracking-[0.2em] cursor-default"
+              >
+                demonstração
+              </button>
+            )}
           </div>
         </DialogContent>
       </Dialog>

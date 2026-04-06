@@ -9,7 +9,10 @@ const masterKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
  * used for managing licenses and developer settings.
  */
 export const masterSupabase = createClient(masterUrl, masterKey, {
-  auth: { persistSession: false }
+  auth: { 
+    persistSession: false,
+    storageKey: 'spartan-master-auth'
+  }
 });
 
 // We'll use a local variable to hold the active client (initially pointing to master)

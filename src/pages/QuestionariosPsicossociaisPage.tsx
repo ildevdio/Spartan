@@ -5,14 +5,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
-import { Printer, FileText, Building2, Link2, Copy, Eye, Trash2, BarChart3 } from "lucide-react";
+import { Printer, FileText, Building2, Link2, Copy, Eye, Trash2, BarChart3, Plus, Save } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { QUESTIONNAIRE_DEFS, type QuestionnaireType } from "@/lib/questionnaire-data";
+import { QUESTIONNAIRE_DEFS, calculateScores, type QuestionnaireType } from "@/lib/questionnaire-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const QUESTIONNAIRES = Object.values(QUESTIONNAIRE_DEFS).map((q) => ({
   type: q.type,
@@ -32,7 +35,7 @@ interface QuestionnaireResponse {
   created_at: string;
 }
 
-// ─── Print HTML generators (kept from original) ────────────────────
+// ─── Print HTML generators ────────────────────
 function generatePrintHTML(
   type: QuestionnaireType,
   companyName: string,
@@ -117,19 +120,26 @@ export default function QuestionariosPsicossociaisPage() {
   const [responses, setResponses] = useState<QuestionnaireResponse[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
   const [detailResponse, setDetailResponse] = useState<QuestionnaireResponse | null>(null);
+  
+  // Manual Entry State
+  const [manualDialogOpen, setManualDialogOpen] = useState(false);
+  const [manualType, setManualType] = useState<QuestionnaireType>("nasa-tlx");
+  const [manualWsId, setManualWsId] = useState("");
+  const [manualAnswers, setManualAnswers] = useState<Record<string, number>>({});
+
+  const fetchResponses = async () => {
+    if (!selectedCompanyId) return;
+    setLoadingResponses(true);
+    const { data } = await supabase
+      .from("questionnaire_responses")
+      .select("*")
+      .eq("company_id", selectedCompanyId)
+      .order("created_at", { ascending: false });
+    setResponses((data as QuestionnaireResponse[] | null) || []);
+    setLoadingResponses(false);
+  };
 
   useEffect(() => {
-    if (!selectedCompanyId) return;
-    const fetchResponses = async () => {
-      setLoadingResponses(true);
-      const { data } = await supabase
-        .from("questionnaire_responses")
-        .select("*")
-        .eq("company_id", selectedCompanyId)
-        .order("created_at", { ascending: false });
-      setResponses((data as QuestionnaireResponse[] | null) || []);
-      setLoadingResponses(false);
-    };
     fetchResponses();
   }, [selectedCompanyId]);
 
@@ -179,6 +189,46 @@ export default function QuestionariosPsicossociaisPage() {
     return ws?.name || "—";
   };
 
+  const handleManualSave = async () => {
+    const def = QUESTIONNAIRE_DEFS[manualType];
+    const totalQuestions = def.dimensions.reduce((s, d) => s + d.questions.length, 0);
+    const answeredCount = Object.keys(manualAnswers).length;
+
+    if (!manualWsId) {
+      toast.error("Selecione o posto de trabalho.");
+      return;
+    }
+    if (answeredCount < totalQuestions) {
+      toast.error("Responda todas as perguntas do questionário.");
+      return;
+    }
+
+    const { dimensionScores, totalScore } = calculateScores(manualType, manualAnswers);
+
+    const { error } = await supabase.from("questionnaire_responses").insert({
+      company_id: selectedCompanyId,
+      workstation_id: manualWsId,
+      questionnaire_type: manualType,
+      respondent_name: "Impresso (Manual)",
+      responses: manualAnswers,
+      scores: dimensionScores,
+      total_score: totalScore,
+    });
+
+    if (error) {
+      toast.error("Erro ao salvar respostas manuais.");
+      console.error(error);
+      return;
+    }
+
+    toast.success("Resposta manual registrada com sucesso!");
+    setManualDialogOpen(false);
+    setManualAnswers({});
+    fetchResponses();
+  };
+
+  const allResponses = responses;
+
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -188,14 +238,86 @@ export default function QuestionariosPsicossociaisPage() {
             Formulários online e impressos para aplicação em campo
           </p>
         </div>
-        <CompanySelector />
+        <div className="flex items-center gap-2">
+          <CompanySelector />
+          <Dialog open={manualDialogOpen} onOpenChange={setManualDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Adicionar Manual</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] flex flex-col p-0 overflow-hidden">
+              <DialogHeader className="p-6 pb-2">
+                <DialogTitle>Lançamento Manual de Questionário</DialogTitle>
+                <CardDescription>Insira as respostas coletadas fisicamente em campo.</CardDescription>
+              </DialogHeader>
+              
+              <div className="p-6 pt-2 space-y-4 flex-1 overflow-hidden flex flex-col">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Tipo de Questionário</Label>
+                    <Select value={manualType} onValueChange={(v: QuestionnaireType) => {setManualType(v); setManualAnswers({});}}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {QUESTIONNAIRES.map(q => <SelectItem key={q.type} value={q.type}>{q.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Posto de Trabalho</Label>
+                    <Select value={manualWsId} onValueChange={setManualWsId}>
+                      <SelectTrigger><SelectValue placeholder="Selecione o posto..." /></SelectTrigger>
+                      <SelectContent>
+                        {companyWorkstations.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-hidden border rounded-lg bg-secondary/20">
+                  <ScrollArea className="h-full p-4">
+                    <div className="space-y-6">
+                      {QUESTIONNAIRE_DEFS[manualType].dimensions.map(dim => (
+                        <div key={dim.label} className="space-y-3">
+                          <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b pb-1">{dim.label}</h3>
+                          <div className="space-y-4">
+                            {dim.questions.map(q => (
+                              <div key={q.id} className="space-y-2">
+                                <p className="text-[13px] text-foreground/90 font-medium leading-tight">{q.text}</p>
+                                <RadioGroup 
+                                  value={manualAnswers[q.id]?.toString()} 
+                                  onValueChange={(v) => setManualAnswers(prev => ({...prev, [q.id]: parseInt(v)}))}
+                                  className="flex flex-wrap gap-x-4 gap-y-2"
+                                >
+                                  {QUESTIONNAIRE_DEFS[manualType].scales.map(scale => (
+                                    <div key={scale.value} className="flex items-center space-x-1.5">
+                                      <RadioGroupItem value={scale.value.toString()} id={`${q.id}-${scale.value}`} className="h-3.5 w-3.5" />
+                                      <Label htmlFor={`${q.id}-${scale.value}`} className="text-[11px] cursor-pointer">{scale.label}</Label>
+                                    </div>
+                                  ))}
+                                </RadioGroup>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
+              </div>
+
+              <DialogFooter className="p-6 pt-2 bg-secondary/30">
+                <Button variant="outline" size="sm" onClick={() => setManualDialogOpen(false)}>Cancelar</Button>
+                <Button size="sm" onClick={handleManualSave}><Save className="h-4 w-4 mr-2" /> Salvar Resposta</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Tabs defaultValue="online" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="online">Formulário Online</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="online">Formulários</TabsTrigger>
           <TabsTrigger value="print">Impressão</TabsTrigger>
-          <TabsTrigger value="responses">Respostas</TabsTrigger>
+          <TabsTrigger value="respostas">Respostas</TabsTrigger>
         </TabsList>
 
         {/* ─── Online forms tab ─── */}
@@ -207,7 +329,7 @@ export default function QuestionariosPsicossociaisPage() {
                 Links para Formulários Online
               </CardTitle>
               <CardDescription className="text-xs">
-                Compartilhe os links abaixo com os colaboradores. As respostas serão registradas automaticamente.
+                Compartilhe os links abaixo. As respostas serão registradas de forma **totalmente anônima**.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -291,66 +413,15 @@ export default function QuestionariosPsicossociaisPage() {
           </div>
         </TabsContent>
 
-        {/* ─── Responses tab ─── */}
-        <TabsContent value="responses" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
-                <BarChart3 className="h-4 w-4 text-accent" />
-                Respostas Recebidas
-              </CardTitle>
-              <CardDescription className="text-xs">
-                {responses.length} resposta(s) registrada(s) para esta empresa
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loadingResponses ? (
-                <p className="text-xs text-muted-foreground">Carregando...</p>
-              ) : responses.length === 0 ? (
-                <p className="text-xs text-muted-foreground">Nenhuma resposta ainda. Compartilhe os links na aba "Formulário Online".</p>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="text-xs">Respondente</TableHead>
-                        <TableHead className="text-xs">Questionário</TableHead>
-                        <TableHead className="text-xs">Posto</TableHead>
-                        <TableHead className="text-xs">Score</TableHead>
-                        <TableHead className="text-xs">Data</TableHead>
-                        <TableHead className="text-xs w-20">Ações</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {responses.map((r) => (
-                        <TableRow key={r.id}>
-                          <TableCell className="text-xs font-medium">{r.respondent_name}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary" className="text-xs">
-                              {QUESTIONNAIRE_DEFS[r.questionnaire_type as QuestionnaireType]?.label || r.questionnaire_type}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs">{getWsName(r.workstation_id)}</TableCell>
-                          <TableCell className="text-xs font-semibold">{r.total_score}</TableCell>
-                          <TableCell className="text-xs">{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
-                          <TableCell>
-                            <div className="flex gap-1">
-                              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setDetailResponse(r)}>
-                                <Eye className="h-3 w-3" />
-                              </Button>
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => deleteResponse(r.id)}>
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+        {/* ─── Unified Responses tab ─── */}
+        <TabsContent value="respostas" className="space-y-4 mt-4">
+          <ResponsesTable 
+            data={allResponses} 
+            loading={loadingResponses} 
+            onView={setDetailResponse} 
+            onDelete={deleteResponse} 
+            getWsName={getWsName} 
+          />
         </TabsContent>
       </Tabs>
 
@@ -359,7 +430,7 @@ export default function QuestionariosPsicossociaisPage() {
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-sm">
-              Detalhes — {detailResponse?.respondent_name}
+              Detalhes da Resposta Anônima
             </DialogTitle>
           </DialogHeader>
           {detailResponse && (
@@ -370,7 +441,7 @@ export default function QuestionariosPsicossociaisPage() {
                 <div><span className="font-semibold">Data:</span> {new Date(detailResponse.created_at).toLocaleDateString("pt-BR")}</div>
                 <div><span className="font-semibold">Score Total:</span> <span className="font-bold text-primary">{detailResponse.total_score}</span></div>
               </div>
-              <div>
+              <div className="pt-2 border-t">
                 <h4 className="text-xs font-semibold mb-2">Scores por Dimensão</h4>
                 <div className="space-y-2">
                   {Object.entries(detailResponse.scores as Record<string, number>).map(([dim, score]) => (
@@ -392,5 +463,82 @@ export default function QuestionariosPsicossociaisPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ResponsesTable({ data, loading, onView, onDelete, getWsName }: {
+  data: QuestionnaireResponse[];
+  loading: boolean;
+  onView: (r: QuestionnaireResponse) => void;
+  onDelete: (id: string) => void;
+  getWsName: (wsId: string | null) => string;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-sm flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-accent" />
+          Registros
+        </CardTitle>
+        <CardDescription className="text-xs">
+          {data.length} resposta(s) encontrada(s)
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-xs text-muted-foreground">Carregando...</p>
+        ) : data.length === 0 ? (
+          <p className="text-xs text-muted-foreground">Nenhuma resposta encontrada.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs">Origem</TableHead>
+                  <TableHead className="text-xs">Questionário</TableHead>
+                  <TableHead className="text-xs">Posto</TableHead>
+                  <TableHead className="text-xs">Score</TableHead>
+                  <TableHead className="text-xs">Data</TableHead>
+                  <TableHead className="text-xs w-20">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((r) => (
+                  <TableRow key={r.id}>
+                    <TableCell>
+                      {r.respondent_name === "Impresso (Manual)" ? (
+                        <Badge variant="outline" className="text-[10px] border-orange-200 text-orange-700 bg-orange-50">Manual</Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-[10px] border-blue-200 text-blue-700 bg-blue-50">Online</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs">
+                        {QUESTIONNAIRE_DEFS[r.questionnaire_type as QuestionnaireType]?.label || r.questionnaire_type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-xs">{getWsName(r.workstation_id)}</TableCell>
+                    <TableCell className="text-xs font-semibold">{r.total_score}</TableCell>
+                    <TableCell className="text-xs">{new Date(r.created_at).toLocaleDateString("pt-BR")}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => onView(r)}>
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => {
+                          if (confirm("Deseja excluir esta resposta anônima?")) onDelete(r.id);
+                        }}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

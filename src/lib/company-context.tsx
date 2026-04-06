@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useMemo, useEffect, useCallback, type ReactNode } from "react";
-import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, RiskAssessment, ActionPlan, PsychosocialAnalysis, PostureAnalysis } from "./types";
+import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, RiskAssessment, ActionPlan, PsychosocialAnalysis, PostureAnalysis, QuestionnaireResponse } from "./types";
 import { masterSupabase, supabase } from "@/integrations/supabase/client";
 import { useLicense } from "./license-context";
 import { mockSupabase } from "./mock-db";
@@ -22,6 +22,7 @@ interface CompanyContextType {
   actionPlans: ActionPlan[];
   psychosocialAnalyses: PsychosocialAnalysis[];
   postureAnalyses: PostureAnalysis[];
+  questionnaireResponses: QuestionnaireResponse[];
 
   // Filtered by selected company
   companySectors: Sector[];
@@ -29,6 +30,7 @@ interface CompanyContextType {
   companyAnalyses: Analysis[];
   companyPhotos: PosturePhoto[];
   companyReports: Report[];
+  companyQuestionnaireResponses: QuestionnaireResponse[];
 
   // CRUD helpers
   addCompany: (c: Omit<Company, "id" | "created_at">, dbConfig?: { url: string; key: string }) => Promise<void>;
@@ -71,6 +73,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const [actionPlans, setActionPlans] = useState<ActionPlan[]>([]);
   const [psychosocialAnalyses, setPsychosocialAnalyses] = useState<PsychosocialAnalysis[]>([]);
   const [postureAnalyses, setPostureAnalyses] = useState<PostureAnalysis[]>([]);
+  const [questionnaireResponses, setQuestionnaireResponses] = useState<QuestionnaireResponse[]>([]);
 
   const { isFullVersion } = useLicense();
   const db = isFullVersion ? supabase : mockSupabase;
@@ -81,7 +84,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       const [
         { data: comp }, { data: sec }, { data: ws }, { data: an },
         { data: ph }, { data: rp }, { data: ra }, { data: ap },
-        { data: psa }, { data: pa }
+        { data: psa }, { data: pa }, { data: qr }
       ] = await Promise.all([
         db.from("companies").select("*").order("created_at") as any,
         db.from("sectors").select("*").order("created_at") as any,
@@ -93,6 +96,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         db.from("action_plans").select("*").order("created_at") as any,
         db.from("psychosocial_analyses").select("*").order("created_at") as any,
         db.from("posture_analyses").select("*").order("created_at") as any,
+        db.from("questionnaire_responses").select("*").order("created_at") as any,
       ]);
       
       const mappedCompanies = (comp || []).map(c => ({ ...c, created_at: c.created_at?.split("T")[0] || "", trade_name: c.trade_name || "", cnae_principal: c.cnae_principal || "", cnae_secundario: c.cnae_secundario || "", activity_risk: c.activity_risk || "", cep: c.cep || "", neighborhood: c.neighborhood || "" })) as Company[];
@@ -127,6 +131,10 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
         ergonomic_scores: (p.ergonomic_scores && typeof p.ergonomic_scores === "object" ? p.ergonomic_scores : {}) as Record<string, number>,
         created_at: p.created_at?.split("T")[0] || "",
       })) as PostureAnalysis[]);
+      setQuestionnaireResponses((qr || []).map(q => ({
+        ...q,
+        created_at: q.created_at?.split("T")[0] || "",
+      })) as QuestionnaireResponse[]);
     } catch (err) {
       console.error("Error fetching data:", err);
       toast.error("Erro ao carregar dados");
@@ -151,6 +159,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     if (r.company_id) return r.company_id === selectedCompanyId;
     return false;
   }), [reports, companyWsIds, companySectorIds, selectedCompanyId]);
+
+  const companyQuestionnaireResponses = useMemo(() => questionnaireResponses.filter(q => q.company_id === selectedCompanyId), [questionnaireResponses, selectedCompanyId]);
 
   // CRUD helpers
   const addCompany = async (c: Omit<Company, "id" | "created_at">, dbConfig?: { url: string; key: string }) => {
@@ -337,8 +347,8 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       loading,
       companies, selectedCompanyId, setSelectedCompanyId, selectedCompany,
       sectors, workstations, analyses, posturePhotos, reports,
-      riskAssessments, actionPlans, psychosocialAnalyses, postureAnalyses,
-      companySectors, companyWorkstations, companyAnalyses, companyPhotos, companyReports,
+      riskAssessments, actionPlans, psychosocialAnalyses, postureAnalyses, questionnaireResponses,
+      companySectors, companyWorkstations, companyAnalyses, companyPhotos, companyReports, companyQuestionnaireResponses,
       addCompany, updateCompany, deleteCompany,
       addSector, updateSector, deleteSector,
       addWorkstation, updateWorkstation, deleteWorkstation,

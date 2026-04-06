@@ -33,6 +33,7 @@ export default function RelatoriosPage() {
     companyAnalyses, posturePhotos,
     selectedCompany, selectedCompanyId,
     riskAssessments, actionPlans, psychosocialAnalyses,
+    companyQuestionnaireResponses,
   } = useCompany();
   const [generating, setGenerating] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
@@ -89,6 +90,7 @@ export default function RelatoriosPage() {
       analyses: companyAnalyses.filter((a) => a.workstation_id === ws.id),
       photos: posturePhotos.filter((p) => p.workstation_id === ws.id),
       reportType: type,
+      questionnaireResponses: companyQuestionnaireResponses,
     };
   };
 
@@ -101,6 +103,7 @@ export default function RelatoriosPage() {
       analyses: companyAnalyses,
       photos: posturePhotos.filter((p) => companyWorkstations.some((w) => w.id === p.workstation_id)),
       reportType: type,
+      questionnaireResponses: companyQuestionnaireResponses,
     };
   };
 
@@ -127,6 +130,7 @@ export default function RelatoriosPage() {
       photos: ctx.photos,
       reportType: ctx.reportType,
       technicalResponsible: technicalResponsible || undefined,
+      questionnaireResponses: ctx.questionnaireResponses,
     });
     setPreviewHtml(html);
     setPreviewTitle(label);

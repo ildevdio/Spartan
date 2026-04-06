@@ -1,4 +1,4 @@
-import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan } from "./types";
+import type { Company, Sector, Workstation, Analysis, PosturePhoto, Report, ReportType, Task, PsychosocialAnalysis, RiskAssessment, ActionPlan, QuestionnaireResponse } from "./types";
 import { riskLevelLabel, statusLabel, analysisStatusLabel } from "./types";
 
 export interface TechnicalResponsibleInfo {
@@ -24,6 +24,7 @@ interface ReportContext {
   actionPlans?: ActionPlan[];
   tasks?: Task[];
   psychosocialAnalyses?: PsychosocialAnalysis[];
+  questionnaireResponses?: QuestionnaireResponse[];
 }
 
 function getToday(): string {
@@ -432,17 +433,58 @@ function getCtxData(ctx: ReportContext) {
   const risks = riskAssessments.filter(r => analysisIds.includes(r.analysis_id));
   const actions = actionPlans.filter(ap => risks.some(r => r.id === ap.risk_assessment_id));
   const tasks = ctxTasks.filter(t => wsIds.includes(t.workstation_id));
-  const psychosocial = psychosocialAnalyses.filter(p => p.company_id === company.id);
-  const sectors = [...new Set(workstations.map(w => w.sector?.name || "Geral"))];
-  const sectorMap = new Map<string, { sectorName: string; workstations: typeof workstations }>();
+  const psychosocialOld = psychosocialAnalyses.filter(p => p.company_id === company.id);
+  
+  // Aggregate new questionnaire responses by workstation and type
+  const questionnaireResponses = ctx.questionnaireResponses || [];
+  const psychosocialAverages: any[] = [];
+  
+  // Group by workstation and then by type
+  const groupedResponses: Record<string, Record<string, QuestionnaireResponse[]>> = {};
+  questionnaireResponses.forEach(r => {
+    const wsId = r.workstation_id || "Geral";
+    const type = r.questionnaire_type;
+    if (!groupedResponses[wsId]) groupedResponses[wsId] = {};
+    if (!groupedResponses[wsId][type]) groupedResponses[wsId][type] = [];
+    groupedResponses[wsId][type].push(r);
+  });
+
+  Object.entries(groupedResponses).forEach(([wsId, types]) => {
+    Object.entries(types).forEach(([type, reps]) => {
+      if (reps.length === 0) return;
+      
+      // Calculate average scores and dimension scores
+      const avgTotalScore = Math.round(reps.reduce((s, r) => s + r.total_score, 0) / reps.length);
+      const allDimensions = new Set<string>();
+      reps.forEach(r => Object.keys(r.scores).forEach(d => allDimensions.add(d)));
+      
+      const avgScores: Record<string, number> = {};
+      allDimensions.forEach(dim => {
+        const scores = reps.map(r => r.scores[dim] || 0);
+        avgScores[dim] = Math.round(scores.reduce((s, v) => s + v, 0) / reps.length);
+      });
+
+      psychosocialAverages.push({
+        workstation_id: wsId === "Geral" ? null : wsId,
+        questionnaire_type: type,
+        total_score: avgTotalScore,
+        scores: avgScores,
+        response_count: reps.length,
+      });
+    });
+  });
+
+  const sectorsLabels = [...new Set(workstations.map(w => w.sector?.name || "Geral"))];
+  const sectorMap = new Map<string, { sectorName: string; workstations: Workstation[] }>();
   workstations.forEach(ws => {
     const sectorId = ws.sector?.id || ws.sector_id || "unknown";
     const sectorName = ws.sector?.name || "Geral";
     if (!sectorMap.has(sectorId)) sectorMap.set(sectorId, { sectorName, workstations: [] });
     sectorMap.get(sectorId)!.workstations.push(ws);
   });
-  return { consultant, rt, risks, actions, tasks, psychosocial, sectors, sectorMap };
+  return { consultant, rt, risks, actions, tasks, psychosocial: psychosocialOld, psychosocialAverages, sectors: sectorsLabels, sectorMap };
 }
+
 
 function gheTable(workstations: Workstation[], ctx: ReportContext) {
   return `
@@ -1041,7 +1083,7 @@ function rebaAssessmentSheet(ws: Workstation, idx: number, analysis: Analysis, r
 // ==================== AET ====================
 function generateAETReport(ctx: ReportContext): string {
   const { company, sector, workstation, workstations, analyses, photos } = ctx;
-  const { consultant, rt, risks, actions, tasks, psychosocial } = getCtxData(ctx);
+  const { consultant, rt, risks, actions, tasks, psychosocial, psychosocialAverages } = getCtxData(ctx);
   const methods = [...new Set(analyses.map(a => a.method))].join(", ") || "N/A";
   const sectorName = sector?.name || "Geral";
   const wsName = workstation?.name || workstations.map(w => w.name).join(", ");
@@ -1317,50 +1359,62 @@ ${equipmentTable()}
 
 <div class="page-break"></div>
 <div class="rpt-section">ANEXO III — RELATÓRIO TÉCNICO DE FATORES PSICOSSOCIAIS</div>
-${psychosocial.length > 0 ? `
-<p>Avaliações psicossociais realizadas: <strong>${psychosocial.length}</strong></p>
-${psychosocial.map((psa, idx) => {
-    let html = `<div class="rpt-section2">Avaliação ${idx + 1} — ${psa.evaluator_name}</div>`;
-    if (psa.nasa_tlx_details) {
-      const nasaClass = psa.nasa_tlx_score! <= 30 ? "green" : psa.nasa_tlx_score! <= 50 ? "yellow" : psa.nasa_tlx_score! <= 70 ? "orange" : "red";
-      html += `<div class="rpt-section3">NASA-TLX (Carga de Trabalho)</div>
+<div class="rpt-callout info">
+  <strong>Nota sobre Anonimato:</strong> Para garantir o sigilo total dos respondentes, os resultados abaixo representam a <strong>média aritmética</strong> das respostas coletadas por posto de trabalho. Nomes e identificações individuais foram removidos da base de dados.
+</div>
+${psychosocialAverages.length > 0 ? `
+<p>Total de postos com avaliações psicossociais: <strong>${psychosocialAverages.length}</strong></p>
+${psychosocialAverages.map((avg, idx) => {
+    const ws = workstations.find(w => w.id === avg.workstation_id);
+    const wsName = ws?.name || "Geral / Não Identificado";
+    const typeLabel = avg.questionnaire_type;
+    
+    let html = `<div class="rpt-section2">Posto: ${wsName} (${avg.response_count} respostas)</div>`;
+    
+    if (avg.questionnaire_type === 'nasa-tlx') {
+      const nasaClass = avg.total_score <= 30 ? "green" : avg.total_score <= 50 ? "yellow" : avg.total_score <= 70 ? "orange" : "red";
+      html += `<div class="rpt-section3">NASA-TLX (Carga de Trabalho — Média)</div>
     <table class="rpt-table">
-      <tr><th class="alt">Dimensão</th><th class="alt">Score (0-100)</th></tr>
-      <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
-      <tr><td>Demanda Física</td><td>${psa.nasa_tlx_details.physical_demand}</td></tr>
-      <tr><td>Demanda Temporal</td><td>${psa.nasa_tlx_details.temporal_demand}</td></tr>
-      <tr><td>Performance</td><td>${psa.nasa_tlx_details.performance}</td></tr>
-      <tr><td>Esforço</td><td>${psa.nasa_tlx_details.effort}</td></tr>
-      <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
-      <tr><td class="label">Score Geral</td><td><span class="rpt-badge ${nasaClass}"><strong>${psa.nasa_tlx_score}</strong></span></td></tr>
+      <tr><th class="alt">Dimensão</th><th class="alt">Média (0-100)</th></tr>
+      <tr><td>Demanda Mental</td><td>${avg.scores.mental_demand}</td></tr>
+      <tr><td>Demanda Física</td><td>${avg.scores.physical_demand}</td></tr>
+      <tr><td>Demanda Temporal</td><td>${avg.scores.temporal_demand}</td></tr>
+      <tr><td>Performance</td><td>${avg.scores.performance}</td></tr>
+      <tr><td>Esforço</td><td>${avg.scores.effort}</td></tr>
+      <tr><td>Frustração</td><td>${avg.scores.frustration}</td></tr>
+      <tr><td class="label">Score Geral Médio</td><td><span class="rpt-badge ${nasaClass}"><strong>${avg.total_score}</strong></span></td></tr>
     </table>`;
-    }
-    if (psa.hse_it_details) {
-      const hseClass = psa.hse_it_score! >= 4 ? "green" : psa.hse_it_score! >= 3 ? "yellow" : psa.hse_it_score! >= 2 ? "orange" : "red";
-      html += `<div class="rpt-section3">HSE-IT (Estresse Ocupacional)</div>
+    } else if (avg.questionnaire_type === 'hse-it') {
+      const hseClass = avg.total_score >= 4 ? "green" : avg.total_score >= 3 ? "yellow" : avg.total_score >= 2 ? "orange" : "red";
+      html += `<div class="rpt-section3">HSE-IT (Estresse Ocupacional — Média)</div>
     <table class="rpt-table">
-      <tr><th class="teal">Dimensão</th><th class="teal">Score (1-5)</th></tr>
-      <tr><td>Demandas</td><td>${psa.hse_it_details.demands}</td></tr>
-      <tr><td>Controle</td><td>${psa.hse_it_details.control}</td></tr>
-      <tr><td>Suporte</td><td>${psa.hse_it_details.support}</td></tr>
-      <tr><td>Relacionamentos</td><td>${psa.hse_it_details.relationships}</td></tr>
-      <tr><td>Papel</td><td>${psa.hse_it_details.role}</td></tr>
-      <tr><td>Mudança</td><td>${psa.hse_it_details.change}</td></tr>
-      <tr><td class="label">Score Geral</td><td><span class="rpt-badge ${hseClass}"><strong>${psa.hse_it_score}</strong></span></td></tr>
+      <tr><th class="teal">Dimensão</th><th class="teal">Média (1-5)</th></tr>
+      <tr><td>Demandas</td><td>${avg.scores.demands}</td></tr>
+      <tr><td>Controle</td><td>${avg.scores.control}</td></tr>
+      <tr><td>Suporte</td><td>${avg.scores.support}</td></tr>
+      <tr><td>Relacionamentos</td><td>${avg.scores.relationships}</td></tr>
+      <tr><td>Papel</td><td>${avg.scores.role}</td></tr>
+      <tr><td>Mudança</td><td>${avg.scores.change}</td></tr>
+      <tr><td class="label">Score Geral Médio</td><td><span class="rpt-badge ${hseClass}"><strong>${avg.total_score}</strong></span></td></tr>
     </table>`;
-    }
-    if (psa.copenhagen_details) {
-      const cd = psa.copenhagen_details;
-      html += `<div class="rpt-section3">COPSOQ II (Copenhagen)</div>
+    } else if (avg.questionnaire_type === 'copenhagen') {
+      html += `<div class="rpt-section3">COPSOQ II (Copenhagen — Média)</div>
     <table class="rpt-table">
-      <tr><th class="teal">Dimensão</th><th class="teal">Score (0-100)</th></tr>
-      ${([["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência", cd.influence], ["Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support]] as [string, number][]).map(([d, v]) => `<tr><td>${d}</td><td><strong>${v}</strong></td></tr>`).join("")}
-      <tr><td class="label">Score Geral</td><td><strong>${psa.copenhagen_score}</strong></td></tr>
+      <tr><th class="teal">Dimensão</th><th class="teal">Média (0-100)</th></tr>
+      ${Object.entries(avg.scores).map(([dim, val]) => `<tr><td>${dim.replace(/_/g, ' ').toUpperCase()}</td><td><strong>${val}</strong></td></tr>`).join("")}
+      <tr><td class="label">Score Geral Médio</td><td><strong>${avg.total_score}</strong></td></tr>
     </table>`;
+    } else {
+      // Generic questionnaire rendering
+      html += `<div class="rpt-section3">Questionário: ${typeLabel.toUpperCase()} (Média)</div>
+      <table class="rpt-table">
+        <tr><th class="teal">Dimensão</th><th class="teal">Score Médio</th></tr>
+        ${Object.entries(avg.scores).map(([dim, val]) => `<tr><td>${dim.toUpperCase()}</td><td><strong>${val}</strong></td></tr>`).join("")}
+        <tr><td class="label">Score Total Médio</td><td><strong>${avg.total_score}</strong></td></tr>
+      </table>`;
     }
-    if (psa.observations) html += `<div class="rpt-callout">${psa.observations}</div>`;
     return html;
-  }).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial registrada. Recomenda-se aplicação dos questionários COPSOQ II, NASA-TLX, HSE-IT e JSS.</div>'}
+  }).join("")}` : '<div class="rpt-callout warning">Nenhuma avaliação psicossocial registrada. Os dados são coletados de forma anônima através do módulo de Questionários.</div>'}
 
 <div class="page-break"></div>
 <div class="rpt-section">ANEXO IV — PLANO DE AÇÃO ERGONÔMICO</div>
@@ -1394,7 +1448,7 @@ ${photos.length > 0 ? `
   <tr><td>17.5</td><td>Organização do trabalho</td><td>A verificar</td><td>Pausas, ritmo, jornada</td></tr>
   <tr><td>17.6</td><td>Levantamento e transporte de cargas</td><td>A verificar</td><td>ISO 11228</td></tr>
   <tr><td>17.7</td><td>Trabalho com máquinas e equipamentos</td><td>A verificar</td><td>NR-12</td></tr>
-  <tr><td>17.8</td><td>Fatores psicossociais avaliados</td><td>${psychosocial.length > 0 ? '✓ Sim' : '✗ Não'}</td><td>${psychosocial.length} avaliação(ões)</td></tr>
+  <tr><td>17.8</td><td>Fatores psicossociais avaliados</td><td>${psychosocialAverages.length > 0 ? '✓ Sim' : '✗ Não'}</td><td>${psychosocialAverages.length} posto(s) avaliado(s)</td></tr>
 </table>
 
 ${footer()}`;
@@ -1552,7 +1606,7 @@ ${footer()}`;
 // ==================== APR (Avaliação Preliminar de Riscos Psicossociais) ====================
 function generateAPRReport(ctx: ReportContext): string {
   const { company, workstations } = ctx;
-  const { consultant, rt, psychosocial, sectors } = getCtxData(ctx);
+  const { consultant, rt, psychosocialAverages, sectors } = getCtxData(ctx);
   const classifyRisk = (v: number) => v >= 75 ? `<span class="rpt-badge green">Baixo risco</span>` : v >= 50 ? `<span class="rpt-badge yellow">Moderado</span>` : `<span class="rpt-badge red">Alto risco</span>`;
 
   return `${sharedStyles()}
@@ -1585,51 +1639,41 @@ ${riskMatrix()}
 <table class="rpt-table">
   <tr><td class="label">Setores Avaliados</td><td>${sectors.join(", ")}</td></tr>
   <tr><td class="label">Postos de Trabalho</td><td>${workstations.length}</td></tr>
-  <tr><td class="label">Avaliações Realizadas</td><td>${psychosocial.length}</td></tr>
+  <tr><td class="label">Postos Avaliados</td><td>${psychosocialAverages.length}</td></tr>
+  <tr><td class="label">Total de Respostas Coletadas</td><td>${psychosocialAverages.reduce((s, a) => s + a.response_count, 0)}</td></tr>
   <tr><td class="label">Período</td><td>${getToday()}</td></tr>
 </table>
 
-<div class="rpt-section">5. RESULTADOS</div>
-${psychosocial.length > 0 ? psychosocial.map(psa => {
-    let html = '';
-    if (psa.copenhagen_details) {
-      const cd = psa.copenhagen_details;
-      html += `<div class="rpt-section2">COPSOQ II — Resultados por Domínio</div>
+<div class="rpt-section">5. RESULTADOS POR POSTO (MÉDIAS ANÔNIMAS)</div>
+${psychosocialAverages.length > 0 ? psychosocialAverages.map(avg => {
+    const ws = workstations.find(w => w.id === avg.workstation_id);
+    const wsName = ws?.name || "Geral";
+    let html = `<div class="rpt-section2">Posto: ${wsName} (${avg.response_count} respostas)</div>`;
+    
+    if (avg.questionnaire_type === 'copenhagen') {
+      html += `<div class="rpt-section3">COPSOQ II — Médias por Domínio</div>
     <table class="rpt-table">
-      <tr><th class="teal">Domínio Psicossocial</th><th class="teal">Score</th><th class="teal">Classificação</th></tr>
-      ${([["Demandas Quantitativas", cd.quantitative_demands], ["Ritmo de Trabalho", cd.work_pace], ["Demandas Cognitivas", cd.cognitive_demands], ["Demandas Emocionais", cd.emotional_demands], ["Influência no Trabalho", cd.influence], ["Possibilidades de Desenvolvimento", cd.possibilities_development], ["Significado do Trabalho", cd.meaning_work], ["Compromisso", cd.commitment], ["Previsibilidade", cd.predictability], ["Suporte Social", cd.social_support]] as [string, number][]).map(([dim, val]) => `<tr><td>${dim}</td><td><strong>${val}</strong></td><td>${classifyRisk(val)}</td></tr>`).join("")}
-      <tr><td class="label"><strong>Score Global</strong></td><td><strong>${psa.copenhagen_score}</strong></td><td>${classifyRisk(psa.copenhagen_score || 0)}</td></tr>
+      <tr><th class="teal">Domínio Psicossocial</th><th class="teal">Média</th><th class="teal">Classificação</th></tr>
+      ${Object.entries(avg.scores).map(([dim, val]) => `<tr><td>${dim.replace(/_/g, ' ').toUpperCase()}</td><td><strong>${val}</strong></td><td>${classifyRisk(val as number)}</td></tr>`).join("")}
+      <tr><td class="label"><strong>Score Global Médio</strong></td><td><strong>${avg.total_score}</strong></td><td>${classifyRisk(avg.total_score)}</td></tr>
+    </table>`;
+    } else if (avg.questionnaire_type === 'nasa-tlx') {
+      html += `<div class="rpt-section3">NASA-TLX — Índice de Carga de Trabalho Médio</div>
+    <table class="rpt-table">
+      <tr><th class="alt">Dimensão</th><th class="alt">Média (0-100)</th></tr>
+      ${Object.entries(avg.scores).map(([dim, val]) => `<tr><td>${dim.replace(/_/g, ' ').toUpperCase()}</td><td><strong>${val}</strong></td></tr>`).join("")}
+      <tr><td class="label"><strong>Score Geral Médio</strong></td><td><strong>${avg.total_score}</strong></td></tr>
+    </table>`;
+    } else if (avg.questionnaire_type === 'hse-it') {
+      html += `<div class="rpt-section3">HSE-IT — Indicadores de Estresse Ocupacional Médio</div>
+    <table class="rpt-table">
+      <tr><th class="alt">Dimensão</th><th class="alt">Média</th></tr>
+      ${Object.entries(avg.scores).map(([dim, val]) => `<tr><td>${dim.replace(/_/g, ' ').toUpperCase()}</td><td><strong>${val}</strong></td></tr>`).join("")}
+      <tr><td class="label"><strong>Score Geral Médio</strong></td><td><strong>${avg.total_score}</strong></td></tr>
     </table>`;
     }
-    if (psa.nasa_tlx_details) {
-      html += `<div class="rpt-section2">NASA-TLX — Índice de Carga de Trabalho</div>
-    <table class="rpt-table">
-      <tr><th class="alt">Dimensão</th><th class="alt">Score (0-100)</th></tr>
-      <tr><td>Demanda Mental</td><td>${psa.nasa_tlx_details.mental_demand}</td></tr>
-      <tr><td>Demanda Física</td><td>${psa.nasa_tlx_details.physical_demand}</td></tr>
-      <tr><td>Demanda Temporal</td><td>${psa.nasa_tlx_details.temporal_demand}</td></tr>
-      <tr><td>Performance</td><td>${psa.nasa_tlx_details.performance}</td></tr>
-      <tr><td>Esforço</td><td>${psa.nasa_tlx_details.effort}</td></tr>
-      <tr><td>Frustração</td><td>${psa.nasa_tlx_details.frustration}</td></tr>
-      <tr><td class="label"><strong>Score Geral</strong></td><td><strong>${psa.nasa_tlx_score}</strong></td></tr>
-    </table>`;
-    }
-    if (psa.hse_it_details) {
-      html += `<div class="rpt-section2">HSE-IT — Indicadores de Estresse Ocupacional</div>
-    <table class="rpt-table">
-      <tr><th class="alt">Dimensão</th><th class="alt">Score</th></tr>
-      <tr><td>Demandas</td><td>${psa.hse_it_details.demands}</td></tr>
-      <tr><td>Controle</td><td>${psa.hse_it_details.control}</td></tr>
-      <tr><td>Suporte</td><td>${psa.hse_it_details.support}</td></tr>
-      <tr><td>Relacionamentos</td><td>${psa.hse_it_details.relationships}</td></tr>
-      <tr><td>Papel</td><td>${psa.hse_it_details.role}</td></tr>
-      <tr><td>Mudança</td><td>${psa.hse_it_details.change}</td></tr>
-      <tr><td class="label"><strong>Score Geral</strong></td><td><strong>${psa.hse_it_score}</strong></td></tr>
-    </table>`;
-    }
-    html += `<p><strong>Observações:</strong> ${psa.observations}</p>`;
     return html;
-  }).join("<hr>") : '<div class="rpt-callout danger">Nenhuma avaliação psicossocial encontrada. Recomenda-se aplicação urgente dos questionários COPSOQ II, NASA-TLX e HSE-IT.</div>'}
+  }).join("<hr>") : '<div class="rpt-callout danger">Nenhuma avaliação psicossocial encontrada. Recomenda-se aplicação urgente dos questionários COPSOQ II, NASA-TLX e HSE-IT através do módulo de Questionários Online/Impressos.</div>'}
 
 <div class="rpt-section">6. RECOMENDAÇÕES TÉCNICAS</div>
 <table class="rpt-table">
