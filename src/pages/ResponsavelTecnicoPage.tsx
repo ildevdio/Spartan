@@ -99,9 +99,9 @@ export default function ResponsavelTecnicoPage() {
     }
 
     if (editingId) {
-      const { error } = await supabase
-        .from("technical_responsibles")
-        .update({ ...form } as any)
+      const { error } = await (supabase
+        .from("technical_responsibles") as any)
+        .update({ ...form })
         .eq("id", editingId);
       if (error) {
         toast.error("Erro ao atualizar.");

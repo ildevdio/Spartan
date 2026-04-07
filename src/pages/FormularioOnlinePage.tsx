@@ -39,10 +39,10 @@ export default function FormularioOnlinePage() {
       const { data: sectors } = await supabase
         .from("sectors")
         .select("id")
-        .eq("company_id", companyId);
+        .eq("company_id", companyId) as any;
 
       if (sectors && sectors.length > 0) {
-        const sectorIds = sectors.map((s) => s.id);
+        const sectorIds = (sectors as any[]).map((s) => s.id);
         const { data: wsData } = await supabase
           .from("workstations")
           .select("id, name")
