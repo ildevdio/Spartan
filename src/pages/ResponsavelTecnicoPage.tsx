@@ -101,7 +101,7 @@ export default function ResponsavelTecnicoPage() {
     if (editingId) {
       const { error } = await supabase
         .from("technical_responsibles")
-        .update({ ...form })
+        .update({ ...form } as any)
         .eq("id", editingId);
       if (error) {
         toast.error("Erro ao atualizar.");
@@ -111,7 +111,7 @@ export default function ResponsavelTecnicoPage() {
     } else {
       const { error } = await supabase
         .from("technical_responsibles")
-        .insert({ ...form, company_id: selectedCompanyId });
+        .insert({ ...form, company_id: selectedCompanyId } as any);
       if (error) {
         toast.error("Erro ao cadastrar.");
       } else {
@@ -214,8 +214,8 @@ export default function ResponsavelTecnicoPage() {
         .from("technical_responsibles")
         .update({
           govbr_certificate_id: certificateId,
-          signature_image_url: signature.substring(0, 500), // store signature fragment
-        })
+          signature_image_url: signature.substring(0, 500),
+        } as any)
         .eq("id", signingId);
 
       if (error) {

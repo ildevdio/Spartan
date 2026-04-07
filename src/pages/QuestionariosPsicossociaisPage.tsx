@@ -210,10 +210,10 @@ export default function QuestionariosPsicossociaisPage() {
       workstation_id: manualWsId,
       questionnaire_type: manualType,
       respondent_name: "Impresso (Manual)",
-      responses: manualAnswers,
-      scores: dimensionScores,
+      responses: manualAnswers as any,
+      scores: dimensionScores as any,
       total_score: totalScore,
-    });
+    } as any);
 
     if (error) {
       toast.error("Erro ao salvar respostas manuais.");

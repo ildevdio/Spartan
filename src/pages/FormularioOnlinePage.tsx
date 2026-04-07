@@ -77,15 +77,15 @@ export default function FormularioOnlinePage() {
     setSubmitting(true);
     const { dimensionScores, totalScore } = calculateScores(type as QuestionnaireType, responses);
 
-    const { error } = await supabase.from("questionnaire_responses").insert([{
+    const { error } = await supabase.from("questionnaire_responses").insert({
       company_id: companyId,
       workstation_id: selectedWs,
       questionnaire_type: type,
       respondent_name: "Anônimo",
-      responses,
-      scores: dimensionScores,
+      responses: responses as any,
+      scores: dimensionScores as any,
       total_score: totalScore,
-    }] as any[]);
+    } as any);
 
     setSubmitting(false);
     if (error) {
