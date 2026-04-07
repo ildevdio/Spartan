@@ -39,10 +39,10 @@ export default function FormularioOnlinePage() {
       const { data: sectors } = await supabase
         .from("sectors")
         .select("id")
-        .eq("company_id", companyId);
+        .eq("company_id", companyId) as any;
 
       if (sectors && sectors.length > 0) {
-        const sectorIds = sectors.map((s) => s.id);
+        const sectorIds = (sectors as any[]).map((s) => s.id);
         const { data: wsData } = await supabase
           .from("workstations")
           .select("id, name")
@@ -77,15 +77,15 @@ export default function FormularioOnlinePage() {
     setSubmitting(true);
     const { dimensionScores, totalScore } = calculateScores(type as QuestionnaireType, responses);
 
-    const { error } = await supabase.from("questionnaire_responses").insert([{
+    const { error } = await supabase.from("questionnaire_responses").insert({
       company_id: companyId,
       workstation_id: selectedWs,
       questionnaire_type: type,
       respondent_name: "Anônimo",
-      responses,
-      scores: dimensionScores,
+      responses: responses as any,
+      scores: dimensionScores as any,
       total_score: totalScore,
-    }] as any[]);
+    } as any);
 
     setSubmitting(false);
     if (error) {
