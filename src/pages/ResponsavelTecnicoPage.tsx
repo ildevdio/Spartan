@@ -210,12 +210,12 @@ export default function ResponsavelTecnicoPage() {
       const certInfo = certificates.find((c) => c.thumbprint === selectedCert);
       const certificateId = `ICP-Brasil: ${certInfo?.subjectName || selectedCert}`;
 
-      const { error } = await supabase
-        .from("technical_responsibles")
+      const { error } = await (supabase
+        .from("technical_responsibles") as any)
         .update({
           govbr_certificate_id: certificateId,
           signature_image_url: signature.substring(0, 500),
-        } as any)
+        })
         .eq("id", signingId);
 
       if (error) {
