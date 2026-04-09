@@ -34,10 +34,13 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-          <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <BrowserRouter>
             <Routes>
+              {/* Public/External Routes */}
               <Route path="/formulario/:companyId/:type" element={<FormularioOnlinePage />} />
-              <Route path="*" element={
+              
+              {/* App Routes (Requires Layout and Context) */}
+              <Route path="/*" element={
                 <CompanyProvider>
                   <AppLayout>
                     <Routes>
@@ -55,6 +58,8 @@ const App = () => {
                       <Route path="/questionarios-psicossociais" element={<QuestionariosPsicossociaisPage />} />
                       <Route path="/responsavel-tecnico" element={<ResponsavelTecnicoPage />} />
                       <Route path="/dev-settings" element={<DevSettingsPage />} />
+                      
+                      {/* Internal 404 for missing paths inside the layout */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </AppLayout>

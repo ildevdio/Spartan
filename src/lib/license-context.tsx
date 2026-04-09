@@ -129,8 +129,10 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
         
         toast.success(isDev ? "Modo Desenvolvedor Ativado!" : `Acesso Pro: ${masterLicense?.client_name || "Spartan Pro"}`);
         
-        // Reload to ensure all contexts (CompanyContext) refresh their queries with the NEW client
-        setTimeout(() => window.location.reload(), 1000);
+        // Redirect to home and reload to ensure all contexts refresh with the NEW client
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 1000);
         return true;
       } else {
         toast.error("Chave de Acesso Inválida ou Expirada");
@@ -155,7 +157,9 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
     setLicenseKey(null);
     setIsDeveloper(false);
     setIsFullVersion(false);
-    window.location.reload(); 
+    
+    // Redirect to home on logout to avoid 404s on developer-only routes
+    window.location.href = "/";
   };
 
   return (
