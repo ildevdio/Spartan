@@ -9,10 +9,13 @@ import { useCompany } from "@/lib/company-context";
 import { CompanySelector } from "@/components/CompanySelector";
 import type { Workstation } from "@/lib/types";
 import { MIN_PHOTOS_REQUIRED } from "@/lib/types";
-import { Plus, Monitor, Pencil, Trash2, Camera, ClipboardCheck, AlertTriangle, CheckCircle2, FileText } from "lucide-react";
+import { Plus, Monitor, Pencil, Trash2, Camera, ClipboardCheck, AlertTriangle, CheckCircle2, FileText, Settings, Thermometer, Sun, ShieldAlert, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { RiskBadge } from "./DashboardPage";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export default function PostosPage() {
   const {
@@ -25,6 +28,15 @@ export default function PostosPage() {
   const [sectorId, setSectorId] = useState("");
   const [description, setDescription] = useState("");
   const [tasks, setTasks] = useState("");
+  const [machines, setMachines] = useState("");
+  const [tools, setTools] = useState("");
+  const [lighting, setLighting] = useState("");
+  const [thermal, setThermal] = useState("");
+  const [situations, setSituations] = useState("");
+  const [insalubridade, setInsalubridade] = useState<"Não" | "10%" | "20%" | "40%">("Não");
+  const [periculosidade, setPericulosidade] = useState(false);
+  const [workSchedule, setWorkSchedule] = useState("");
+  const [breakTimes, setBreakTimes] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const descriptionError = description.trim().length > 0 && description.trim().length < 25
@@ -33,18 +45,65 @@ export default function PostosPage() {
 
   const handleSave = async () => {
     if (!name.trim() || !sectorId || description.trim().length < 25) return;
+    const workstationData = {
+      name,
+      sector_id: sectorId,
+      description,
+      activity_description: description,
+      tasks_performed: tasks,
+      machines_equipment: machines,
+      tools_accessories: tools,
+      lighting_nho11: lighting,
+      thermal_comfort_nr17: thermal,
+      situations_found: situations,
+      insalubridade,
+      periculosidade,
+      work_schedule: workSchedule,
+      break_times: breakTimes,
+    };
+
     if (editingId) {
-      await updateWorkstation(editingId, { name, sector_id: sectorId, description, activity_description: description, tasks_performed: tasks });
+      await updateWorkstation(editingId, workstationData);
     } else {
-      await addWorkstation({ sector_id: sectorId, name, description, activity_description: description, tasks_performed: tasks });
+      await addWorkstation(workstationData);
     }
     resetForm();
   };
 
-  const resetForm = () => { setName(""); setSectorId(""); setDescription(""); setTasks(""); setEditingId(null); setOpen(false); };
+  const resetForm = () => {
+    setName("");
+    setSectorId("");
+    setDescription("");
+    setTasks("");
+    setMachines("");
+    setTools("");
+    setLighting("");
+    setThermal("");
+    setSituations("");
+    setInsalubridade("Não");
+    setPericulosidade(false);
+    setWorkSchedule("");
+    setBreakTimes("");
+    setEditingId(null);
+    setOpen(false);
+  };
 
   const handleEdit = (w: Workstation) => {
-    setEditingId(w.id); setName(w.name); setSectorId(w.sector_id); setDescription(w.description); setTasks(w.tasks_performed); setOpen(true);
+    setEditingId(w.id);
+    setName(w.name);
+    setSectorId(w.sector_id);
+    setDescription(w.description);
+    setTasks(w.tasks_performed);
+    setMachines(w.machines_equipment || "");
+    setTools(w.tools_accessories || "");
+    setLighting(w.lighting_nho11 || "");
+    setThermal(w.thermal_comfort_nr17 || "");
+    setSituations(w.situations_found || "");
+    setInsalubridade(w.insalubridade || "Não");
+    setPericulosidade(w.periculosidade || false);
+    setWorkSchedule(w.work_schedule || "");
+    setBreakTimes(w.break_times || "");
+    setOpen(true);
   };
 
   return (
@@ -62,23 +121,115 @@ export default function PostosPage() {
             <DialogTrigger asChild>
               <Button size="sm"><Plus className="h-4 w-4 mr-1" />Novo Posto</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-[95vw] sm:max-w-lg">
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader><DialogTitle>{editingId ? "Editar Posto" : "Novo Posto"}</DialogTitle></DialogHeader>
-              <div className="space-y-4 pt-2">
-                <Input placeholder="Nome do posto" value={name} onChange={(e) => setName(e.target.value)} />
-                <Select value={sectorId} onValueChange={setSectorId}>
-                  <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
-                  <SelectContent>
-                    {companySectors.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <div className="space-y-1">
-                  <Textarea placeholder="Descrição do posto (mínimo 25 caracteres)" value={description} onChange={(e) => setDescription(e.target.value)} className={descriptionError ? "border-destructive" : ""} />
-                  {descriptionError && <p className="text-xs text-destructive">{descriptionError}</p>}
-                  {description.trim().length >= 25 && <p className="text-xs text-success">✓ {description.trim().length} caracteres</p>}
+              <div className="pt-2">
+                <Tabs defaultValue="basic" className="w-full">
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="basic">Básico</TabsTrigger>
+                    <TabsTrigger value="equipment">Equip.</TabsTrigger>
+                    <TabsTrigger value="measurements">Ambiente</TabsTrigger>
+                    <TabsTrigger value="admin">Adm</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="basic" className="space-y-4 pt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Nome do Posto</Label>
+                        <Input placeholder="Ex: Operador de Máquina" value={name} onChange={(e) => setName(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Setor</Label>
+                        <Select value={sectorId} onValueChange={setSectorId}>
+                          <SelectTrigger><SelectValue placeholder="Selecione o setor" /></SelectTrigger>
+                          <SelectContent>
+                            {companySectors.map((s) => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Descrição das Atividades/Posto</Label>
+                      <Textarea 
+                        placeholder="Descrição detalhada (mínimo 25 caracteres)" 
+                        value={description} 
+                        onChange={(e) => setDescription(e.target.value)} 
+                        className={descriptionError ? "border-destructive h-24" : "h-24"} 
+                      />
+                      {descriptionError && <p className="text-xs text-destructive">{descriptionError}</p>}
+                      {description.trim().length >= 25 && <p className="text-xs text-success">✓ {description.trim().length} caracteres</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Tarefas Realizadas</Label>
+                      <Textarea placeholder="Liste as tarefas principais..." value={tasks} onChange={(e) => setTasks(e.target.value)} className="h-20" />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="equipment" className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label>Máquinas e Equipamentos</Label>
+                      <Textarea placeholder="Liste as máquinas utilizadas..." value={machines} onChange={(e) => setMachines(e.target.value)} className="h-24" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Ferramentas e Acessórios</Label>
+                      <Textarea placeholder="Liste as ferramentas e acessórios..." value={tools} onChange={(e) => setTools(e.target.value)} className="h-24" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Situações Encontradas (Ergonomia)</Label>
+                      <Textarea placeholder="Observações de campo sobre a ergonomia..." value={situations} onChange={(e) => setSituations(e.target.value)} className="h-24" />
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="measurements" className="space-y-4 pt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2"><Sun className="h-4 w-4" /> Iluminamento (NHO-11)</Label>
+                        <Input placeholder="Ex: 500 lux" value={lighting} onChange={(e) => setLighting(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2"><Thermometer className="h-4 w-4" /> Conforto Térmico (NR-17)</Label>
+                        <Input placeholder="Ex: 23°C" value={thermal} onChange={(e) => setThermal(e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                      <div className="space-y-2">
+                        <Label className="flex items-center gap-2"><ShieldAlert className="h-4 w-4" /> Insalubridade</Label>
+                        <Select value={insalubridade} onValueChange={(v: any) => setInsalubridade(v)}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Não">Não</SelectItem>
+                            <SelectItem value="10%">10% (Mínimo)</SelectItem>
+                            <SelectItem value="20%">20% (Médio)</SelectItem>
+                            <SelectItem value="40%">40% (Máximo)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center space-x-2 pt-8">
+                        <Checkbox id="periculosidade" checked={periculosidade} onCheckedChange={(v) => setPericulosidade(!!v)} />
+                        <label htmlFor="periculosidade" className="text-sm font-medium leading-none cursor-pointer">
+                          Adicional de Periculosidade
+                        </label>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="admin" className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2"><Clock className="h-4 w-4" /> Jornada de Trabalho</Label>
+                      <Input placeholder="Ex: 08:00 às 17:00" value={workSchedule} onChange={(e) => setWorkSchedule(e.target.value)} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Pausas e Intervalos</Label>
+                      <Textarea placeholder="Descreva as pausas..." value={breakTimes} onChange={(e) => setBreakTimes(e.target.value)} className="h-20" />
+                    </div>
+                  </TabsContent>
+                </Tabs>
+                
+                <div className="pt-6">
+                  <Button onClick={handleSave} className="w-full" disabled={!name.trim() || !sectorId || description.trim().length < 25}>
+                    {editingId ? "Salvar Alterações" : "Criar Posto de Trabalho"}
+                  </Button>
                 </div>
-                <Textarea placeholder="Tarefas realizadas" value={tasks} onChange={(e) => setTasks(e.target.value)} />
-                <Button onClick={handleSave} className="w-full" disabled={!name.trim() || !sectorId || description.trim().length < 25}>{editingId ? "Salvar" : "Criar Posto"}</Button>
               </div>
             </DialogContent>
           </Dialog>

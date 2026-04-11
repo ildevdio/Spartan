@@ -56,6 +56,7 @@ interface CompanyContextType {
   deletePsychosocialAnalysis: (id: string) => Promise<void>;
   deletePosturePhoto: (id: string) => Promise<void>;
   refreshCompanies: () => Promise<void>;
+  deleteQuestionnaireResponse: (id: string) => Promise<void>;
 }
 
 const CompanyContext = createContext<CompanyContextType | null>(null);
@@ -143,7 +144,25 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     }
   }, [db]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  useEffect(() => {
+    fetchAll();
+
+    // REAL-TIME SYNC: Listen for questionnaire responses from online forms
+    const channel = db.channel('spartan-realtime')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'questionnaire_responses' 
+      }, () => {
+        console.log("[Spartan] Real-time update detected: questionnaire_responses");
+        fetchAll();
+      })
+      .subscribe();
+
+    return () => {
+      db.removeChannel(channel);
+    };
+  }, [fetchAll, db]);
 
   const selectedCompany = companies.find((c) => c.id === selectedCompanyId);
 
@@ -342,6 +361,12 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     await fetchAll();
   };
 
+  const deleteQuestionnaireResponse = async (id: string) => {
+    const { error } = await db.from("questionnaire_responses").delete().eq("id", id);
+    if (error) { toast.error("Erro ao excluir resposta"); return; }
+    await fetchAll();
+  };
+
   return (
     <CompanyContext.Provider value={{
       loading,
@@ -359,6 +384,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       addPsychosocialAnalysis, deletePsychosocialAnalysis,
       deletePosturePhoto,
       refreshCompanies: fetchAll,
+      deleteQuestionnaireResponse,
     }}>
       {children}
     </CompanyContext.Provider>

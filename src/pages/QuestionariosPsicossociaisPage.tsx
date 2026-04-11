@@ -114,10 +114,9 @@ function getTitle(type: QuestionnaireType): string {
 }
 
 export default function QuestionariosPsicossociaisPage() {
-  const { selectedCompany, companyWorkstations, selectedCompanyId } = useCompany();
+  const { selectedCompany, companyWorkstations, selectedCompanyId, companyQuestionnaireResponses, deleteQuestionnaireResponse } = useCompany();
   const [evaluator, setEvaluator] = useState("");
   const [wsId, setWsId] = useState("");
-  const [responses, setResponses] = useState<QuestionnaireResponse[]>([]);
   const [loadingResponses, setLoadingResponses] = useState(false);
   const [detailResponse, setDetailResponse] = useState<QuestionnaireResponse | null>(null);
   
@@ -126,22 +125,6 @@ export default function QuestionariosPsicossociaisPage() {
   const [manualType, setManualType] = useState<QuestionnaireType>("nasa-tlx");
   const [manualWsId, setManualWsId] = useState("");
   const [manualAnswers, setManualAnswers] = useState<Record<string, number>>({});
-
-  const fetchResponses = async () => {
-    if (!selectedCompanyId) return;
-    setLoadingResponses(true);
-    const { data } = await supabase
-      .from("questionnaire_responses")
-      .select("*")
-      .eq("company_id", selectedCompanyId)
-      .order("created_at", { ascending: false });
-    setResponses((data as QuestionnaireResponse[] | null) || []);
-    setLoadingResponses(false);
-  };
-
-  useEffect(() => {
-    fetchResponses();
-  }, [selectedCompanyId]);
 
   const handlePrint = (type: QuestionnaireType) => {
     if (!selectedCompany) {
@@ -174,13 +157,9 @@ export default function QuestionariosPsicossociaisPage() {
   };
 
   const deleteResponse = async (id: string) => {
-    const { error } = await supabase.from("questionnaire_responses").delete().eq("id", id);
-    if (error) {
-      toast.error("Erro ao excluir resposta.");
-      return;
+    if (confirm("Deseja excluir esta resposta anônima?")) {
+      await deleteQuestionnaireResponse(id);
     }
-    setResponses((prev) => prev.filter((r) => r.id !== id));
-    toast.success("Resposta excluída.");
   };
 
   const getWsName = (wsId: string | null) => {
@@ -224,10 +203,9 @@ export default function QuestionariosPsicossociaisPage() {
     toast.success("Resposta manual registrada com sucesso!");
     setManualDialogOpen(false);
     setManualAnswers({});
-    fetchResponses();
   };
 
-  const allResponses = responses;
+  const allResponses = companyQuestionnaireResponses;
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full">
@@ -250,7 +228,7 @@ export default function QuestionariosPsicossociaisPage() {
                 <CardDescription>Insira as respostas coletadas fisicamente em campo.</CardDescription>
               </DialogHeader>
               
-              <div className="p-6 pt-2 space-y-4 flex-1 overflow-hidden flex flex-col">
+              <div className="p-6 pt-2 space-y-4 flex-1 overflow-hidden flex flex-col min-h-0">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <Label className="text-xs font-semibold">Tipo de Questionário</Label>
@@ -272,35 +250,33 @@ export default function QuestionariosPsicossociaisPage() {
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-hidden border rounded-lg bg-secondary/20">
-                  <ScrollArea className="h-full p-4">
-                    <div className="space-y-6">
-                      {QUESTIONNAIRE_DEFS[manualType].dimensions.map(dim => (
-                        <div key={dim.label} className="space-y-3">
-                          <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b pb-1">{dim.label}</h3>
-                          <div className="space-y-4">
-                            {dim.questions.map(q => (
-                              <div key={q.id} className="space-y-2">
-                                <p className="text-[13px] text-foreground/90 font-medium leading-tight">{q.text}</p>
-                                <RadioGroup 
-                                  value={manualAnswers[q.id]?.toString()} 
-                                  onValueChange={(v) => setManualAnswers(prev => ({...prev, [q.id]: parseInt(v)}))}
-                                  className="flex flex-wrap gap-x-4 gap-y-2"
-                                >
-                                  {QUESTIONNAIRE_DEFS[manualType].scales.map(scale => (
-                                    <div key={scale.value} className="flex items-center space-x-1.5">
-                                      <RadioGroupItem value={scale.value.toString()} id={`${q.id}-${scale.value}`} className="h-3.5 w-3.5" />
-                                      <Label htmlFor={`${q.id}-${scale.value}`} className="text-[11px] cursor-pointer">{scale.label}</Label>
-                                    </div>
-                                  ))}
-                                </RadioGroup>
-                              </div>
-                            ))}
-                          </div>
+                <div className="flex-1 overflow-y-auto border rounded-lg bg-secondary/20 p-4 min-h-0 custom-scrollbar">
+                  <div className="space-y-6">
+                    {QUESTIONNAIRE_DEFS[manualType].dimensions.map(dim => (
+                      <div key={dim.label} className="space-y-3">
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-accent border-b pb-1">{dim.label}</h3>
+                        <div className="space-y-4">
+                          {dim.questions.map(q => (
+                            <div key={q.id} className="space-y-2">
+                              <p className="text-[13px] text-foreground/90 font-medium leading-tight">{q.text}</p>
+                              <RadioGroup 
+                                value={manualAnswers[q.id]?.toString()} 
+                                onValueChange={(v) => setManualAnswers(prev => ({...prev, [q.id]: parseInt(v)}))}
+                                className="flex flex-wrap gap-x-4 gap-y-2"
+                              >
+                                {QUESTIONNAIRE_DEFS[manualType].scales.map(scale => (
+                                  <div key={scale.value} className="flex items-center space-x-1.5">
+                                    <RadioGroupItem value={scale.value.toString()} id={`${q.id}-${scale.value}`} className="h-3.5 w-3.5" />
+                                    <Label htmlFor={`${q.id}-${scale.value}`} className="text-[11px] cursor-pointer">{scale.label}</Label>
+                                  </div>
+                                ))}
+                              </RadioGroup>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 

@@ -575,7 +575,7 @@ interface RiskRow {
 }
 
 function buildOccupationalRiskRows(
-  risks: { probability: number; exposure: number; consequence: number; risk_level: string; description: string; analysis_id: string }[],
+  risks: RiskAssessment[],
   analyses: Analysis[],
   ws: Workstation,
   psychosocial: PsychosocialAnalysis[]
@@ -602,11 +602,11 @@ function buildOccupationalRiskRows(
       const sVal = psgLabel(r.consequence);
       rows.push({
         type: "Ergonômico", typeColor: "#DAA520",
-        hazard: r.description || "Postura inadequada durante atividade",
-        damage: "Cansaço; Dor muscular",
-        source: ws.activity_description || ws.description || "Atividade do posto",
+        hazard: r.hazard || r.description || "Postura inadequada durante atividade",
+        damage: r.possible_damage || "Cansaço; Dor muscular",
+        source: r.generating_source || ws.activity_description || ws.description || "Atividade do posto",
         trajectory: "Sistema Musculoesquelético",
-        exposure: exposureTimeLabel(r.exposure),
+        exposure: r.exposure_time || exposureTimeLabel(r.exposure),
         p: pVal, s: sVal, nr: nrLabel(r.probability, r.consequence),
         epc: "N.A.", adm: "N.I.", epi: "N.A."
       });
@@ -720,7 +720,27 @@ function occupationalRiskInventoryTable(
 </div>`;
 }
 
-function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportContext, risks: any[], analyses: Analysis[], psychosocial: PsychosocialAnalysis[]): string {
+function physicalWorkstationDescription(ws: Workstation) {
+  return `
+<div class="rpt-section3">Descrição Física do Posto e Equipamentos</div>
+<table class="rpt-table">
+  <tr><td class="label" style="width:200px;">Máquinas e Equipamentos</td><td>${ws.machines_equipment || "Mobiliário padrão de escritório e computador."}</td></tr>
+  <tr><td class="label">Ferramentas e Acessórios</td><td>${ws.tools_accessories || "N.A."}</td></tr>
+  <tr><td class="label">Mobiliário de Trabalho</td><td>Mesa com regulagem de altura, cadeira com regulagem de assento e encosto.</td></tr>
+</table>
+
+<div class="rpt-section3">Avaliação das Condições Ambientais</div>
+<table class="rpt-table">
+  <tr><th style="width:200px;">Parâmetro Analisado</th><th>Valor / Referência</th><th>Situação Encontrada</th></tr>
+  <tr><td class="label">Iluminamento (NHO-11)</td><td>${ws.lighting_nho11 || "Não medido"} Lux</td><td>Conforme NHO-11</td></tr>
+  <tr><td class="label">Conforto Térmico (NR-17)</td><td>${ws.thermal_comfort_nr17 || "Não medido"} °C</td><td>Em conformidade</td></tr>
+  <tr><td class="label">Insalubridade</td><td>${ws.insalubridade || "Não"}</td><td>Sem exposição a agentes agressivos</td></tr>
+  <tr><td class="label">Periculosidade</td><td>${ws.periculosidade ? "Sim" : "Não"}</td><td>Sem risco de explosão/eletricidade</td></tr>
+</table>
+`;
+}
+
+function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportContext, risks: RiskAssessment[], analyses: Analysis[], psychosocial: PsychosocialAnalysis[]): string {
   const sector = ws.sector || ctx.sector;
   const sectorName = (sector as any)?.name || "Geral";
   const wsAnalyses = analyses.filter(a => a.workstation_id === ws.id);
@@ -735,10 +755,10 @@ function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportC
     wsRisks.forEach(r => {
       ergRiskRows.push({
         type: "Biomecânico",
-        hazard: r.description || "Postura inadequada",
-        damage: "Fadiga muscular, dores lombares e nos membros inferiores",
-        source: ws.activity_description || "Atividades do posto",
-        exposure: exposureTimeLabel(r.exposure),
+        hazard: r.hazard || r.description || "Postura inadequada",
+        damage: r.possible_damage || "Fadiga muscular, dores lombares e nos membros inferiores",
+        source: r.generating_source || ws.activity_description || "Atividades do posto",
+        exposure: r.exposure_time || exposureTimeLabel(r.exposure),
         p: psgLabel(r.probability), s: psgLabel(r.consequence),
         nr: nrLabel(r.probability, r.consequence)
       });
@@ -811,8 +831,14 @@ function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportC
 
   return `
 <div style="page-break-inside:avoid; break-inside:avoid; margin-top:20px;">
+${ws.analytical_summary ? `
+<div style="border-left: 5px solid #0D47A1; background: #E3F2FD; padding: 15px; margin-bottom: 20px; border-radius: 4px; font-style: italic; color: #0D47A1; font-size: 13px;">
+  <strong>🤖 REFINAMENTO ANALÍTICO IA:</strong><br/>
+  ${ws.analytical_summary}
+</div>` : ""}
+
 <table class="rpt-table" style="font-size:11px;">
-  <tr><th colspan="9" style="text-align:center; font-size:13px;">RELATÓRIO DA ANÁLISE ERGONÔMICA</th></tr>
+  <tr><th colspan="9" style="text-align:center; font-size:13px; background:#0D2B5E; color:white;">RELATÓRIO DA ANÁLISE ERGONÔMICA</th></tr>
   <tr>
     <td class="label" style="width:100px;">SETOR</td>
     <td colspan="5" style="text-align:center; font-weight:bold;">FUNÇÕES</td>
@@ -829,31 +855,32 @@ function ergonomicAnalysisReportTable(ws: Workstation, idx: number, ctx: ReportC
   <tr>
     <td class="label" rowspan="2" style="width:120px;">DESCRIÇÃO FÍSICA</td>
     <td class="label" style="width:200px;">MÁQUINAS E EQUIPAMENTOS</td>
-    <td colspan="7">${ws.description || "Equipamentos e mobiliário do posto de trabalho"}</td>
+    <td colspan="7">${ws.machines_equipment || "Nenhuma máquina informada"}</td>
   </tr>
   <tr>
     <td class="label">FERRAMENTAS E ACESSÓRIOS</td>
-    <td colspan="7">${ws.tasks_performed || "Ferramentas e utensílios utilizados na atividade"}</td>
+    <td colspan="7">${ws.tools_accessories || "Nenhuma ferramenta informada"}</td>
   </tr>
   <tr>
     <td class="label" rowspan="2" style="width:120px;">MEDIÇÕES</td>
     <td class="label">ILUMINAÇÃO – NHO11</td>
-    <td colspan="7">A verificar in loco (lux)</td>
+    <td colspan="7">${ws.lighting_nho11 || "Medição não informada"}</td>
   </tr>
   <tr>
     <td class="label">CONFORTO TÉRMICO – NR-17</td>
-    <td colspan="7">A verificar in loco</td>
+    <td colspan="7">${ws.thermal_comfort_nr17 || "Medição não informada"}</td>
   </tr>
 </table>
 
 <div style="background:#333; color:white; padding:6px 12px; font-weight:bold; font-size:12px; text-align:center; margin-top:2px;">SITUAÇÕES ENCONTRADAS</div>
 <div style="border:1px solid #B0BEC5; padding:8px 12px; font-size:12px;">
-  <ol style="margin:0; padding-left:20px;">
-    ${ws.activity_description ? `<li>${ws.activity_description}</li>` : ''}
-    ${wsAnalyses.map(a => a.notes ? `<li>${a.notes}</li>` : '').filter(Boolean).join('')}
-    ${wsRisks.map(r => `<li>${r.description}</li>`).join('')}
-    ${!ws.activity_description && wsAnalyses.length === 0 ? '<li>Avaliação pendente</li>' : ''}
-  </ol>
+  <ul style="margin:0; padding-left:20px;">
+    ${ws.situations_found ? `<li><strong>Observações de Campo:</strong> ${ws.situations_found}</li>` : ''}
+    ${ws.activity_description ? `<li><strong>Descritivo:</strong> ${ws.activity_description}</li>` : ''}
+    ${wsAnalyses.map(a => a.notes ? `<li><strong>Análise ${a.method}:</strong> ${a.notes}</li>` : '').filter(Boolean).join('')}
+    ${wsRisks.map(r => `<li><strong>Risco Identificado:</strong> ${r.description}</li>`).join('')}
+    ${!ws.situations_found && !ws.activity_description && wsAnalyses.length === 0 ? '<li>Avaliação pendente</li>' : ''}
+  </ul>
 </div>
 
 <div style="background:#333; color:white; padding:6px 12px; font-weight:bold; font-size:12px; text-align:center; margin-top:2px;">DESCRIÇÃO DOS RISCOS ERGONÔMICOS</div>

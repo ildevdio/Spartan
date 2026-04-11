@@ -189,5 +189,12 @@ export const mockSupabase = {
     getSession: async () => ({ data: { session: null }, error: null }),
     getUser: async () => ({ data: { user: null }, error: null }),
     signOut: async () => ({ error: null }),
-  }
+  },
+  channel: (name: string) => ({
+    on: () => ({
+      subscribe: () => ({})
+    }),
+    subscribe: () => ({})
+  }),
+  removeChannel: (channel: any) => ({})
 };

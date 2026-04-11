@@ -20,6 +20,10 @@ export default function RiscosPage() {
   const [exposure, setExposure] = useState(1);
   const [consequence, setConsequence] = useState(1);
   const [description, setDescription] = useState("");
+  const [hazard, setHazard] = useState("");
+  const [possibleDamage, setPossibleDamage] = useState("");
+  const [generatingSource, setGeneratingSource] = useState("");
+  const [exposureTime, setExposureTime] = useState("");
   const [isAutoFilling, setIsAutoFilling] = useState(false);
 
   const score = calculateRiskScore(probability, exposure, consequence);
@@ -37,9 +41,21 @@ export default function RiscosPage() {
       risk_score: score,
       risk_level: level,
       description,
+      hazard,
+      possible_damage: possibleDamage,
+      generating_source: generatingSource,
+      exposure_time: exposureTime,
     });
-    setOpen(false); setDescription(""); setAnalysisId("");
-    setProbability(1); setExposure(1); setConsequence(1);
+    setOpen(false); 
+    setDescription(""); 
+    setAnalysisId("");
+    setHazard("");
+    setPossibleDamage("");
+    setGeneratingSource("");
+    setExposureTime("");
+    setProbability(1); 
+    setExposure(1); 
+    setConsequence(1);
   };
 
   const handleAutoFill = async () => {
@@ -55,38 +71,53 @@ export default function RiscosPage() {
     try {
       for (const analysis of analysesToAssess) {
         let prob = 3, exp = 3, cons = 3;
-        let desc = "";
+        let desc = "", haz = "", dam = "", src = "", time = "Habitual";
+        
+        const ws = companyWorkstations.find(w => w.id === analysis.workstation_id);
+        const pa = postureAnalyses.find((p) => p.workstation_id === analysis.workstation_id);
 
-        // Use posture analysis data if available
-        const pa = postureAnalyses.filter((p) => p.workstation_id === analysis.workstation_id);
-        if (pa.length > 0) {
-          const latest = pa[pa.length - 1];
-          const riskMap: Record<string, number> = { low: 1, medium: 3, high: 6, critical: 10 };
-          const base = riskMap[latest.risk_level] || 3;
-          prob = Math.min(base, 10);
-          exp = Math.min(Math.ceil(base * 0.8), 10);
-          cons = Math.min(Math.ceil(base * 1.2), 10);
-          desc = `Preenchido automaticamente via análise postural. Risco: ${latest.risk_level}.`;
+        // ANALYTICAL LOGIC: 
+        // 1. Identify Hazard based on analysis method and notes
+        if (analysis.method === "RULA" || analysis.method === "REBA") {
+          haz = "Postura inadequada e sobrecarga biomêcanica de membros superiores e tronco.";
+          dam = "Lombalgias, cervicalgias e possíveis distúrbios osteomusculares (DORT).";
+        } else if (analysis.method === "ROSA") {
+          haz = "Arranjo físico inadequado do posto informatizado.";
+          dam = "Fadiga visual, tensões musculares em região cervical e ombros.";
         } else {
-          // Estimate from analysis score
-          const s = analysis.score;
-          if (s <= 3) { prob = 2; exp = 2; cons = 2; }
-          else if (s <= 7) { prob = 4; exp = 3; cons = 4; }
-          else { prob = 6; exp = 5; cons = 6; }
-          desc = `Preenchido automaticamente com base na análise ${analysis.method} (score: ${analysis.score}). Revise os valores.`;
+          haz = "Exposição a fatores de risco ergonômicos durante a execução das tarefas.";
+          dam = "Fadiga muscular e desconfortos localizados.";
         }
 
-        const autoScore = calculateRiskScore(prob, exp, cons);
-        const autoLevel = classifyRisk(autoScore);
+        // 2. Generating Source from Workstation description/tasks
+        src = ws?.machines_equipment 
+          ? `Operação de ${ws.machines_equipment} e mobiliário do posto.`
+          : ws?.tasks_performed 
+            ? `Execução da tarefa de: ${ws.tasks_performed}.`
+            : "Mobiliário e ferramentas de trabalho.";
+
+        // 3. Risk Scoring based on findings
+        const riskMap: Record<string, number> = { low: 2, medium: 4, high: 7, critical: 10 };
+        const base = pa ? riskMap[pa.risk_level] : (analysis.score > 7 ? 7 : analysis.score > 3 ? 4 : 2);
+        
+        prob = base;
+        exp = base > 6 ? 6 : 4;
+        cons = base;
+        
+        desc = `ANÁLISE IA: Identificado risco ${classifyRisk(calculateRiskScore(prob, exp, cons))} baseado na análise ${analysis.method} e nas fotos de postura enviadas para o posto ${ws?.name}. A fonte geradora principal é ${src}.`;
 
         await addRiskAssessment({
           analysis_id: analysis.id,
           probability: prob,
           exposure: exp,
           consequence: cons,
-          risk_score: autoScore,
-          risk_level: autoLevel,
+          risk_score: calculateRiskScore(prob, exp, cons),
+          risk_level: classifyRisk(calculateRiskScore(prob, exp, cons)),
           description: desc,
+          hazard: haz,
+          possible_damage: dam,
+          generating_source: src,
+          exposure_time: time,
         });
       }
       toast.success(`${analysesToAssess.length} avaliação(ões) de risco preenchida(s)!`);
@@ -160,8 +191,34 @@ export default function RiscosPage() {
                   <p className="text-lg font-bold">Score: {score}</p>
                   <p className="text-sm font-medium">Nível: {riskLevelLabel(level)}</p>
                 </div>
-                <Textarea placeholder="Descrição do risco" value={description} onChange={(e) => setDescription(e.target.value)} />
-                <Button onClick={handleSave} className="w-full">Salvar</Button>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Perigo / Fator de Risco</label>
+                    <Input placeholder="Ex: Postura inadequada" value={hazard} onChange={(e) => setHazard(e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium">Tempo de Exposição</label>
+                    <Input placeholder="Ex: Habitual / Intermitente" value={exposureTime} onChange={(e) => setExposureTime(e.target.value)} />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Danos Possíveis / Lesões</label>
+                  <Input placeholder="Ex: Lombalgia, DORT" value={possibleDamage} onChange={(e) => setPossibleDamage(e.target.value)} />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Fonte Geradora</label>
+                  <Input placeholder="Ex: Mobiliário, Máquina X" value={generatingSource} onChange={(e) => setGeneratingSource(e.target.value)} />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-medium">Justificativa / Observações</label>
+                  <Textarea placeholder="Descreva os detalhes da avaliação..." value={description} onChange={(e) => setDescription(e.target.value)} className="h-20" />
+                </div>
+
+                <Button onClick={handleSave} className="w-full" disabled={!analysisId}>Salvar Avaliação de Risco</Button>
               </div>
             </DialogContent>
           </Dialog>

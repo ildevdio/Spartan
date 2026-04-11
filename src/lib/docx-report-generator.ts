@@ -925,6 +925,11 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
       rows: [
         new TableRow({ children: [labelCell("Posto de Trabalho", 30), textCell(ws.name, false, 70)] }),
         new TableRow({ children: [labelCell("Setor", 30), textCell((sectorObj as any)?.name || "Geral", false, 70)] }),
+        new TableRow({ children: [labelCell("Máquinas/Equip.", 30), textCell(ws.machines_equipment || "—", false, 70)] }),
+        new TableRow({ children: [labelCell("Ferr./Acessórios", 30), textCell(ws.tools_accessories || "—", false, 70)] }),
+        new TableRow({ children: [labelCell("Iluminação NHO-11", 30), textCell(ws.lighting_nho11 || "—", false, 70)] }),
+        new TableRow({ children: [labelCell("Conf. Térmico", 30), textCell(ws.thermal_comfort_nr17 || "—", false, 70)] }),
+        new TableRow({ children: [labelCell("Situações Encontradas", 30), textCell(ws.situations_found || "—", false, 70)] }),
         new TableRow({ children: [labelCell("Descrição da Atividade", 30), textCell(ws.activity_description || ws.description, false, 70)] }),
         new TableRow({ children: [labelCell("Tarefas Executadas", 30), textCell(ws.tasks_performed || "—", false, 70)] }),
         new TableRow({ children: [labelCell("Fotos Capturadas", 30), textCell(String(wsPhotos.length), false, 70)] }),
@@ -1236,7 +1241,14 @@ async function generatePGRDocx(ctx: DocxReportContext): Promise<Document> {
           const a = analyses.find(an => an.id === r.analysis_id);
           const ws = a ? sectorWs.find(w => w.id === a.workstation_id) : null;
           return new TableRow({
-            children: [textCell(r.description, false, 20), textCell(ws?.name || "—", false, 20), textCell(String(r.probability), false, 10), textCell(String(r.consequence), false, 10), textCell(riskLevelLabel(r.risk_level).charAt(0), false, 10), textCell(actions.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I.", false, 30)],
+            children: [
+              textCell(r.hazard || r.description, false, 20), 
+              textCell(r.possible_damage || ws?.name || "—", false, 20), 
+              textCell(String(r.probability), false, 10), 
+              textCell(String(r.consequence), false, 10), 
+              textCell(riskLevelLabel(r.risk_level).charAt(0), false, 10), 
+              textCell(actions.filter(ap => ap.risk_assessment_id === r.id).map(ap => ap.description).join("; ") || "N.I.", false, 30)
+            ],
           });
         }) : [new TableRow({ children: [mergedCell("Nenhum risco identificado para este setor", 6)] })]),
       ],

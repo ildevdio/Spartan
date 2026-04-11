@@ -33,6 +33,17 @@ export interface Workstation {
   description: string;
   activity_description: string;
   tasks_performed: string;
+  machines_equipment?: string;
+  tools_accessories?: string;
+  lighting_nho11?: string;
+  thermal_comfort_nr17?: string;
+  situations_found?: string;
+  insalubridade?: "Não" | "10%" | "20%" | "40%";
+  periculosidade?: boolean;
+  work_schedule?: string;
+  break_times?: string;
+  report_processing_status?: "not_started" | "processing" | "completed";
+  analytical_summary?: string;
   created_at: string;
   sector?: Sector;
 }
@@ -140,6 +151,10 @@ export interface RiskAssessment {
   risk_score: number;
   risk_level: RiskLevel;
   description: string;
+  hazard?: string;
+  possible_damage?: string;
+  generating_source?: string;
+  exposure_time?: string;
   created_at: string;
   analysis?: Analysis;
 }

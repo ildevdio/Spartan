@@ -128,7 +128,7 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="border-r border-white/5">
       <SidebarHeader className="p-2 border-b border-sidebar-border">
         <button
           onClick={toggleSidebar}
@@ -181,20 +181,20 @@ export function AppSidebar() {
                 onOpenChange={() => toggleSection(sectionIdx)}
               >
                 <CollapsibleTrigger className={cn(
-                  "flex items-center w-full px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider",
-                  "hover:bg-sidebar-accent/50 transition-all duration-200 cursor-pointer rounded-md mx-1",
+                  "flex items-center w-full px-4 py-3 text-[10px] font-black uppercase tracking-[0.15em]",
+                  "hover:bg-sidebar-accent transition-all duration-300 cursor-pointer rounded-2xl mx-1 my-0.5",
                   hasActiveItem
-                    ? "text-sidebar-primary bg-sidebar-accent/30 border border-sidebar-primary/20"
-                    : "text-sidebar-muted border border-transparent",
+                    ? "text-sidebar-primary bg-sidebar-accent border-sidebar-border"
+                    : "text-sidebar-muted border-transparent",
                   collapsed && "justify-center px-1.5"
                 )}>
-                  <section.icon className={cn("h-4 w-4 shrink-0", collapsed ? "" : "mr-2")} />
+                  <section.icon className={cn("h-4 w-4 shrink-0 transition-transform group-hover:scale-110", collapsed ? "" : "mr-3")} />
                   {!collapsed && (
                     <>
                       <span className="flex-1 text-left">{section.label}</span>
                       <ChevronDown className={cn(
-                        "h-3.5 w-3.5 transition-transform duration-200",
-                        isOpen && "rotate-180"
+                        "h-3.5 w-3.5 transition-transform duration-300 opacity-40",
+                        isOpen && "rotate-180 opacity-100"
                       )} />
                     </>
                   )}
@@ -209,22 +209,22 @@ export function AppSidebar() {
                             to={item.url}
                             end={item.url === "/"}
                             className={cn(
-                              "hover:bg-sidebar-accent/50 transition-all duration-200",
+                              "hover:bg-sidebar-accent transition-all duration-200",
                               !collapsed && "pl-5"
                             )}
-                            activeClassName="bg-sidebar-accent text-sidebar-primary font-medium border-l-2 border-sidebar-primary"
+                            activeClassName="bg-sidebar-primary text-sidebar-primary-foreground font-bold border-l-[3px] border-sidebar-primary"
                           >
-                            <item.icon className="mr-1.5 h-3 w-3 shrink-0" />
+                            <item.icon className="mr-2 h-3.5 w-3.5 shrink-0 opacity-70" />
                             {!collapsed && (
                               <div className="flex items-center justify-between w-full">
-                                <span className="text-xs">{item.title}</span>
+                                <span className="text-xs font-medium tracking-tight">{item.title}</span>
                                 {item.isPremium && !isCompanyPro && (
-                                  <Lock className="h-2.5 w-2.5 text-muted-foreground/50 ml-1" />
+                                  <Lock className="h-3 w-3 text-white/20 ml-1" />
                                 )}
                               </div>
                             )}
                             {collapsed && item.isPremium && !isCompanyPro && (
-                              <div className="absolute top-1 right-1 h-1.5 w-1.5 bg-accent rounded-full border border-background shadow-sm" />
+                              <div className="absolute top-1 right-1 h-2 w-2 bg-primary rounded-full border-2 border-background shadow-lg" />
                             )}
                           </NavLink>
                         </SidebarMenuButton>
@@ -238,28 +238,25 @@ export function AppSidebar() {
         </div>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border px-2 py-1.5 flex flex-col gap-2">
-
-
+      <SidebarFooter className="border-t border-sidebar-border px-4 py-4 flex flex-col gap-4 bg-sidebar-accent/30">
         {!isCompanyPro && !collapsed && (
           <Button 
             onClick={() => setShowUpgradeDialog(true)}
             size="sm" 
-            className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-[10px] font-bold h-8 rounded-lg shadow-lg shadow-accent/10"
+            className="w-full bg-primary hover:bg-primary/90 text-white text-[10px] font-black h-10 rounded-2xl shadow-xl shadow-primary/20 tracking-widest uppercase transition-transform active:scale-95"
           >
-            <Zap className="h-3 w-3 mr-1 fill-current" />
+            <Zap className="h-3.5 w-3.5 mr-2 fill-current" />
             SPARTAN PRO
           </Button>
         )}
         
-
         {!collapsed && (
           <button
             onClick={() => setFocusDialogOpen(true)}
-            className="flex items-center justify-center gap-1.5 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity"
+            className="flex items-center justify-center gap-2 overflow-hidden cursor-pointer hover:opacity-80 transition-opacity py-1 group"
           >
-            <span className="text-[8px] text-sidebar-muted/70 tracking-wider uppercase whitespace-nowrap">Desenvolvido por:</span>
-            <img src={focusLogo} alt="Focus" className="h-4" />
+            <span className="text-[9px] text-sidebar-muted/40 tracking-[0.2em] uppercase font-black group-hover:text-sidebar-muted transition-colors">By:</span>
+            <img src={focusLogo} alt="Focus" className="h-5 drop-shadow-[0_0_8px_rgba(255,255,255,0.2)]" />
           </button>
         )}
       </SidebarFooter>

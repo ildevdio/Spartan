@@ -22,7 +22,9 @@ import FormularioOnlinePage from "./pages/FormularioOnlinePage";
 import DevSettingsPage from "./pages/DevSettingsPage";
 import { LicenseProvider } from "@/lib/license-context";
 import NotFound from "./pages/NotFound";
+import DesignConsensusPage from "./pages/DesignConsensusPage";
 import { useNativeApp } from "@/hooks/use-native-app";
+import { ThemeProvider } from "@/lib/theme-context";
 
 const queryClient = new QueryClient();
 
@@ -30,10 +32,11 @@ const App = () => {
   useNativeApp();
   return (
   <QueryClientProvider client={queryClient}>
-    <LicenseProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
+    <ThemeProvider>
+      <LicenseProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
           <BrowserRouter>
             <Routes>
               {/* Public/External Routes */}
@@ -58,6 +61,7 @@ const App = () => {
                       <Route path="/questionarios-psicossociais" element={<QuestionariosPsicossociaisPage />} />
                       <Route path="/responsavel-tecnico" element={<ResponsavelTecnicoPage />} />
                       <Route path="/dev-settings" element={<DevSettingsPage />} />
+                      <Route path="/dashboard-preview" element={<DesignConsensusPage />} />
                       
                       {/* Internal 404 for missing paths inside the layout */}
                       <Route path="*" element={<NotFound />} />
@@ -68,7 +72,8 @@ const App = () => {
             </Routes>
           </BrowserRouter>
       </TooltipProvider>
-    </LicenseProvider>
+      </LicenseProvider>
+    </ThemeProvider>
   </QueryClientProvider>
   );
 };
