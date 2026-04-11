@@ -128,19 +128,19 @@ export function AppSidebar() {
   };
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-white/5">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="p-2 border-b border-sidebar-border">
         <button
           onClick={toggleSidebar}
           className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity w-full"
         >
-          <img src={spartanLogo} alt="Spartan" className="h-8 shrink-0 object-contain" />
+          <img src={spartanLogo} alt="Spartan" className="h-12 shrink-0 object-contain" />
           {!collapsed && (
             <div className="text-left">
-              <h1 className="text-xs font-bold tracking-tight text-sidebar-foreground leading-none">
+              <h1 className="text-sm font-black tracking-tighter text-sidebar-foreground leading-none">
                 Spartan
               </h1>
-              <p className="text-[8px] text-sidebar-muted mt-0.5 tracking-wide uppercase">Ergonomia & Segurança</p>
+              <p className="text-[10px] text-sidebar-muted mt-1 tracking-widest uppercase font-bold">Ergonomia & Segurança</p>
             </div>
           )}
         </button>
@@ -280,7 +280,7 @@ export function AppSidebar() {
             />
           </div>
           <DialogFooter>
-            <Button onClick={handleActivate} className="w-full bg-accent hover:bg-accent/90">Ativar Agora</Button>
+            <Button onClick={handleActivate} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20">Ativar Agora</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -98,9 +98,9 @@ export function LockedFeatureWrapper({ children, title, description }: LockedFea
           <DialogFooter>
             <Button 
               onClick={handleActivate}
-              className="w-full bg-primary hover:bg-primary/90"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-lg shadow-primary/20"
             >
-              Validar Chave
+              Validar Licença
             </Button>
           </DialogFooter>
           <p className="text-[10px] text-center text-muted-foreground">

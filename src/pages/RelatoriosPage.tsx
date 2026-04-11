@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCompany } from "@/lib/company-context";
 import { MIN_PHOTOS_REQUIRED, type ReportType, riskLevelLabel, type RiskLevel } from "@/lib/types";
-import { FileText, CheckCircle2, AlertTriangle, Download, Loader2, BarChart3, ShieldAlert, Users, Target, Layers, Eye } from "lucide-react";
+import { FileText, CheckCircle2, AlertTriangle, Download, Loader2, BarChart3, ShieldAlert, Users, Target, Layers, Eye, ShieldCheck } from "lucide-react";
 import { CompanySelector } from "@/components/CompanySelector";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -12,6 +12,7 @@ import { generateReportHTML, type TechnicalResponsibleInfo } from "@/lib/report-
 import { Progress } from "@/components/ui/progress";
 import { ReportPreviewDialog } from "@/components/ReportPreviewDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useLicense } from "@/lib/license-context";
 
 const REPORT_TYPES: { type: ReportType; label: string; description: string }[] = [
   { type: "AET", label: "AET", description: "Análise Ergonômica do Trabalho (inclui AEP como anexo)" },
@@ -35,6 +36,7 @@ export default function RelatoriosPage() {
     riskAssessments, actionPlans, psychosocialAnalyses,
     companyQuestionnaireResponses,
   } = useCompany();
+  const { consultantName: contextConsultantName } = useLicense();
   const [generating, setGenerating] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [previewTitle, setPreviewTitle] = useState("");
@@ -253,12 +255,26 @@ export default function RelatoriosPage() {
       <div className="space-y-4 sm:space-y-6 max-w-full">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold">Relatórios</h1>
-            <p className="text-xs sm:text-sm text-muted-foreground">
-              Visualize e baixe o mesmo arquivo da pré-visualização (HTML)
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Relatórios de Consultoria</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-accent" />
+              Emitidos por <span className="font-semibold text-foreground uppercase tracking-wider">{contextConsultantName || "MG Consult"}</span>
             </p>
           </div>
           <CompanySelector />
+        </div>
+
+        {/* Branding Banner */}
+        <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-4 sm:p-6 rounded-2xl border border-white/5 shadow-xl relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-8 opacity-10 rotate-12 group-hover:rotate-0 transition-transform duration-500">
+            <FileText className="h-32 w-32" />
+          </div>
+          <div className="relative z-10">
+            <h2 className="text-lg font-bold text-white mb-1">Geração de Documentos Técnicos</h2>
+            <p className="text-slate-400 text-xs sm:text-sm max-w-xl">
+              Gere documentos profissionais com a identidade visual da consultoria. Todos os relatórios seguem os padrões da NR-01, NR-07, NR-09 e NR-17.
+            </p>
+          </div>
         </div>
 
         {/* Summary stats */}
@@ -374,8 +390,8 @@ export default function RelatoriosPage() {
                 const wsRisks = riskAssessments.filter((r) => wsAnalyses.some((a) => a.id === r.analysis_id));
                 const worstRisk = wsRisks.sort((a, b) => b.risk_score - a.risk_score)[0];
                 return (
-                  <div key={ws.id} className="p-3 rounded-lg bg-success/5 border border-success/20">
-                    <div className="flex items-center justify-between mb-2">
+                  <div key={ws.id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 shadow-sm hover:shadow-md transition-all group">
+                    <div className="flex items-center justify-between mb-3">
                       <div className="min-w-0">
                         <p className="text-sm font-medium truncate">{ws.name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -472,17 +488,20 @@ export default function RelatoriosPage() {
         {/* Report type cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {REPORT_TYPES.map((rt) => (
-            <Card key={rt.type} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => handlePreviewAll(rt.type)}>
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <FileText className="h-4 w-4 text-accent shrink-0" />
-                  <span className="font-bold text-xs sm:text-sm">{rt.label}</span>
+            <Card key={rt.type} className="cursor-pointer hover:shadow-lg transition-all border-slate-200/60 hover:border-accent/30 group" onClick={() => handlePreviewAll(rt.type)}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-2 rounded-lg bg-accent/5 group-hover:bg-accent/10 transition-colors">
+                    <FileText className="h-4 w-4 text-accent shrink-0" />
+                  </div>
+                  <span className="font-bold text-sm tracking-tight">{rt.label}</span>
                 </div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground mb-2 line-clamp-2">{rt.description}</p>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-[10px]">
+                <p className="text-[10px] sm:text-xs text-muted-foreground mb-3 line-clamp-2 leading-relaxed">{rt.description}</p>
+                <div className="flex items-center justify-between">
+                  <Badge variant="secondary" className="text-[9px] font-medium bg-slate-100 text-slate-600 hover:bg-slate-200">
                     <Eye className="h-2.5 w-2.5 mr-1" /> Visualizar
                   </Badge>
+                  <Download className="h-3 w-3 text-slate-300 group-hover:text-accent transition-colors" />
                 </div>
               </CardContent>
             </Card>

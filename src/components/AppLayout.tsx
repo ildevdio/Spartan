@@ -48,12 +48,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <span className="text-sm font-black text-foreground/90 uppercase tracking-[0.2em] truncate">Spartan Dashboard</span>
               </div>
               <div className="flex items-center gap-4">
-                 {!isFullVersion && <Badge variant="outline" className="hidden sm:flex border-white/10 bg-white/5 text-[9px] font-black uppercase tracking-widest text-white/40">Demo Mode</Badge>}
+                 {!isFullVersion && <Badge variant="outline" className="hidden sm:flex border-foreground/10 bg-foreground/5 text-[9px] font-black uppercase tracking-widest text-muted-foreground/40">Demo Mode</Badge>}
                  <Button 
                    variant="ghost" 
                    size="icon" 
                    onClick={toggleTheme}
-                   className="h-9 w-9 rounded-2xl bg-white/[0.03] border border-white/10 text-white/40 hover:text-primary transition-all active:scale-95"
+                   className="h-9 w-9 rounded-2xl bg-foreground/5 border border-foreground/10 text-muted-foreground hover:text-primary transition-all active:scale-95"
                  >
                    <Palette className="h-4 w-4" />
                  </Button>

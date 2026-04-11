@@ -30,45 +30,46 @@ export interface DocxReportContext {
 
 // ============ COLOR PALETTE ============
 const COLORS = {
-  primary: "0A1F44",
-  secondary: "1565C0",
-  tertiary: "1E88E5",
-  muted: "546E7A",
-  light: "90A4AE",
-  accent: "00838F",
-  accentBright: "00BCD4",
-  accentLight: "B2EBF2",
-  highlight: "FF6F00",
-  highlightLight: "FFF3E0",
-  warmRed: "D32F2F",
-  headerBg: "0A1F44",
-  headerText: "FFFFFF",
-  headerBg2: "1565C0",
-  headerBg3: "00838F",
-  rowAlt: "E3F2FD",
-  rowWhite: "FFFFFF",
-  cellLabel: "E1F5FE",
-  sectionBg: "00838F",
-  sectionText: "FFFFFF",
-  white: "FFFFFF",
-  border: "B0BEC5",
-  borderDark: "78909C",
-  greenBg: "C8E6C9",
-  greenText: "1B5E20",
-  greenBright: "43A047",
-  yellowBg: "FFF9C4",
-  yellowText: "F57F17",
-  yellowBright: "FFB300",
-  redBg: "FFCDD2",
-  redText: "B71C1C",
-  redBright: "E53935",
-  orangeBg: "FFE0B2",
-  orangeText: "E65100",
-  orangeBright: "FB8C00",
-  coverGradientTop: "0A1F44",
-  coverGradientMid: "1565C0",
-  coverAccent: "00BCD4",
-  footerBg: "F5F5F5",
+  primary: "0f172a",
+  secondary: "2563eb",
+  tertiary: "3b82f6",
+  muted: "64748b",
+  light: "94a3b8",
+  accent: "2563eb",
+  accentBright: "3b82f6",
+  accentLight: "dbeafe",
+  highlight: "f59e0b",
+  highlightLight: "fef3c7",
+  warmRed: "dc2626",
+  bg: "ffffff",
+  white: "ffffff",
+  headerBg: "0f172a",
+  headerText: "ffffff",
+  headerBg2: "2563eb",
+  headerBg3: "3b82f6",
+  rowAlt: "f8fafc",
+  rowWhite: "ffffff",
+  cellLabel: "f1f5f9",
+  sectionBg: "0f172a",
+  sectionText: "ffffff",
+  border: "e2e8f0",
+  borderDark: "cbd5e1",
+  greenBg: "dcfce7",
+  greenText: "166534",
+  greenBright: "22c55e",
+  yellowBg: "fef9c3",
+  yellowText: "854d0e",
+  yellowBright: "eab308",
+  redBg: "fee2e2",
+  redText: "991b1b",
+  redBright: "ef4444",
+  orangeBg: "ffedd5",
+  orangeText: "9a3412",
+  orangeBright: "f97316",
+  coverGradientTop: "0f172a",
+  coverGradientMid: "1e293b",
+  coverAccent: "2563eb",
+  footerBg: "f8fafc",
 };
 
 // ============ BORDER STYLES ============
@@ -247,20 +248,17 @@ function heading(text: string, level: typeof HeadingLevel[keyof typeof HeadingLe
       new TextRun({
         text,
         bold: true,
-        size: isH1 ? 30 : isH2 ? 26 : 22,
-        font: "Calibri",
-        color: isH1 ? COLORS.white : isH2 ? COLORS.secondary : COLORS.accent,
+        size: isH1 ? 32 : isH2 ? 28 : 24,
+        font: "Segoe UI",
+        color: isH1 ? COLORS.white : isH2 ? COLORS.primary : COLORS.secondary,
       }),
     ],
-    spacing: { before: isH1 ? 500 : 360, after: isH1 ? 200 : 140 },
-    shading: isH1 ? { type: ShadingType.SOLID, fill: COLORS.headerBg, color: COLORS.headerBg } : undefined,
+    spacing: { before: isH1 ? 600 : 400, after: isH1 ? 300 : 200 },
+    shading: isH1 ? { type: ShadingType.SOLID, fill: COLORS.primary, color: COLORS.primary } : undefined,
     border: isH1 ? undefined : isH2 ? {
-      bottom: { style: BorderStyle.SINGLE, size: 8, color: COLORS.accentBright, space: 6 },
-      left: { style: BorderStyle.SINGLE, size: 16, color: COLORS.secondary, space: 8 },
-    } : {
-      left: { style: BorderStyle.SINGLE, size: 12, color: COLORS.accent, space: 6 },
-    },
-    indent: isH1 ? { left: convertInchesToTwip(0.15), right: convertInchesToTwip(0.15) } : undefined,
+      bottom: { style: BorderStyle.SINGLE, size: 4, color: COLORS.secondary, space: 6 },
+    } : undefined,
+    indent: isH1 ? { left: convertInchesToTwip(0.1), right: convertInchesToTwip(0.1) } : undefined,
   });
 }
 
@@ -396,90 +394,76 @@ function getYear(): number {
 function createCoverPage(title: string, subtitle: string, company: Company, consultant: string): Paragraph[] {
   const year = new Date().getFullYear().toString();
   const coverShading = { type: ShadingType.SOLID, fill: COLORS.coverGradientTop, color: COLORS.coverGradientTop };
-  const coverShadingMid = { type: ShadingType.SOLID, fill: COLORS.secondary, color: COLORS.secondary };
-  const coverShadingAccent = { type: ShadingType.SOLID, fill: COLORS.accentBright, color: COLORS.accentBright };
   return [
-    // Top gradient bands
-    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 30 })] }),
-    new Paragraph({ shading: coverShadingMid, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 20 })] }),
-    new Paragraph({ shading: coverShadingAccent, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 8 })] }),
-    // Spacer with dark bg
-    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
-    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
-    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
-    new Paragraph({ shading: coverShading, spacing: { before: 600, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
+    // Top Margin
+    new Paragraph({ shading: coverShading, spacing: { before: convertInchesToTwip(0.5), after: 0 }, children: [new TextRun({ text: " ", size: 20 })] }),
+    
+    // Logo Spacer
+    new Paragraph({ shading: coverShading, spacing: { before: 400, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
+    
+    // Subtitle
+    new Paragraph({
+      children: [new TextRun({ text: subtitle.toUpperCase(), size: 28, font: "Segoe UI", color: COLORS.orangeBright, bold: true })],
+      alignment: AlignmentType.CENTER, spacing: { before: 1200, after: 100 },
+      shading: coverShading,
+    }),
+    
+    // Divider
+    new Paragraph({
+      children: [new TextRun({ text: "________________", size: 2, color: COLORS.orangeBright, bold: true })],
+      alignment: AlignmentType.CENTER, spacing: { after: 600 },
+      shading: coverShading,
+    }),
+
     // Title
     new Paragraph({
-      children: [new TextRun({ text: title, bold: true, size: 56, font: "Calibri", color: COLORS.white })],
-      alignment: AlignmentType.CENTER, spacing: { after: 60 },
+      children: [new TextRun({ text: title, bold: true, size: 52, font: "Segoe UI", color: COLORS.white })],
+      alignment: AlignmentType.CENTER, spacing: { after: 800 },
       shading: coverShading,
     }),
-    // Logo if exists
-    ...(company.logo_url ? [
-      new Paragraph({
-        children: [new TextRun({ text: " ", size: 20 })],
-        shading: coverShading,
-      })
-    ] : []),
-    // Subtitle badge
-    new Paragraph({
-      children: [new TextRun({ text: `  ${subtitle}  `, size: 36, font: "Calibri", color: COLORS.accentLight, bold: false })],
-      alignment: AlignmentType.CENTER, spacing: { after: 60 },
-      shading: coverShading,
-    }),
+
     // Year
     new Paragraph({
-      children: [new TextRun({ text: " ", size: 10 })],
-      shading: coverShading, spacing: { after: 400 },
-    }),
-    // Company name
-    new Paragraph({
-      children: [new TextRun({ text: (company.trade_name || company.name).toUpperCase(), bold: true, size: 40, font: "Calibri", color: COLORS.white })],
-      alignment: AlignmentType.CENTER, spacing: { after: 80 },
+      children: [new TextRun({ text: year, size: 28, font: "Segoe UI", color: COLORS.muted })],
+      alignment: AlignmentType.CENTER, spacing: { after: 1500 },
       shading: coverShading,
     }),
-    // CNPJ
+
+    // Client Box
     new Paragraph({
-      children: [
-        new TextRun({ text: "CNPJ: ", size: 22, font: "Calibri", color: COLORS.accentLight }),
-        new TextRun({ text: company.cnpj, size: 22, font: "Calibri", color: COLORS.accentLight, bold: true }),
-      ],
-      alignment: AlignmentType.CENTER, spacing: { after: 40 },
+      children: [new TextRun({ text: "RELATÓRIO TÉCNICO ELABORADO PARA:", size: 16, font: "Segoe UI", color: COLORS.light })],
+      alignment: AlignmentType.CENTER, shading: coverShading,
+    }),
+    new Paragraph({
+      children: [new TextRun({ text: (company.trade_name || company.name).toUpperCase(), bold: true, size: 32, font: "Segoe UI", color: COLORS.white })],
+      alignment: AlignmentType.CENTER, spacing: { before: 200, after: 100 },
       shading: coverShading,
     }),
-    // Address
     new Paragraph({
-      children: [new TextRun({ text: `${company.address}${company.neighborhood ? ', ' + company.neighborhood : ''} — ${company.city}/${company.state}`, size: 20, font: "Calibri", color: COLORS.accentLight })],
-      alignment: AlignmentType.CENTER, spacing: { after: 40 },
+      children: [new TextRun({ text: `CNPJ: ${company.cnpj}`, size: 18, font: "Segoe UI", color: COLORS.light })],
+      alignment: AlignmentType.CENTER, spacing: { after: 200 },
       shading: coverShading,
     }),
-    // Spacer
-    new Paragraph({ shading: coverShading, spacing: { before: 200, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
-    // Emission / Revision
     new Paragraph({
-      children: [new TextRun({ text: `Emissão: ${getToday()} | Revisão: 00`, size: 20, font: "Calibri", color: COLORS.accentLight })],
-      alignment: AlignmentType.CENTER, spacing: { after: 40 },
+      children: [new TextRun({ text: `UNIDADE: ${company.city} - ${company.state}`, size: 18, font: "Segoe UI", color: COLORS.light })],
+      alignment: AlignmentType.CENTER, spacing: { after: 1200 },
       shading: coverShading,
     }),
-    // Responsible
+
+    // Issuer (Consultancy)
     new Paragraph({
-      children: [new TextRun({ text: `Responsável Técnico: ${consultant}`, size: 20, font: "Calibri", color: COLORS.accentLight })],
-      alignment: AlignmentType.CENTER, spacing: { after: 40 },
+      children: [new TextRun({ text: `EMITIDO POR: ${consultant.toUpperCase()}`, size: 18, font: "Segoe UI", color: COLORS.white, bold: true })],
+      alignment: AlignmentType.CENTER, spacing: { after: 100 },
       shading: coverShading,
     }),
-    // Consultoria
     new Paragraph({
-      children: [new TextRun({ text: "MG Consultoria — Ergonomia & Segurança do Trabalho", size: 18, font: "Calibri", color: COLORS.light, italics: true })],
-      alignment: AlignmentType.CENTER, spacing: { after: 60 },
+      children: [new TextRun({ text: "Engenharia de Segurança e Medicina do Trabalho", size: 14, font: "Segoe UI", color: COLORS.light, italics: true })],
+      alignment: AlignmentType.CENTER, spacing: { after: 1500 },
       shading: coverShading,
     }),
-    // Bottom spacer + gradient bands
-    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
-    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
-    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
-    new Paragraph({ shading: coverShadingAccent, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 8 })] }),
-    new Paragraph({ shading: coverShadingMid, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 20 })] }),
-    new Paragraph({ shading: coverShading, spacing: { before: 0, after: 0 }, children: [new TextRun({ text: " ", size: 30 })] }),
+
+    // Bottom Spacer
+    new Paragraph({ shading: coverShading, spacing: { before: convertInchesToTwip(1), after: 0 }, children: [new TextRun({ text: " ", size: 10 })] }),
     pageBreak(),
   ];
 }
@@ -549,11 +533,11 @@ function riskMatrixTable(): Table {
 function signatureBlock(consultant: string, title = "Engenheiro de Segurança do Trabalho", registration = "CREA/CONFEA: XXXXX"): Paragraph[] {
   return [
     spacer(600),
-    new Paragraph({ children: [new TextRun({ text: "_____________________________________________", size: 22, font: "Calibri", color: COLORS.primary })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ children: [new TextRun({ text: consultant, bold: true, size: 22, font: "Calibri", color: COLORS.primary })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ children: [new TextRun({ text: title, size: 20, font: "Calibri", color: COLORS.secondary })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ children: [new TextRun({ text: registration, size: 20, font: "Calibri", color: COLORS.muted })], alignment: AlignmentType.CENTER, spacing: { after: 400 } }),
-    new Paragraph({ children: [new TextRun({ text: "Documento gerado pelo sistema Focus Spartan — MG Consultoria", size: 18, font: "Calibri", color: COLORS.light, italics: true })], alignment: AlignmentType.CENTER }),
+    new Paragraph({ children: [new TextRun({ text: "_____________________________________________", size: 22, font: "Segoe UI", color: COLORS.primary })], alignment: AlignmentType.CENTER }),
+    new Paragraph({ children: [new TextRun({ text: consultant, bold: true, size: 22, font: "Segoe UI", color: COLORS.primary })], alignment: AlignmentType.CENTER }),
+    new Paragraph({ children: [new TextRun({ text: title, size: 20, font: "Segoe UI", color: COLORS.secondary })], alignment: AlignmentType.CENTER }),
+    new Paragraph({ children: [new TextRun({ text: registration, size: 20, font: "Segoe UI", color: COLORS.muted })], alignment: AlignmentType.CENTER, spacing: { after: 400 } }),
+    new Paragraph({ children: [new TextRun({ text: "Documento gerado eletronicamente pela plataforma Spartan", size: 18, font: "Segoe UI", color: COLORS.light, italics: true })], alignment: AlignmentType.CENTER }),
   ];
 }
 
@@ -602,28 +586,28 @@ function createProfessionalHeader(reportType: string, companyName: string, logo?
   return new Header({ children: headerChildren });
 }
 
-function createProfessionalFooter(company?: Company): Footer {
+function createProfessionalFooter(consultantName: string = "MG Consult"): Footer {
   return new Footer({
     children: [
       new Paragraph({
         children: [
-          new TextRun({ text: "Spartan Ecosystem — Gestão de Saúde e Segurança do Trabalho", size: 14, font: "Calibri", color: COLORS.muted }),
-          new TextRun({ text: "    |    Página ", size: 14, font: "Calibri", color: COLORS.muted }),
-          new TextRun({ children: [PageNumber.CURRENT], size: 14, font: "Calibri", color: COLORS.muted, bold: true }),
-          new TextRun({ text: " de ", size: 14, font: "Calibri", color: COLORS.muted }),
-          new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 14, font: "Calibri", color: COLORS.muted, bold: true }),
+          new TextRun({ text: `${consultantName} — Engenharia de Segurança e Medicina do Trabalho`, size: 16, font: "Segoe UI", color: COLORS.muted }),
+          new TextRun({ text: "    |    Página ", size: 16, font: "Segoe UI", color: COLORS.muted }),
+          new TextRun({ children: [PageNumber.CURRENT], size: 16, font: "Segoe UI", color: COLORS.muted, bold: true }),
+          new TextRun({ text: " de ", size: 16, font: "Segoe UI", color: COLORS.muted }),
+          new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 16, font: "Segoe UI", color: COLORS.muted, bold: true }),
         ],
         alignment: AlignmentType.CENTER,
-        border: { top: { style: BorderStyle.SINGLE, size: 1, color: COLORS.border, space: 4 } },
+        border: { top: { style: BorderStyle.SINGLE, size: 1, color: COLORS.border, space: 10 } },
         spacing: { before: 200 },
       }),
     ],
   });
 }
 
-function createDocumentShell(title: string, company: Company, reportType: string, children: any[], logo?: { buffer: ArrayBuffer; width: number; height: number; type: "png" | "jpg" | "gif" | "bmp" }): Document {
+function createDocumentShell(title: string, company: Company, reportType: string, children: any[], consultantName: string, logo?: { buffer: ArrayBuffer; width: number; height: number; type: "png" | "jpg" | "gif" | "bmp" }): Document {
   return new Document({
-    creator: "Spartan - MG Consultoria",
+    creator: `Spartan - ${consultantName}`,
     title: `${reportType} - ${company.name}`,
     description: title,
     sections: [{
@@ -631,7 +615,7 @@ function createDocumentShell(title: string, company: Company, reportType: string
         page: { margin: { top: convertInchesToTwip(1), bottom: convertInchesToTwip(0.8), left: convertInchesToTwip(1.2), right: convertInchesToTwip(1) } },
       },
       headers: { default: createProfessionalHeader(reportType, company.name, logo) },
-      footers: { default: createProfessionalFooter(company) },
+      footers: { default: createProfessionalFooter(consultantName) },
       children,
     }],
   });
@@ -1120,8 +1104,8 @@ async function generateAETDocx(ctx: DocxReportContext): Promise<Document> {
     ],
   }));
 
-  children.push(createProfessionalFooter(company));
-  return createDocumentShell("Análise Ergonômica do Trabalho", company, "AET", children, logoBuffer || undefined);
+  children.push(createProfessionalFooter(consultant));
+  return createDocumentShell("Análise Ergonômica do Trabalho", company, "AET", children, consultant, logoBuffer || undefined);
 }
 
 // ========== PGR REPORT — Matches HTML preview ==========
@@ -1295,8 +1279,8 @@ async function generatePGRDocx(ctx: DocxReportContext): Promise<Document> {
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
-  children.push(createProfessionalFooter(company));
-  return createDocumentShell("Programa de Gerenciamento de Riscos", company, "PGR", children, logoBuffer || undefined);
+  children.push(createProfessionalFooter(consultant));
+  return createDocumentShell("Programa de Gerenciamento de Riscos", company, "PGR", children, consultant, logoBuffer || undefined);
 }
 
 // ========== APR REPORT — Matches HTML preview ==========
@@ -1427,8 +1411,8 @@ async function generateAPRDocx(ctx: DocxReportContext): Promise<Document> {
   children.push(body(`A implementação das ações recomendadas contribuirá significativamente para a redução dos riscos psicossociais e promoção da saúde mental no ambiente de trabalho da ${company.trade_name || company.name}.`));
 
   children.push(...signatureBlock(consultant));
-  children.push(createProfessionalFooter(company));
-  return createDocumentShell("Avaliação Preliminar de Riscos Psicossociais", company, "APR", children, logoBuffer || undefined);
+  children.push(createProfessionalFooter(consultant));
+  return createDocumentShell("Avaliação Preliminar de Riscos Psicossociais", company, "APR", children, consultant, logoBuffer || undefined);
 }
 
 // ========== PCMSO REPORT — Matches HTML preview ==========
@@ -1532,8 +1516,8 @@ async function generatePCMSODocx(ctx: DocxReportContext): Promise<Document> {
   children.push(accentCallout("O PCMSO deve ser revisado anualmente ou sempre que houver alteração nos riscos ocupacionais.", "info"));
 
   children.push(...signatureBlock(medico, "Médico do Trabalho", "CRM: XXXXX"));
-  children.push(createProfessionalFooter(company));
-  return createDocumentShell("PCMSO", company, "PCMSO", children, logoBuffer || undefined);
+  children.push(createProfessionalFooter(medico));
+  return createDocumentShell("PCMSO", company, "PCMSO", children, medico, logoBuffer || undefined);
 }
 
 // ========== LTCAT REPORT — Matches HTML preview ==========
@@ -1615,8 +1599,8 @@ async function generateLTCATDocx(ctx: DocxReportContext): Promise<Document> {
   ["Anexo I — Equipamentos de Medição e Certificados de Calibração", "Anexo II — Avaliações de Ruído/Químico", "Anexo III — Habilitação do Responsável Técnico e ART"].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
-  children.push(createProfessionalFooter(company));
-  return createDocumentShell("LTCAT", company, "LTCAT", children, logoBuffer || undefined);
+  children.push(createProfessionalFooter(consultant));
+  return createDocumentShell("LTCAT", company, "LTCAT", children, consultant, logoBuffer || undefined);
 }
 
 // ========== INSALUBRIDADE REPORT — Matches HTML preview ==========
@@ -1692,8 +1676,8 @@ async function generateInsalubridadeDocx(ctx: DocxReportContext): Promise<Docume
   ["Anexo I — Certificados de Calibração dos Equipamentos", "Anexo II — Resultados das Medições Ambientais", "Anexo III — ART do Responsável Técnico"].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
-  children.push(createProfessionalFooter(company));
-  return createDocumentShell("Laudo de Insalubridade", company, "Insalubridade", children, logoBuffer || undefined);
+  children.push(createProfessionalFooter(consultant));
+  return createDocumentShell("Laudo de Insalubridade", company, "Insalubridade", children, consultant, logoBuffer || undefined);
 }
 
 // ========== PERICULOSIDADE REPORT — Matches HTML preview ==========
@@ -1774,8 +1758,8 @@ async function generatePericulosidadeDocx(ctx: DocxReportContext): Promise<Docum
   children.push(accentCallout("O laudo deve ser atualizado sempre que houver alteração nas condições de trabalho, processos ou introdução de novos agentes perigosos.", "info"));
 
   children.push(...signatureBlock(consultant));
-  children.push(createProfessionalFooter(company));
-  return createDocumentShell("Laudo de Periculosidade", company, "Periculosidade", children, logoBuffer || undefined);
+  children.push(createProfessionalFooter(consultant));
+  return createDocumentShell("Laudo de Periculosidade", company, "Periculosidade", children, consultant, logoBuffer || undefined);
 }
 
 // ========== PCA REPORT — Matches HTML preview ==========
@@ -1876,8 +1860,8 @@ async function generatePCADocx(ctx: DocxReportContext): Promise<Document> {
   ["Anexo I — Certificados de Calibração (Dosímetro/Decibelímetro)", "Anexo II — Laudos de Audiometria", "Anexo III — Fichas de Entrega de EPA"].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
-  children.push(createProfessionalFooter(company));
-  return createDocumentShell("PCA", company, "PCA", children, logoBuffer || undefined);
+  children.push(createProfessionalFooter(consultant));
+  return createDocumentShell("PCA", company, "PCA", children, consultant, logoBuffer || undefined);
 }
 
 // ========== PPR REPORT — Matches HTML preview ==========
@@ -2002,8 +1986,8 @@ async function generatePPRDocx(ctx: DocxReportContext): Promise<Document> {
   ].forEach(t => children.push(bulletItem(t)));
 
   children.push(...signatureBlock(consultant));
-  children.push(createProfessionalFooter(company));
-  return createDocumentShell("PPR", company, "PPR", children, logoBuffer || undefined);
+  children.push(createProfessionalFooter(consultant));
+  return createDocumentShell("PPR", company, "PPR", children, consultant, logoBuffer || undefined);
 }
 
 // ========== GENERIC REPORT ==========
@@ -2057,8 +2041,8 @@ async function generateGenericDocx(ctx: DocxReportContext): Promise<Document> {
   }
 
   children.push(...signatureBlock(consultant));
-  children.push(createProfessionalFooter(company));
-  return createDocumentShell(reportType, company, reportType, children, logoBuffer || undefined);
+  children.push(createProfessionalFooter(consultant));
+  return createDocumentShell(reportType, company, reportType, children, consultant, logoBuffer || undefined);
 }
 
 // ========== MAIN EXPORT ==========

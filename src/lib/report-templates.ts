@@ -54,315 +54,275 @@ export function generateReportHTML(ctx: ReportContext): string {
 
 function sharedStyles() {
   return `<style>
-    @import url('https://fonts.googleapis.com/css2?family=Calibri:wght@400;700&display=swap');
-    *, *::before, *::after { box-sizing: border-box; }
-    body, .rpt-body {
-      font-family: Calibri, 'Segoe UI', Arial, sans-serif;
-      font-size: 12pt;
-      color: #000;
-      line-height: 1.6;
-      background: white;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700;800&display=swap');
+    
+    :root {
+      --primary: #0f172a;
+      --primary-foreground: #ffffff;
+      --accent: #2563eb;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --bg: #ffffff;
     }
-    p { text-align: justify; margin: 8px 0 12px 0; }
-    ul, ol { margin: 6px 0 12px 0; padding-left: 24px; }
-    li { margin-bottom: 4px; text-align: justify; }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    
+    body, .rpt-body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 11pt;
+      color: var(--primary);
+      line-height: 1.6;
+      background: var(--bg);
+      margin: 0;
+      padding: 0;
+    }
+
+    h1, h2, h3, h4, .rpt-title {
+      font-family: 'Outfit', sans-serif;
+      color: var(--primary);
+    }
+
+    p { text-align: justify; margin: 10px 0 15px 0; }
+    ul, ol { margin: 8px 0 15px 0; padding-left: 28px; }
+    li { margin-bottom: 6px; text-align: justify; }
 
     /* === COVER PAGE === */
     .rpt-cover {
       position: relative;
       text-align: center;
-      min-height: 95vh;
+      min-height: 297mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      padding: 80px 60px;
+    }
+
+    .rpt-cover-header {
+      width: 100%;
+      text-align: left;
+      margin-bottom: 40px;
+    }
+
+    .rpt-cover-logo {
+      height: 80px;
+      max-width: 300px;
+      object-fit: contain;
+    }
+
+    .rpt-cover-body {
+      flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: center;
-      background: white;
-      overflow: hidden;
-      padding: 60px 40px;
+      width: 100%;
     }
-    .rpt-cover::before {
-      content: '';
-      position: absolute;
-      top: -80px;
-      left: -100px;
-      right: -100px;
-      height: 280px;
-      background: linear-gradient(135deg, #0D2B5E 0%, #1565C0 40%, #2196F3 70%, #29B6F6 100%);
-      border-radius: 0 0 50% 50%;
-      z-index: 0;
-    }
-    .rpt-cover::after {
-      content: '';
-      position: absolute;
-      bottom: -80px;
-      left: -100px;
-      right: -100px;
-      height: 250px;
-      background: linear-gradient(135deg, #29B6F6 0%, #1565C0 50%, #0D2B5E 100%);
-      border-radius: 50% 50% 0 0;
-      z-index: 0;
-    }
-    .rpt-cover-inner {
-      position: relative;
-      z-index: 1;
-    }
-    .rpt-cover .cover-logo {
-      position: absolute;
-      top: 30px;
-      right: 40px;
-      z-index: 2;
-    }
+
     .rpt-cover h1 {
-      font-size: 52px;
-      font-weight: bold;
-      color: #0D2B5E;
-      margin-bottom: 8px;
-      letter-spacing: 2px;
+      font-size: 48pt;
+      font-weight: 800;
+      color: var(--primary);
+      margin: 0;
+      line-height: 1.1;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
     }
+
     .rpt-cover h2 {
-      font-size: 24px;
-      font-weight: bold;
-      color: #0D2B5E;
-      margin-bottom: 40px;
+      font-size: 24pt;
+      font-weight: 400;
+      color: var(--accent);
+      margin: 10px 0 60px 0;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
     }
-    .rpt-cover .year {
-      font-size: 18px;
-      color: #333;
-      margin-bottom: 40px;
+
+    .rpt-cover-divider {
+      width: 80px;
+      height: 4px;
+      background: var(--accent);
+      margin: 0 auto 60px auto;
     }
-    .rpt-cover .company-info {
-      position: absolute;
-      bottom: 100px;
-      left: 50px;
-      text-align: left;
-      z-index: 2;
-    }
-    .rpt-cover .company-info p {
-      font-size: 14px;
-      color: #333;
-      margin: 2px 0;
+
+    .rpt-cover-client-box {
+      margin-top: auto;
+      width: 100%;
+      padding: 30px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid var(--border);
       text-align: left;
     }
 
-    /* === PAGE HEADER (per section) === */
+    .rpt-cover-client-box p {
+      margin: 4px 0;
+      font-size: 10pt;
+      color: var(--muted);
+      text-align: left;
+    }
+
+    .rpt-cover-client-box strong {
+      color: var(--primary);
+      font-size: 12pt;
+    }
+
+    /* === PAGE HEADER === */
     .rpt-page-header {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 20px;
-      border: 1px solid #000;
+      margin-bottom: 30px;
+      border-bottom: 2px solid var(--primary);
     }
     .rpt-page-header td {
-      border: 1px solid #000;
-      padding: 4px 8px;
-      vertical-align: middle;
-      font-size: 10px;
+      padding: 10px 0;
+      vertical-align: bottom;
+    }
+    .rpt-page-header .hdr-logo-cell {
+      width: 180px;
     }
     .rpt-page-header .hdr-logo {
-      width: 120px;
-      text-align: center;
-      background: white;
+      height: 50px;
+      max-width: 180px;
+      object-fit: contain;
     }
-    .rpt-page-header .hdr-title {
-      text-align: center;
-      font-size: 12px;
-      font-weight: bold;
-      background: white;
-    }
-    .rpt-page-header .hdr-sms {
-      width: 160px;
-      text-align: center;
-      background: white;
-      font-size: 10px;
-    }
-    .rpt-page-header .sms-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 9px;
-    }
-    .rpt-page-header .sms-table td {
-      border: 1px solid #999;
-      padding: 2px 4px;
-      text-align: center;
-    }
-    .rpt-page-header .sms-table th {
-      border: 1px solid #999;
-      padding: 2px 4px;
-      font-weight: bold;
-      font-size: 9px;
-      color: #333;
+    .rpt-page-header .hdr-info {
+      text-align: right;
+      font-size: 9pt;
+      color: var(--muted);
     }
 
-    /* === PAGE FOOTER (per section) === */
-    .rpt-page-footer {
-      text-align: center;
-      font-size: 10px;
-      color: #555;
-      margin-top: 30px;
-      padding-top: 8px;
+    /* === TABLES === */
+    .rpt-table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      margin: 20px 0;
     }
-
-    /* === SECTION HEADERS (clean document style) === */
-    .rpt-section {
-      font-size: 16px;
-      font-weight: bold;
-      color: #000;
-      margin: 28px 0 14px 0;
-      padding: 0;
-      border: none;
-      background: none;
-      border-radius: 0;
-    }
-    .rpt-section2 {
-      font-size: 14px;
-      font-weight: bold;
-      color: #000;
-      margin: 22px 0 10px 0;
-      padding: 0;
-      border: none;
-      background: none;
-      border-radius: 0;
-    }
-    .rpt-section3 {
-      font-size: 13px;
-      font-weight: bold;
-      color: #000;
-      margin: 18px 0 8px 0;
-      padding: 0;
-      border: none;
-      border-left: none;
-      background: none;
-      border-radius: 0;
-      text-decoration: underline;
-    }
-
-    /* === CALLOUTS (simplified) === */
-    .rpt-callout {
-      border-left: 3px solid #999;
-      background: #f9f9f9;
-      padding: 10px 14px;
-      margin: 12px 0;
-      border-radius: 0;
-      font-style: italic;
-      color: #333;
-      font-size: 12px;
-    }
-    .rpt-callout.warning { border-left-color: #FF6F00; background: #FFF8E1; }
-    .rpt-callout.success { border-left-color: #43A047; background: #E8F5E9; }
-    .rpt-callout.danger  { border-left-color: #D32F2F; background: #FFEBEE; }
-
-    /* === TABLES (clean document style) === */
-    .rpt-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
     .rpt-table th {
-      background: #f0f0f0;
-      color: #000;
-      padding: 8px 10px;
-      font-size: 11px;
+      background: var(--primary);
+      color: white;
+      padding: 12px 15px;
+      font-size: 10pt;
       text-align: left;
-      border: 1px solid #000;
-      font-weight: bold;
+      font-weight: 600;
+      font-family: 'Outfit', sans-serif;
     }
-    .rpt-table th.alt  { background: #e8e8e8; }
-    .rpt-table th.teal { background: #e8e8e8; }
-    .rpt-table th.risk-hdr { background: #e8e8e8; }
     .rpt-table td {
-      padding: 7px 10px;
-      font-size: 11px;
-      border: 1px solid #000;
+      padding: 10px 15px;
+      font-size: 10pt;
+      border-bottom: 1px solid var(--border);
       vertical-align: top;
     }
-    .rpt-table tr:nth-child(even) td { background: #fafafa; }
+    .rpt-table tr:nth-child(even) td { background: #f8fafc; }
     .rpt-table td.label {
-      background: #f0f0f0;
-      font-weight: bold;
-      color: #000;
-      border: 1px solid #000;
-      text-align: right;
+      background: #f1f5f9;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* === CALLOUTS === */
+    .rpt-callout {
+      background: #f8fafc;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 8px;
+      border-left: 5px solid var(--accent);
+      font-size: 10.5pt;
+    }
+
+    /* === SECTIONS === */
+    .rpt-section {
+      font-size: 18pt;
+      font-weight: 700;
+      margin: 40px 0 20px 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .rpt-section2 {
+      font-size: 14pt;
+      font-weight: 600;
+      margin: 30px 0 15px 0;
+      color: var(--accent);
     }
 
     /* === BADGES === */
-    .rpt-badge { display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 11px; font-weight: bold; }
-    .rpt-badge.green  { background: #C8E6C9; color: #1B5E20; }
-    .rpt-badge.yellow { background: #FFF9C4; color: #F57F17; }
-    .rpt-badge.orange { background: #FFE0B2; color: #E65100; }
-    .rpt-badge.red    { background: #FFCDD2; color: #B71C1C; }
+    .rpt-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 9pt;
+      font-weight: 600;
+    }
+    .rpt-badge.green  { background: #dcfce7; color: #166534; }
+    .rpt-badge.yellow { background: #fef9c3; color: #854d0e; }
+    .rpt-badge.orange { background: #ffedd5; color: #9a3412; }
+    .rpt-badge.red    { background: #fee2e2; color: #991b1b; }
 
-    /* === SIGNATURE & FOOTER === */
-    .rpt-divider { height: 1px; background: #000; margin: 20px 0; }
-    .rpt-sig { text-align: center; margin-top: 50px; padding-top: 20px; }
+    /* === FOOTER === */
     .rpt-footer {
       text-align: center;
-      font-size: 10px;
-      color: #555;
-      margin-top: 24px;
-      padding-top: 6px;
+      font-size: 9pt;
+      color: var(--muted);
+      margin-top: 50px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
     }
 
-    /* === PAGE BREAKS === */
-    .page-break { page-break-after: always; break-after: page; }
-    .rpt-section { page-break-before: always; break-before: page; page-break-after: avoid; break-after: avoid; }
-    .rpt-section2 { page-break-before: auto; page-break-after: avoid; break-after: avoid; }
-    .rpt-section3 { page-break-before: auto; page-break-after: avoid; break-after: avoid; }
-    .rpt-table { page-break-inside: avoid; break-inside: avoid; }
-    .rpt-table tr { page-break-inside: avoid; break-inside: avoid; }
-    .rpt-callout { page-break-inside: avoid; break-inside: avoid; }
-    .rpt-cover { page-break-inside: avoid; break-inside: avoid; page-break-after: always; break-after: page; }
-    .rpt-sig { page-break-inside: avoid; break-inside: avoid; }
-    ul, ol { page-break-inside: avoid; break-inside: avoid; }
-    h1, h2, h3, h4 { page-break-after: avoid; break-after: avoid; }
     @media print {
-      .rpt-cover { page-break-after: always !important; }
-      .rpt-section { page-break-before: always !important; }
-      .no-print { display: none !important; }
+      body { -webkit-print-color-adjust: exact; }
+      .page-break { page-break-after: always; }
+      .rpt-section { page-break-before: always; }
     }
   </style>`;
 }
 
 function coverPage(title: string, subtitle: string, company: Company, consultant: string) {
-  const logo = company.logo_url || "/mg-consult-logo.png";
+  // Use professional fallback or provided logo
+  const consultancyLogo = "/mg-consult-logo.png"; 
+  
   return `
 <div class="rpt-cover">
-  <div class="cover-logo">
-    <img src="${logo}" alt="Company Logo" style="height:100px; max-width:250px; object-fit:contain;" onerror="this.style.display='none'" />
+  <div class="rpt-cover-header">
+    <img src="${consultancyLogo}" alt="${consultant}" class="rpt-cover-logo" onerror="this.style.display='none'" />
   </div>
-  <div class="rpt-cover-inner">
-    <h1>${subtitle}</h1>
-    <h2>${title}</h2>
-    <p class="year">${getYear()}</p>
+  
+  <div class="rpt-cover-body">
+    <h2>${subtitle}</h2>
+    <div class="rpt-cover-divider"></div>
+    <h1>${title}</h1>
+    <p style="font-size: 16pt; color: #64748b; margin-top: 40px; font-family: 'Outfit', sans-serif;">${getYear()}</p>
   </div>
-  <div class="company-info">
+
+  <div class="rpt-cover-client-box">
+    <p>RELATÓRIO TÉCNICO ELABORADO PARA:</p>
     <p><strong>${(company.trade_name || company.name).toUpperCase()}</strong></p>
     <p>CNPJ: ${company.cnpj}</p>
+    <p>UNIDADE: ${company.city} - ${company.state}</p>
   </div>
 </div><div class="page-break"></div>`;
 }
 
-function pageHeader(docTitle: string, company: Company, sheetNum: string = "01") {
-  const logo = company.logo_url || "/mg-consult-logo.png";
+function pageHeader(docTitle: string, company: Company, consultantName: string = "MG Consult") {
+  const consultancyLogo = "/mg-consult-logo.png";
   return `
 <table class="rpt-page-header">
   <tr>
-    <td class="hdr-logo" rowspan="2">
-      <img src="${logo}" alt="Logo" style="height:45px; max-width:130px; object-fit:contain;" onerror="this.innerHTML='<strong style=font-size:9px>CERTIFIED<br>DOCUMENT</strong>'" />
+    <td class="hdr-logo-cell">
+      <img src="${consultancyLogo}" alt="${consultantName}" class="hdr-logo" onerror="this.style.display='none'" />
     </td>
-    <td class="hdr-title" rowspan="2" style="padding:6px;">
-      <div style="font-size:12px; font-weight:bold;">${docTitle}</div>
-      <div style="font-size:9px; color:#666; margin-top:2px;">${company.trade_name || company.name} — CNPJ: ${company.cnpj}</div>
-    </td>
-    <td class="hdr-sms">
-      <table class="sms-table">
-        <tr><th colspan="2">SMS</th></tr>
-        <tr><td>Emissão:</td><td>${getToday()}</td></tr>
-        <tr><td>Revisão:</td><td>00</td></tr>
-        <tr><td>Folha:</td><td>${sheetNum}</td></tr>
-      </table>
+    <td class="hdr-info">
+      <div style="font-weight: bold; color: var(--primary); font-size: 11pt;">${docTitle}</div>
+      <div>Emitido por: ${consultantName}</div>
+      <div>Cliente: ${company.trade_name || company.name} — CNPJ: ${company.cnpj}</div>
     </td>
   </tr>
 </table>`;
 }
 
-function pageFooter() {
-  return `<div class="rpt-page-footer">
-    <img src="/mg-consult-logo.png" alt="MG Consult" style="height:30px;" onerror="this.style.display='none'" />
+function pageFooter(consultantName: string = "MG Consult") {
+  return `<div class="rpt-footer">
+    <p>${consultantName} — Engenharia de Segurança e Medicina do Trabalho</p>
+    <p style="font-size: 8pt; opacity: 0.6; margin-top: 5px;">Documento gerado eletronicamente pela plataforma Spartan</p>
   </div>`;
 }
 
@@ -415,12 +375,6 @@ function signatureBlock(consultant: string, title: string = "Engenheiro de Segur
 </div>`;
 }
 
-function footer(company?: Company) {
-  const logo = company?.logo_url || "/mg-consult-logo.png";
-  return `<div class="rpt-page-footer">
-    <img src="${logo}" alt="Logo" style="height:35px; max-width:150px; object-fit:contain;" onerror="this.style.display='none'" />
-  </div>`;
-}
 
 
 
@@ -1117,7 +1071,7 @@ function generateAETReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("ANÁLISE ERGONÔMICA DO TRABALHO", "AET", company, consultant)}
-${pageHeader("ANÁLISE ERGONÔMICA DO TRABALHO — AET", company)}
+${pageHeader("ANÁLISE ERGONÔMICA DO TRABALHO — AET", company, consultant)}
 
 <div class="rpt-section" style="page-break-before:avoid;">ÍNDICE</div>
 <table class="rpt-table">
@@ -1478,7 +1432,7 @@ ${photos.length > 0 ? `
   <tr><td>17.8</td><td>Fatores psicossociais avaliados</td><td>${psychosocialAverages.length > 0 ? '✓ Sim' : '✗ Não'}</td><td>${psychosocialAverages.length} posto(s) avaliado(s)</td></tr>
 </table>
 
-${footer()}`;
+${pageFooter(consultant)}`;
 }
 
 // ==================== PGR ====================
@@ -1488,7 +1442,7 @@ function generatePGRReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE GERENCIAMENTO DE RISCOS", "PGR", company, consultant)}
-${pageHeader("PROGRAMA DE GERENCIAMENTO DE RISCOS — PGR", company)}
+${pageHeader("PROGRAMA DE GERENCIAMENTO DE RISCOS — PGR", company, consultant)}
 
 ${revisionTable()}
 
@@ -1627,7 +1581,7 @@ ${actions.length > 0 ? `<table class="rpt-table">
 </ul>
 
 ${signatureBlock(consultant, undefined, undefined, rt)}
-${footer()}`;
+${pageFooter(consultant)}`;
 }
 
 // ==================== APR (Avaliação Preliminar de Riscos Psicossociais) ====================
@@ -1638,7 +1592,7 @@ function generateAPRReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("AVALIAÇÃO PRELIMINAR DE RISCOS PSICOSSOCIAIS", "APR — FRPRT", company, consultant)}
-${pageHeader("AVALIAÇÃO PRELIMINAR DE RISCOS PSICOSSOCIAIS — APR", company)}
+${pageHeader("AVALIAÇÃO PRELIMINAR DE RISCOS PSICOSSOCIAIS — APR", company, consultant)}
 
 ${revisionTable()}
 
@@ -1718,7 +1672,7 @@ ${psychosocialAverages.length > 0 ? psychosocialAverages.map(avg => {
 <p>A implementação das ações recomendadas contribuirá significativamente para a redução dos riscos psicossociais e promoção da saúde mental no ambiente de trabalho da <strong>${company.trade_name || company.name}</strong>.</p>
 
 ${signatureBlock(consultant, undefined, undefined, rt)}
-${footer()}`;
+${pageFooter(consultant)}`;
 }
 
 // ==================== PCMSO ====================
@@ -1729,7 +1683,7 @@ function generatePCMSOReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE CONTROLE MÉDICO DE SAÚDE OCUPACIONAL", "PCMSO", company, medico)}
-${pageHeader("PROGRAMA DE CONTROLE MÉDICO DE SAÚDE OCUPACIONAL — PCMSO", company)}
+${pageHeader("PROGRAMA DE CONTROLE MÉDICO DE SAÚDE OCUPACIONAL — PCMSO", company, medico)}
 
 ${revisionTable()}
 
@@ -1836,7 +1790,7 @@ ${companyDataTable(company)}
 <div class="rpt-callout">O PCMSO deve ser revisado anualmente ou sempre que houver alteração nos riscos ocupacionais.</div>
 
 ${signatureBlock(medico, "Médico do Trabalho", "CRM: XXXXX")}
-${footer()}`;
+${pageFooter(consultant)}`;
 }
 
 // ==================== LTCAT ====================
@@ -1846,7 +1800,7 @@ function generateLTCATReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DO TRABALHO", "LTCAT", company, consultant)}
-${pageHeader("LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DO TRABALHO — LTCAT", company)}
+${pageHeader("LAUDO TÉCNICO DAS CONDIÇÕES AMBIENTAIS DO TRABALHO — LTCAT", company, consultant)}
 
 ${revisionTable()}
 
@@ -1935,7 +1889,7 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
 </ul>
 
 ${signatureBlock(consultant, undefined, undefined, rt)}
-${footer()}`;
+${pageFooter(consultant)}`;
 }
 
 // ==================== LAUDO DE INSALUBRIDADE ====================
@@ -1945,7 +1899,7 @@ function generateInsalubridadeReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DE INSALUBRIDADE", "NR-15", company, consultant)}
-${pageHeader("LAUDO TÉCNICO DE INSALUBRIDADE — NR-15", company)}
+${pageHeader("LAUDO TÉCNICO DE INSALUBRIDADE — NR-15", company, consultant)}
 
 ${revisionTable()}
 
@@ -2008,7 +1962,7 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
 </ul>
 
 ${signatureBlock(consultant, undefined, undefined, rt)}
-${footer()}`;
+${pageFooter(consultant)}`;
 }
 
 // ==================== LAUDO DE PERICULOSIDADE ====================
@@ -2018,7 +1972,7 @@ function generatePericulosidadeReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("LAUDO TÉCNICO DE PERICULOSIDADE", "NR-16", company, consultant)}
-${pageHeader("LAUDO TÉCNICO DE PERICULOSIDADE — NR-16", company)}
+${pageHeader("LAUDO TÉCNICO DE PERICULOSIDADE — NR-16", company, consultant)}
 
 ${revisionTable()}
 
@@ -2081,7 +2035,7 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
 <div class="rpt-callout">O laudo deve ser atualizado sempre que houver alteração nas condições de trabalho, processos ou introdução de novos agentes perigosos.</div>
 
 ${signatureBlock(consultant, undefined, undefined, rt)}
-${footer()}`;
+${pageFooter(consultant)}`;
 }
 
 // ==================== PCA ====================
@@ -2091,7 +2045,7 @@ function generatePCAReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE CONSERVAÇÃO AUDITIVA", "PCA", company, consultant)}
-${pageHeader("PROGRAMA DE CONSERVAÇÃO AUDITIVA — PCA", company)}
+${pageHeader("PROGRAMA DE CONSERVAÇÃO AUDITIVA — PCA", company, consultant)}
 
 ${revisionTable()}
 
@@ -2173,7 +2127,7 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
 </ul>
 
 ${signatureBlock(consultant, undefined, undefined, rt)}
-${footer()}`;
+${pageFooter(consultant)}`;
 }
 
 // ==================== PPR ====================
@@ -2183,7 +2137,7 @@ function generatePPRReport(ctx: ReportContext): string {
 
   return `${sharedStyles()}
 ${coverPage("PROGRAMA DE PROTEÇÃO RESPIRATÓRIA", "PPR", company, consultant)}
-${pageHeader("PROGRAMA DE PROTEÇÃO RESPIRATÓRIA — PPR", company)}
+${pageHeader("PROGRAMA DE PROTEÇÃO RESPIRATÓRIA — PPR", company, consultant)}
 
 ${revisionTable()}
 
@@ -2290,7 +2244,7 @@ ${Array.from(sectorMap.entries()).map(([_, { sectorName, workstations: sectorWs 
 </ul>
 
 ${signatureBlock(consultant, undefined, undefined, rt)}
-${footer()}`;
+${pageFooter(consultant)}`;
 }
 
 // ==================== GENERIC FALLBACK ====================
@@ -2324,5 +2278,5 @@ ${risks.length > 0 ? `<table class="rpt-table">
 ${actions.length > 0 ? actions.map(ap => `<p>• ${ap.description} (${ap.responsible} — ${ap.deadline})</p>`).join("") : "<p>Sem recomendações.</p>"}
 
 ${signatureBlock(consultant, undefined, undefined, rt)}
-${footer()}`;
+${pageFooter(consultant)}`;
 }

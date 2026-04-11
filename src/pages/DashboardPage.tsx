@@ -88,9 +88,6 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-3">
           <CompanySelector />
-          <Button size="icon" variant="ghost" className="h-10 w-10 rounded-2xl bg-foreground/5 border border-foreground/10 group transition-all hover:bg-foreground/10">
-            <Bell className="h-5 w-5 text-muted-foreground group-hover:text-primary" />
-          </Button>
         </div>
       </section>
 

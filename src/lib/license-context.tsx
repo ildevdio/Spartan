@@ -7,6 +7,7 @@ interface LicenseContextType {
   isFullVersion: boolean;
   isDeveloper: boolean;
   licenseKey: string | null;
+  consultantName: string | null;
   showUpgradeDialog: boolean;
   setShowUpgradeDialog: (show: boolean) => void;
   activateLicense: (key: string) => Promise<boolean>;
@@ -28,6 +29,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
   const [licenseKey, setLicenseKey] = useState<string | null>(null);
   const [isFullVersion, setIsFullVersion] = useState(false);
   const [isDeveloper, setIsDeveloper] = useState(false);
+  const [consultantName, setConsultantName] = useState<string | null>(null);
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
   useEffect(() => {
@@ -60,6 +62,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
         if (deobfuscatedStored === MGCONSULT_KEY) {
           setLicenseKey(deobfuscatedStored);
           setIsFullVersion(true);
+          setConsultantName("MG Consult");
           return;
         }
 
@@ -80,6 +83,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
           }
           setLicenseKey(masterLicense.license_id);
           setIsFullVersion(true);
+          setConsultantName(masterLicense.client_name);
         } else {
           // Key no longer valid or deactivated
           localStorage.removeItem(STORAGE_KEY);
@@ -126,8 +130,9 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
         setLicenseKey(inputKey);
         setIsDeveloper(isDev);
         setIsFullVersion(true);
+        setConsultantName(isMGConsult ? "MG Consult" : (masterLicense?.client_name || "Consultoria Spartan"));
         
-        toast.success(isDev ? "Modo Desenvolvedor Ativado!" : `Acesso Pro: ${masterLicense?.client_name || "Spartan Pro"}`);
+        toast.success(isDev ? "Modo Desenvolvedor Ativado!" : `Acesso Pro: ${masterLicense?.client_name || "MG Consult"}`);
         
         // Redirect to home and reload to ensure all contexts refresh with the NEW client
         setTimeout(() => {
@@ -167,6 +172,7 @@ export function LicenseProvider({ children }: { children: React.ReactNode }) {
       isFullVersion, 
       isDeveloper, 
       licenseKey, 
+      consultantName,
       showUpgradeDialog,
       setShowUpgradeDialog,
       activateLicense, 

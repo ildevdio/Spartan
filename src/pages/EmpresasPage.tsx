@@ -238,25 +238,38 @@ export function CompanyForm({
 
       <div className="flex flex-col items-center gap-4 py-4 border-b">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Logo da Empresa (Papel Timbrado)</Label>
-        <div className="relative group cursor-pointer h-24 w-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-border hover:border-primary/50 transition-colors">
+        <div className="relative h-24 w-48 bg-muted rounded-lg flex items-center justify-center overflow-hidden border-2 border-dashed border-border hover:border-primary/50 transition-colors">
           {logoUrl ? (
-            <img src={logoUrl} className="h-full w-full object-contain p-2" />
+            <div className="relative h-full w-full group/logo">
+              <img src={logoUrl} className="h-full w-full object-contain p-2" />
+              {!isReadonly && (
+                <button
+                  type="button"
+                  onClick={() => setLogoUrl("")}
+                  className="absolute top-1 right-1 p-1 bg-destructive/80 hover:bg-destructive text-white rounded-md opacity-0 group-hover/logo:opacity-100 transition-opacity z-10"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           ) : (
             <div className="text-center p-4">
               {uploadingLogo ? <Loader2 className="h-6 w-6 animate-spin mx-auto" /> : <ImageIcon className="h-6 w-6 text-muted-foreground/40 mx-auto" />}
               <p className="text-[10px] text-muted-foreground mt-1">Upload Logo</p>
             </div>
           )}
-          <input 
-            type="file" 
-            className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
-            accept="image/*"
-            disabled={isReadonly}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) handleLogoUpload(file);
-            }}
-          />
+          {!logoUrl && (
+            <input 
+              type="file" 
+              className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" 
+              accept="image/*"
+              disabled={isReadonly}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleLogoUpload(file);
+              }}
+            />
+          )}
         </div>
       </div>
 
